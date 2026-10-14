@@ -1,0 +1,31 @@
+---
+title: meganemura
+description: Small command-line tools written for coding agents to read and for people to review.
+template: splash
+hero:
+  tagline: Small command-line tools written for coding agents to read and for people to review.
+  actions:
+    - text: Browse the tools
+      link: "#tools"
+      icon: right-arrow
+---
+
+import ToolCards from '../../components/ToolCards.astro';
+import DogfoodGraph from '../../components/DogfoodGraph.astro';
+
+## Tools
+
+Every version, description, and install command below is read from the npm registry, not typed by hand.
+
+<ToolCards lang="en" />
+
+## How the tools use each other
+
+<DogfoodGraph lang="en" />
+
+## Sentences that run
+
+Some sentences on the tool pages carry a small mark such as "checked with archstrict".
+That sentence is tied to a command in this repository.
+The build runs the command and compares its exit code and output with what the sentence says.
+If the tool changes and the sentence stops being true, the check fails and names the sentence.

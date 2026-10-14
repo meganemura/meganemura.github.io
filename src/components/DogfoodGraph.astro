@@ -1,0 +1,31 @@
+---
+import { layoutGraph } from "../../scripts/graph/index.ts";
+import { graphEdges, t, toolFacts, toolHref, type Lang } from "../lib/data.ts";
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const text = t(lang);
+const layout = layoutGraph(toolFacts.map((fact) => fact.slug), graphEdges);
+---
+
+<figure class="dogfood">
+  <svg viewBox={`0 0 ${layout.width} ${layout.height}`} role="img" aria-label={text.graphLabel}>
+    <defs>
+      <marker id="dogfood-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0 0L10 5L0 10z" class="dogfood__arrowhead"></path>
+      </marker>
+    </defs>
+    {layout.edges.map((edge) => (
+      <path d={edge.path} class="dogfood__edge" marker-end="url(#dogfood-arrow)"><title>{`${edge.from} → ${edge.to}`}</title></path>
+    ))}
+    {layout.nodes.map((node) => (
+      <a href={toolHref(node.id, lang)}>
+        <circle cx={node.x} cy={node.y} r={node.r} class="dogfood__node"></circle>
+        <text x={node.labelX} y={node.labelY} text-anchor={node.anchor} class="dogfood__label">{node.id}</text>
+      </a>
+    ))}
+  </svg>
+  <figcaption>{text.graphCaption}</figcaption>
+</figure>

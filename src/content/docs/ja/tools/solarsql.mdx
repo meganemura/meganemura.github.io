@@ -1,0 +1,11 @@
+---
+title: solarsql
+---
+
+import ToolFacts from '../../../../components/ToolFacts.astro';
+
+<ToolFacts slug="solarsql" lang="ja" />
+
+solarsql は、Cloudflare の D1 と Durable Objects 上の SQLite のための、型付きの SQL レイヤーです。
+書くのは SQL です。ビルド時に本物のエンジンへ戻り値を問い合わせ、その型を書き出します。
+コマンドは文の並びで、どちらの実行先でも 1 つのトランザクションとして動き、失敗は値として返ります。

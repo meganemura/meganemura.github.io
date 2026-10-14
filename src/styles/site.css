@@ -1,0 +1,47 @@
+.tool-cards {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+  list-style: none;
+  padding: 0;
+}
+.tool-card {
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  background: var(--sl-color-bg-nav);
+}
+.tool-card h3 { margin: 0 0 0.5rem; font-size: var(--sl-text-lg); }
+.tool-card p { margin: 0 0 0.5rem; font-size: var(--sl-text-sm); }
+.tool-card code { font-size: var(--sl-text-xs); overflow-wrap: anywhere; }
+.tool-card__version, .tool-facts__version, .tool-facts__license {
+  color: var(--sl-color-gray-3);
+  font-size: var(--sl-text-sm);
+  font-weight: normal;
+}
+.tool-card__uses { color: var(--sl-color-gray-3); }
+.tool-facts {
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.5rem;
+  padding: 0 1rem;
+  margin-bottom: 1.5rem;
+}
+.tool-facts__label { margin-bottom: 0; color: var(--sl-color-gray-3); font-size: var(--sl-text-sm); }
+.tool-facts__links { padding-left: 1.2rem; }
+.dogfood { margin: 1.5rem 0; }
+.dogfood svg { width: 100%; height: auto; display: block; }
+.dogfood figcaption { color: var(--sl-color-gray-3); font-size: var(--sl-text-sm); margin-top: 0.5rem; }
+.dogfood__node { fill: var(--sl-color-accent); stroke: var(--sl-color-bg); stroke-width: 2; }
+.dogfood__label { fill: var(--sl-color-text); font-size: 15px; }
+.dogfood__edge { fill: none; stroke: var(--sl-color-gray-3); stroke-width: 1.5; }
+.dogfood__arrowhead { fill: var(--sl-color-gray-3); }
+.dogfood a:hover .dogfood__label { text-decoration: underline; }
+.claim__mark {
+  color: var(--sl-color-green-high, var(--sl-color-gray-2));
+  font-size: var(--sl-text-xs);
+  white-space: nowrap;
+}
+.demo { margin: 1rem 0; }
+.demo figcaption { font-size: var(--sl-text-sm); }
+.demo__meta { color: var(--sl-color-gray-3); margin-left: 0.5rem; }
+.demo pre { overflow-x: auto; }

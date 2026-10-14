@@ -1,0 +1,11 @@
+---
+title: solarsql
+---
+
+import ToolFacts from '../../../components/ToolFacts.astro';
+
+<ToolFacts slug="solarsql" lang="en" />
+
+solarsql is a typed SQL layer for SQLite on Cloudflare D1 and Durable Objects.
+You write SQL, and the build step asks the real engine what the SQL returns and writes the types down.
+A command is a list of statements that runs as one transaction on both targets, and a failure comes back as a value.

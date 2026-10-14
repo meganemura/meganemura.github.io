@@ -1,0 +1,32 @@
+---
+title: archstrict
+---
+
+import ToolFacts from '../../../components/ToolFacts.astro';
+import Claim from '../../../components/Claim.astro';
+import Demo from '../../../components/Demo.astro';
+
+<ToolFacts slug="archstrict" lang="en" />
+
+archstrict checks TypeScript module boundaries, in the sense of ArchUnit.
+A module shows the rest of the codebase one public-surface file, and an import that reaches past it is a violation.
+Each report carries a rule id, a location, the reason, and the command that fixes it, so an agent can repair its own mistake.
+
+## Try it on a fixture
+
+The repository keeps two small projects in `fixtures/`.
+In the first, one file imports `billing/rounding.ts` directly, past the public surface of the `billing` module.
+
+<Claim tool="archstrict" run="archstrict check" cwd="fixtures/archstrict-bypass" exit={1} includes={["public-surface-bypass", "src/app/main.ts:1:28"]}>archstrict reports that import as `public-surface-bypass`, with the file, line, and column.</Claim>
+
+<Demo tool="archstrict" run="archstrict check" cwd="fixtures/archstrict-bypass" exit={1} />
+
+In the second project, the same code imports through `billing/index.ts`.
+
+<Claim tool="archstrict" run="archstrict check" cwd="fixtures/archstrict-surface" exit={0}>The check passes once the import goes through the public surface.</Claim>
+
+Before you create a file, ask which module governs it.
+
+<Claim tool="archstrict" run="archstrict rules src/billing/rounding.ts" cwd="fixtures/archstrict-bypass" includes={["module: billing", "surface file: no"]}>`archstrict rules <path>` names the module that governs a path and says whether the file is a public surface.</Claim>
+
+<Demo tool="archstrict" run="archstrict rules src/billing/rounding.ts" cwd="fixtures/archstrict-bypass" />

@@ -10,7 +10,7 @@
     "facts": "node scripts/facts.ts",
     "claims": "node scripts/claims.ts",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "astro sync && tsc --noEmit",
     "archstrict": "archstrict check",
     "check": "npm run typecheck && npm test && npm run archstrict && node scripts/facts.ts --check && npm run claims"
   },

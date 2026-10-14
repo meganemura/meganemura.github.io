@@ -1,0 +1,31 @@
+---
+title: meganemura
+description: コーディングエージェントが読み、人が確認するための、小さなコマンドラインツール集です。
+template: splash
+hero:
+  tagline: コーディングエージェントが読み、人が確認するための、小さなコマンドラインツール集です。
+  actions:
+    - text: ツールを見る
+      link: "#ツール"
+      icon: right-arrow
+---
+
+import ToolCards from '../../../components/ToolCards.astro';
+import DogfoodGraph from '../../../components/DogfoodGraph.astro';
+
+## ツール
+
+下のバージョン、説明、インストールコマンドは、手で書いたものではなく npm レジストリから読んだ値です。
+
+<ToolCards lang="ja" />
+
+## ツール同士の使い方
+
+<DogfoodGraph lang="ja" />
+
+## 実行される文
+
+ツールのページの文には、「確認に使用 archstrict」のような小さな印が付くものがあります。
+その文は、このリポジトリのコマンドに結び付いています。
+ビルド時にそのコマンドを実行し、終了コードと出力を文の内容と照らし合わせます。
+ツールが変わって文が正しくなくなると、検査が失敗し、その文を指摘します。

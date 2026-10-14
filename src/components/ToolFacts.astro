@@ -1,0 +1,32 @@
+---
+import { factFor, installCommand, t, toolHref, usersOf, type Lang } from "../lib/data.ts";
+
+interface Props {
+  slug: string;
+  lang: Lang;
+}
+const { slug, lang } = Astro.props;
+const fact = factFor(slug);
+const text = t(lang);
+const users = usersOf(slug);
+---
+
+<section class="tool-facts">
+  <p class="tool-facts__head">
+    <strong>{fact.name}</strong>
+    <span class="tool-facts__version">v{fact.version}</span>
+    {fact.license && <span class="tool-facts__license">{fact.license}</span>}
+  </p>
+  <p>{fact.description}</p>
+  <p class="tool-facts__label">{text.install}</p>
+  <pre><code>{installCommand(fact)}</code></pre>
+  <ul class="tool-facts__links">
+    <li><a href={fact.repo}>{text.repo}</a></li>
+    {fact.uses.length > 0 && (
+      <li>{text.uses}: {fact.uses.map((use, i) => <>{i > 0 && ", "}<a href={toolHref(use, lang)}>{use}</a></>)}</li>
+    )}
+    {users.length > 0 && (
+      <li>{text.usedBy}: {users.map((user, i) => <>{i > 0 && ", "}<a href={toolHref(user, lang)}>{user}</a></>)}</li>
+    )}
+  </ul>
+</section>

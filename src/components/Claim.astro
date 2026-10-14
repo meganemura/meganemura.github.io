@@ -1,0 +1,17 @@
+---
+import { claimFor, t, type Lang } from "../lib/data.ts";
+
+interface Props {
+  tool: string;
+  run: string;
+  cwd?: string;
+  exit?: number;
+  includes?: string[];
+}
+const { tool, run, cwd = ".", exit = 0, includes = [] } = Astro.props;
+const lang: Lang = Astro.url.pathname.startsWith("/ja/") ? "ja" : "en";
+const record = claimFor({ tool, run, cwd, exit, includes });
+const mark = `${t(lang).checkedWith} ${record.tool} ${record.version}`;
+---
+
+<span class="claim"><slot /> <span class="claim__mark" title={`${run} (${cwd}) → ${t(lang).exitCode} ${exit}`}><span aria-hidden="true">✓</span> {mark}</span></span>

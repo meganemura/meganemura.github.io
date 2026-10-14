@@ -1,0 +1,32 @@
+---
+title: archstrict
+---
+
+import ToolFacts from '../../../../components/ToolFacts.astro';
+import Claim from '../../../../components/Claim.astro';
+import Demo from '../../../../components/Demo.astro';
+
+<ToolFacts slug="archstrict" lang="ja" />
+
+archstrict は、ArchUnit と同じ意味で、TypeScript のモジュール境界を検査します。
+モジュールは、コードベースの残りに公開用のファイルを 1 つだけ見せ、それを飛び越える import は違反になります。
+違反の報告には、規則の ID、場所、理由、直すためのコマンドが付くので、エージェントが自分の誤りを自分で直せます。
+
+## フィクスチャで試す
+
+このリポジトリの `fixtures/` に、小さなプロジェクトが 2 つあります。
+1 つ目では、あるファイルが `billing/rounding.ts` を直接 import していて、`billing` モジュールの公開面を飛び越えています。
+
+<Claim tool="archstrict" run="archstrict check" cwd="fixtures/archstrict-bypass" exit={1} includes={["public-surface-bypass", "src/app/main.ts:1:28"]}>archstrict は、その import を `public-surface-bypass` として、ファイル、行、列つきで報告します。</Claim>
+
+<Demo tool="archstrict" run="archstrict check" cwd="fixtures/archstrict-bypass" exit={1} />
+
+2 つ目のプロジェクトでは、同じコードが `billing/index.ts` 経由で import しています。
+
+<Claim tool="archstrict" run="archstrict check" cwd="fixtures/archstrict-surface" exit={0}>import を公開面経由にすると、検査は通ります。</Claim>
+
+ファイルを作る前に、どのモジュールがそのパスを管理しているかを尋ねられます。
+
+<Claim tool="archstrict" run="archstrict rules src/billing/rounding.ts" cwd="fixtures/archstrict-bypass" includes={["module: billing", "surface file: no"]}>`archstrict rules <path>` は、そのパスを管理するモジュールと、そのファイルが公開面かどうかを答えます。</Claim>
+
+<Demo tool="archstrict" run="archstrict rules src/billing/rounding.ts" cwd="fixtures/archstrict-bypass" />

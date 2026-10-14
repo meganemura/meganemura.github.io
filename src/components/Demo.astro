@@ -1,0 +1,23 @@
+---
+import { claimFor, t, type Lang } from "../lib/data.ts";
+
+interface Props {
+  tool: string;
+  run: string;
+  cwd?: string;
+  exit?: number;
+  includes?: string[];
+}
+const { tool, run, cwd = ".", exit = 0, includes = [] } = Astro.props;
+const lang: Lang = Astro.url.pathname.startsWith("/ja/") ? "ja" : "en";
+const record = claimFor({ tool, run, cwd, exit, includes });
+const text = t(lang);
+---
+
+<figure class="demo">
+  <figcaption>
+    <code>$ {run}</code>
+    <span class="demo__meta">{text.ran} {cwd} · {text.exitCode} {record.exit} · {record.tool} {record.version}</span>
+  </figcaption>
+  <pre><code>{record.stdout}</code></pre>
+</figure>

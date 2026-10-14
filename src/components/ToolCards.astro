@@ -1,0 +1,20 @@
+---
+import { t, toolFacts, toolHref, type Lang } from "../lib/data.ts";
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const text = t(lang);
+---
+
+<ul class="tool-cards">
+  {toolFacts.map((fact) => (
+    <li class="tool-card">
+      <h3><a href={toolHref(fact.slug, lang)}>{fact.slug}</a> <span class="tool-card__version">v{fact.version}</span></h3>
+      <p>{fact.description}</p>
+      <code>{`npm install ${fact.name}`}</code>
+      {fact.uses.length > 0 && <p class="tool-card__uses">{text.uses}: {fact.uses.join(", ")}</p>}
+    </li>
+  ))}
+</ul>
