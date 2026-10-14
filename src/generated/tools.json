@@ -1,0 +1,147 @@
+[
+  {
+    "slug": "archstrict",
+    "name": "archstrict",
+    "version": "0.3.0",
+    "description": "TypeScript module boundary checker: default-private module surfaces, layers, cycles, and a todo freeze that can only shrink.",
+    "bins": [
+      "archstrict"
+    ],
+    "license": "MIT",
+    "repo": "https://github.com/meganemura/archstrict",
+    "uses": [
+      "depug",
+      "nukadoko",
+      "stryker-agent-reporter"
+    ]
+  },
+  {
+    "slug": "depug",
+    "name": "@meganemura/depug",
+    "version": "0.1.3",
+    "description": "Measure runtime values in TypeScript test runs instead of guessing them from source.",
+    "bins": [
+      "depug"
+    ],
+    "license": "MIT",
+    "repo": "https://github.com/meganemura/depug",
+    "uses": []
+  },
+  {
+    "slug": "finderscope",
+    "name": "finderscope",
+    "version": "0.3.0",
+    "description": "Turn V8 CPU and heap profiles into short, ranked reports with runnable next commands for coding agents.",
+    "bins": [
+      "finderscope"
+    ],
+    "license": "MIT",
+    "repo": "https://github.com/meganemura/finderscope",
+    "uses": [
+      "archstrict",
+      "stryker-agent-reporter"
+    ]
+  },
+  {
+    "slug": "firstlight",
+    "name": "firstlight",
+    "version": "0.2.0",
+    "description": "Run lint, typecheck, and tests in parallel for a coding agent, and return at the first failure.",
+    "bins": [
+      "firstlight"
+    ],
+    "license": "MIT",
+    "repo": "https://github.com/meganemura/firstlight",
+    "uses": [
+      "archstrict",
+      "depug",
+      "stryker-agent-reporter"
+    ]
+  },
+  {
+    "slug": "nukadoko",
+    "name": "nukadoko",
+    "version": "0.14.1",
+    "description": "Typed step contracts for Gherkin, so a scenario can be told wrong before it runs. The vocabulary is machine-readable for agents, and every execution leaves a step record the tool measured rather than the agent reported.",
+    "bins": [
+      "nuka"
+    ],
+    "license": "MIT",
+    "repo": "https://github.com/meganemura/nukadoko",
+    "uses": [
+      "archstrict",
+      "depug"
+    ]
+  },
+  {
+    "slug": "polylinedb",
+    "name": "polylinedb",
+    "version": "0.5.2",
+    "description": "Polyline database: project memory and task tracking for local tools and cloud agents",
+    "bins": [
+      "pd"
+    ],
+    "license": "MIT",
+    "repo": "https://github.com/meganemura/polylinedb",
+    "uses": [
+      "archstrict",
+      "solarsql",
+      "stryker-agent-reporter"
+    ]
+  },
+  {
+    "slug": "solarsql",
+    "name": "solarsql",
+    "version": "0.7.1",
+    "description": "Typed SQL for SQLite on Cloudflare D1 and Durable Objects: types from the real engine at build time, a command as one transaction, failures as values.",
+    "bins": [
+      "solarsql"
+    ],
+    "license": "MIT",
+    "repo": "https://github.com/meganemura/solarsql",
+    "uses": [
+      "archstrict",
+      "stryker-agent-reporter"
+    ]
+  },
+  {
+    "slug": "spacequery",
+    "name": "spacequery",
+    "version": "0.3.0",
+    "description": "Named queries over the state of one developer's machine: which coding agents run where, which repositories are dirty, which worktrees and sessions sit idle.",
+    "bins": [
+      "spacequery"
+    ],
+    "license": "MIT",
+    "repo": "https://github.com/meganemura/spacequery",
+    "uses": [
+      "solarsql"
+    ]
+  },
+  {
+    "slug": "stow",
+    "name": "@meganemura/stow",
+    "version": "0.1.1",
+    "description": "Personal skills for Git checkouts with local host links",
+    "bins": [
+      "stow"
+    ],
+    "license": null,
+    "repo": "https://github.com/meganemura/stow",
+    "uses": []
+  },
+  {
+    "slug": "stryker-agent-reporter",
+    "name": "stryker-agent-reporter",
+    "version": "0.2.0",
+    "description": "A Stryker reporter that writes JSON Lines a coding agent can act on directly",
+    "bins": [
+      "stryker-agent-reporter"
+    ],
+    "license": "Apache-2.0",
+    "repo": "https://github.com/meganemura/stryker-agent-reporter",
+    "uses": [
+      "archstrict"
+    ]
+  }
+]
