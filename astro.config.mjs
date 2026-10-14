@@ -5,7 +5,7 @@ export default defineConfig({
   site: "https://meganemura.github.io",
   integrations: [
     starlight({
-      title: "meganemura",
+      title: "meganemura/*",
       defaultLocale: "root",
       locales: {
         root: { label: "English", lang: "en" },
