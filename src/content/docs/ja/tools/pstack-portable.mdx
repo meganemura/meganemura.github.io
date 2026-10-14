@@ -1,6 +1,6 @@
 ---
 title: pstack-portable
-description: 上流の pstack のワークフローを、手を加えずに Claude Code と Codex で動かすためのラッパーのスキルです。
+description: 上流の pstack のワークフローを、手を加えずに Claude Code と Codex で動かすためのラッパースキルです。
 ---
 
 import ToolFacts from '../../../../components/ToolFacts.astro';
@@ -8,10 +8,11 @@ import ToolFacts from '../../../../components/ToolFacts.astro';
 <ToolFacts slug="pstack-portable" lang="ja" />
 
 pstack-portable は、上流の [pstack](https://github.com/cursor/plugins/tree/main/pstack) を Claude Code と Codex で動かします。
-ワークフローは上流のものです。
-このリポジトリが加えるのは、Cursor の道具を今のホストの道具に置き換える 1 つのラッパーのスキル、`poteto-mode-portable` だけです。
+ワークフロー自体は上流が管理しています。
+このリポジトリが加えるのは、Cursor のツールを現在のホストのツールに置き換える 1 つのラッパースキル、`poteto-mode-portable` だけです。
 上流で `/poteto-mode` を使う場面で、これを使います。
-Cursor は上流の pstack をそのまま動かすのでラッパーは不要で、Cursor 向けのラッパーのマニフェストは未検証です。
+Cursor は上流の pstack をそのまま動かせるので、ラッパーは不要です。
+Cursor 向けのラッパーのマニフェストは未検証です。
 
 ## 特徴
 
@@ -22,12 +23,12 @@ Cursor は上流の pstack をそのまま動かすのでラッパーは不要�
   "Use poteto-mode-portable to fix this bug." のような依頼で、上流のワークフローをラッパー経由で動かします。
   スラッシュコマンドは `/pstack-portable:poteto-mode-portable` です。
 - **ホストごとのモデルの設定。**
-  "Use poteto-mode-portable to configure pstack." は、1 つのプロジェクトなら `.pstack/models/<host>.md` に、すべてのプロジェクトなら `~/.agents/pstack/models/<host>.md` に書きます。
-  `<host>` は `claude-code` か `codex` で、プロジェクトのファイルが優先します。
-- **確かめるスクリプト。**
-  ラッパーは、知らないスクリプトや変わったスクリプトを止め、実行の前にスクリプトの前提条件を確かめます。
-- **見える不足。**
-  ワークフローがホストにない能力を必要とするとき、ラッパーは代わりの結果ではなく、その不足を報告します。
+  "Use poteto-mode-portable to configure pstack." は、1 つのプロジェクトなら `.pstack/models/<host>.md` に、すべてのプロジェクトなら `~/.agents/pstack/models/<host>.md` に書き込みます。
+  `<host>` は `claude-code` か `codex` で、プロジェクトのファイルが優先されます。
+- **検証済みのスクリプト。**
+  ラッパーは、上流のスクリプトのうち、把握していないものや変更されたものをブロックし、実行の前にスクリプトの前提条件を確認します。
+- **不足が見える。**
+  ワークフローがホストにない機能を必要とするとき、ラッパーは代用の結果を返さず、その不足を報告します。
 - **固定できるリリース。**
   リリースごとに `v<version>` のタグがあります。
   Claude Code では `meganemura/pstack-portable#v<version>` で、Codex では `--ref v<version>` でマーケットプレイスを追加します。
@@ -42,8 +43,8 @@ Use poteto-mode-portable to interrogate this diff.
 Use poteto-mode-portable to tdd this fix.
 ```
 
-ラッパーが仕事を任せる先は、今のホストのサブエージェントだけです。
-ほかのエージェントのアプリケーションやプロバイダーの CLI は起動せず、フック、Cursor Automations、クラウドのワーカー、永続するスケジュールも提供しません。
+ラッパーが仕事を任せる先は、現在のホストのサブエージェントだけです。
+ほかのエージェントのアプリケーションやプロバイダーの CLI は起動せず、フック、Cursor Automations、クラウドのワーカー、永続的なスケジュールも提供しません。
 
 ## はじめかた
 

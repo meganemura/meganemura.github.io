@@ -3,10 +3,10 @@ title: "meganemura/*"
 head:
   - tag: title
     content: "meganemura/*"
-description: コーディングエージェントが読み、人が確認するための、小さなツール、スキル、Claude Code の mod です。
+description: コーディングエージェントが読み、人がレビューするために書いた、小さなツール、スキル、Claude Code の mod です。
 template: splash
 hero:
-  tagline: コーディングエージェントが読み、人が確認するための、小さなツール、スキル、Claude Code の mod です。
+  tagline: コーディングエージェントが読み、人がレビューするために書いた、小さなツール、スキル、Claude Code の mod です。
   actions:
     - text: ツールを見る
       link: "#cli"
@@ -16,35 +16,36 @@ hero:
 import ToolSection from '../../../components/ToolSection.astro';
 import DogfoodGraph from '../../../components/DogfoodGraph.astro';
 
-## ツール同士の使い方
+## ツール間の依存関係
 
 <DogfoodGraph lang="ja" />
 
 <ToolSection lang="ja" section="cli">
-下のバージョンとインストールコマンドは、手で書いたものではなく npm レジストリから読んだ値です。
-各セクションのカードの説明は、各ツールの日本語のページから読んでいます。
+以下のバージョンとインストールコマンドは、手書きではなく npm レジストリから読み込んだものです。
+カードの説明文は、どのセクションでも各ツールの日本語ページから読み込んでいます。
 </ToolSection>
 
 <ToolSection lang="ja" section="gems">
-下のバージョンとインストールコマンドは、RubyGems から読んだ値です。
+以下のバージョンとインストールコマンドは、RubyGems から読み込んだものです。
 </ToolSection>
 
 <ToolSection lang="ja" section="skills">
-これらにはパッケージのレジストリがありません。
-下のバージョン、ライセンス、スキルの名前は、既定のブランチの最新のコミットにあるリポジトリ自身のマニフェスト、スキルのファイル、README、LICENSE から読んでいます。
-インストールコマンドは、README と照らし合わせて確かめています。
-どのエージェントに対応するかは、各ページに書いてあります。
+これらにはパッケージレジストリがありません。
+以下のバージョン、ライセンス、スキル名は、各リポジトリのデフォルトブランチの最新コミットにあるマニフェスト、スキルファイル、README、LICENSE から読み込んでいます。
+インストールコマンドは、README の記載と照合しています。
+対応するエージェントは、各ツールのページに書いてあります。
 </ToolSection>
 
 <ToolSection lang="ja" section="mods">
-どれも Claude Code のプラグインで、README では Claude Mod と呼び、トランスクリプトの横にペインを描きます。
-Claude Code でしか動かず、どれも `CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1` が必要です。
-情報は、上のプラグインとスキルと同じ方法で各リポジトリから読んでいます。
+いずれも、トランスクリプトの横にペインを表示する Claude Code のプラグインです。
+README では、これを Claude Mod と呼んでいます。
+Claude Code でしか動作せず、どれも `CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1` が必要です。
+情報は、上のプラグインとスキルと同じ方法で各リポジトリから読み込んでいます。
 </ToolSection>
 
-## 実行される文
+## コマンドで確かめる文
 
-ツールのページの文には、「確認に使用 archstrict」のような小さな印が付くものがあります。
-その文は、このリポジトリのコマンドに結び付いています。
-ビルド時にそのコマンドを実行し、終了コードと出力を文の内容と照らし合わせます。
-ツールが変わって文が正しくなくなると、検査が失敗し、その文を指摘します。
+ツールのページには、「archstrict で確認済み」のような小さな印が付いた文があります。
+その文は、このリポジトリにあるコマンドと結び付いています。
+デプロイのたびに、`npm run claims` がそのコマンドを実行し、終了コードと出力を文の内容と照合します。
+ツールが変わって文が正しくなくなると、この検査が失敗し、その文を示します。

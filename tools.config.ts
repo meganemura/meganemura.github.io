@@ -37,7 +37,7 @@ export type ToolEntry = NpmEntry | GemEntry | RepoEntry;
 export const sections: readonly { readonly id: Section; readonly label: { readonly en: string; readonly ja: string } }[] = [
   { id: "cli", label: { en: "Command-line tools on npm", ja: "npm のコマンドラインツール" } },
   { id: "gems", label: { en: "Ruby gems", ja: "Ruby の gem" } },
-  { id: "skills", label: { en: "Agent plugins and skills", ja: "エージェントのプラグインとスキル" } },
+  { id: "skills", label: { en: "Agent plugins and skills", ja: "エージェント向けのプラグインとスキル" } },
   { id: "mods", label: { en: "Claude Code mods", ja: "Claude Code の mod" } },
 ];
 

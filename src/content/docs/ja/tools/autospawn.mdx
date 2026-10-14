@@ -1,44 +1,46 @@
 ---
 title: autospawn
-description: MCP サーバーのような標準入出力のプログラムを、op run のようなラッパーを通して 1 度だけ起動し、後から来るクライアントをすべてそこにつなぎます。
+description: MCP サーバーのような標準入出力のプログラムを、op run のようなラッパーを通して 1 度だけ起動し、後続のクライアントをすべてそこに接続します。
 ---
 
 import ToolFacts from '../../../../components/ToolFacts.astro';
 
 <ToolFacts slug="autospawn" lang="ja" />
 
-autospawn は、標準入力と標準出力で話すプログラムのための、つなぐか起動するかを決めるランチャーです。
+autospawn は、標準入力と標準出力で通信するプログラムのためのランチャーで、既存のプロセスがあれば接続し、なければ起動します。
 クライアントは `autospawn connect` を実行します。
-その名前の常駐プロセスがすでに動いていれば connect はそこにつなぎ、なければ 1 つ起動して、後から来るクライアントもそれを共有します。
-常駐プロセスは、1Password CLI の `op run` のような、選んだコマンドを通して 1 度だけ起動し、接続ごとにプログラムを新しい子プロセスとして起動します。
+その名前の常駐プロセスがすでに動いていれば、connect はそれに接続します。
+動いていなければ常駐プロセスを 1 つ起動し、後続のクライアントはすべてそれを共有します。
+常駐プロセスは、1Password CLI の `op run` など、自分で選んだコマンドを通して 1 度だけ起動します。
+その後は、接続のたびに対象のプログラムを新しい子プロセスとして起動します。
 autospawn はバイトを中継するだけで中身を読まないので、MCP サーバーにも、コマンドラインツールにも、長く動く監視プロセスにも使えます。
 
-README が挙げる用途は、秘密の値を必要とする MCP サーバーです。
+README が挙げる用途は、シークレットを必要とする MCP サーバーです。
 1Password は CLI からのアクセスをターミナルのセッションごとに承認し、MCP クライアントはサーバーを新しいプロセスとして起動します。
 そのため起動のたびに承認を求められ、承認の回数はクライアントの数だけ増えます。
 autospawn を使うと `op run` は常駐プロセスのために 1 度だけ動き、承認も 1 度で済みます。
 
 ## 特徴
 
-- **つなぐか起動する。**
-  `autospawn connect --name <name> -- <command...>` は `<name>` という名前の常駐プロセスにつなぐか、`<command...>` から起動します。
-  `--timeout`（既定は 120 秒）は新しい常駐プロセスを待つ時間の上限で、1Password の承認をする時間が残ります。
+- **接続か起動か。**
+  `autospawn connect --name <name> -- <command...>` は、`<name>` という名前の常駐プロセスに接続するか、`<command...>` からそれを起動します。
+  `--timeout` (既定は 120 秒) は新しい常駐プロセスの起動を待つ時間の上限で、1Password の承認に応じる時間を確保できます。
 - **接続ごとに新しい子プロセス。**
   `autospawn serve -- <command...>` は、接続のたびにプログラムを起動します。
-  環境変数は常駐プロセスが 1 度の起動で受け取ったもので、autospawn 自身の `AUTOSPAWN_*` は除きます。
-  `--idle-timeout` を付けると、子プロセスがない状態がその秒数続いたときに常駐プロセスが終わります。
+  子プロセスの環境変数は、常駐プロセスが起動時に 1 度だけ受け取ったものから、autospawn 自身の `AUTOSPAWN_*` 変数を除いたものです。
+  `--idle-timeout` を付けると、子プロセスがない状態がその秒数続いたときに常駐プロセスが終了します。
 - **プログラムの終了コード。**
-  connect はプログラムの終了コードで終わります。
+  connect は、プログラムの終了コードで終了します。
   シグナルで終わったときは 128 にシグナル番号を足した値、起動できなかったときは 127 です。
 - **接続ごとの値。**
-  `connect --param key=value` は 1 つの接続だけに値を送り、`serve --param key=ENV_NAME` はそのキーと、子プロセスに設定する変数を宣言します。
-  `serve --arg key=v1,v2` は、コマンドの中の `{key}` に接続が選べる値を宣言します。
-- **再起動ではなく指紋。**
-  同じ `--name` で違うコマンドの connect は `fingerprint_mismatch` を受け取り、1 で終わります。
+  `connect --param key=value` は 1 つの接続だけに値を送り、`serve --param key=ENV_NAME` はそのキーと、その値を設定する子プロセスの環境変数を宣言します。
+  `serve --arg key=v1,v2` は、コマンド中の `{key}` について、接続ごとに選べる値を宣言します。
+- **再起動ではなくフィンガープリント。**
+  同じ `--name` で別のコマンドを指定した 2 回目の connect は、`fingerprint_mismatch` を受け取って終了コード 1 で終了します。
   常駐プロセスを止めるのは `autospawn stop --name <name>` です。
 - **1 つの非公開ディレクトリ。**
   名前ごとのソケット、ログ、起動ロックは `$AUTOSPAWN_DIR` か `$HOME/.local/state/autospawn` の下に置き、ディレクトリはモード 0700 で作ります。
-  権限がゆるいディレクトリや、所有者が違うディレクトリは使いません。
+  権限がゆるいディレクトリや、所有者が違うディレクトリは拒否します。
 
 ## エージェントでの使い方
 
@@ -48,9 +50,9 @@ Claude Code、Codex、Cursor のような MCP クライアントは、サーバ�
 autospawn connect --name example -- op run -- autospawn serve -- node /path/to/server.js
 ```
 
-最初に `example` を起動したクライアントが 1Password の承認を 1 度求め、その後はどのクライアントの起動も常駐プロセスにつながります。
+最初に `example` を起動したクライアントが 1Password の承認を 1 度求め、その後は、どのクライアントから起動しても常駐プロセスに接続します。
 
-タスクごとに 1 度、トークンが必要なツールを実行するエージェントも、同じ形を使います。
+トークンが必要なツールをタスクごとに 1 回実行するエージェントも、同じ形を使います。
 
 ```sh
 autospawn connect --name example-cli -- \
@@ -59,8 +61,10 @@ autospawn connect --name example-cli -- \
   example-tool fetch
 ```
 
-ツールの出力は標準出力に届き、connect はツールの終了コードで終わるので、`example-tool fetch` を直接実行したときと同じに見えます。
-1Password の項目や、プログラムが頼る何かを変えたら、`autospawn stop --name example` を実行すると、次の connect が新しい常駐プロセスを起動します。
+ツールの出力は標準出力に届き、connect はツールの終了コードで終了します。
+エージェントから見ると、`example-tool fetch` を直接実行したときと同じです。
+1Password の項目や、プログラムが依存するほかのものを変更したら、`autospawn stop --name example` を実行します。
+すると、次の connect が新しい常駐プロセスを起動します。
 
 ## はじめかた
 
@@ -71,4 +75,4 @@ Unix ドメインソケットで通信するので、Windows では動きませ�
 npm install -g autospawn
 ```
 
-1Password の例について、`mcp.json`、`claude mcp add-json`、`~/.codex/config.toml` の完全な設定は README にあります。
+1Password の例について、`mcp.json`、`claude mcp add-json`、`~/.codex/config.toml` の設定の全文は README にあります。

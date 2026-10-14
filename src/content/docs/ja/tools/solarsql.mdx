@@ -1,45 +1,48 @@
 ---
 title: solarsql
-description: Cloudflare の D1 と Durable Objects 上の SQLite のための型付きの SQL レイヤーで、型はビルド時に本物のエンジンから取ります。
+description: Cloudflare の D1 と Durable Objects で動く SQLite 向けの型付き SQL レイヤーで、型はビルド時に実際のエンジンから取得します。
 ---
 
 import ToolFacts from '../../../../components/ToolFacts.astro';
 
 <ToolFacts slug="solarsql" lang="ja" />
 
-solarsql は、Cloudflare の D1 と Durable Objects 上の SQLite のための、型付きの SQL レイヤーです。
-モジュールを 1 つずつ読むコーディングエージェントと、その作業を確認する人のために書かれています。
-SQL は文字列リテラルで書き、ビルド時に本物のエンジンへ各文の戻り値を問い合わせて、その型を書き出します。
-SQL を変えてビルドしていないと、tsc がその SQL の文字列にエラーを出します。
+solarsql は、Cloudflare の D1 と Durable Objects で動く SQLite 向けの、型付き SQL レイヤーです。
+モジュールを 1 つずつ読むコーディングエージェントと、その作業をレビューする人に向けて書かれています。
+SQL は文字列リテラルとして書きます。
+ビルドの段階で、各文が何を返すかを実際のエンジンに問い合わせ、その型を書き出します。
+SQL を変更した後にビルドしていないと、tsc がその SQL 文字列にエラーを報告します。
 1.0 までは、マイナーバージョンで API が変わることがあります。
 
 ## 特徴
 
-- **エンジンから取る型。**
+- **エンジンから得る型。**
   `npx solarsql build` は、すべてのクエリを node:sqlite で実行し、`solarsql.generated.ts` を書き出します。
-  失敗した文は `at:` の行つきで返り、`no such column` のメッセージにはそのテーブルの列が並びます。
+  失敗した文は `at:` の行とともに報告され、`no such column` のメッセージにはそのテーブルの列が並びます。
 - **コマンドは 1 つのトランザクション。**
-  コマンドは、文と `assert(...)` による検査を並べた `plan` で、D1 の 1 つのバッチ、または Durable Object の 1 つのトランザクションとして動きます。
-  `db.run` は `{ ok: true, rows }` か、`kind` が `"assert"` や `"unique"` などの失敗の値を返します。
-- **テーブルを持つモジュール。**
-  モジュールは `module.ts`、`public.ts`、`solarsql.generated.ts` の 3 つのファイルです。
-  ほかのモジュールのテーブルに書き込む文はビルドが拒み、ほかのモジュールは `public.ts` だけを通して import します。
+  コマンドは、文と `assert(...)` による検査を並べた `plan` で、D1 の 1 つのバッチ、または Durable Object の 1 つのトランザクションとして実行されます。
+  `db.run` は、`{ ok: true, rows }` か、`kind` が `"assert"` や `"unique"` などになる失敗の値を返します。
+- **モジュールが自分のテーブルを持つ。**
+  モジュールは、`module.ts`、`public.ts`、`solarsql.generated.ts` の 3 つのファイルです。
+  ビルドは、ほかのモジュールのテーブルに書き込む文を拒否します。
+  ほかのモジュールは、`public.ts` からだけ import します。
 - **スキーマから作るマイグレーション。**
   `npx solarsql migration <name>` は、`migrations/NNNN_<name>.sql` と、Durable Object 用の `migrations/index.ts` を書き出します。
-  ファイルがスキーマを再現しなくなると、ビルドが新しいマイグレーションを求めます。
+  マイグレーションのファイルでスキーマを再現できなくなると、ビルドが新しいマイグレーションを求めます。
 - **実データでのリハーサル。**
   デプロイの前に、実データのスナップショットに対してマイグレーションをリハーサルできます。
-  失ったり変わったりした行があると、`checks.json` でその変化を宣言していない限り、リハーサルは失敗します。
+  行が失われたり変わったりすると、`checks.json` でその変化を宣言していない限り、リハーサルは失敗します。
 - **3 つの実行先で同じ API。**
-  `d1(env.DB)`、`durable(ctx.storage)`、`node(db)` は、同じ `db.all`、`db.first`、`db.run`、`db.batch` を返します。
+  `d1(env.DB)`、`durable(ctx.storage)`、`node(db)` は、同じ `db.all`、`db.first`、`db.run`、`db.batch` を提供します。
   モジュールのテストは node:sqlite で動きます。
 
-既存の SQLite スキーマがあるプロジェクトは、モジュールの規則なしで DDL を受け付けるスキーマだけのクエリ生成から始められます。
+既存の SQLite スキーマがあるプロジェクトは、スキーマだけのクエリ生成から始められます。
+このモードは、モジュールの規則を適用せずに DDL を受け付けます。
 
 ## エージェントでの使い方
 
-使い方の文書はスキルとしてパッケージに入っています。
-プロジェクトの AGENTS.md から `node_modules/solarsql/skills/solarsql/SKILL.md` を指してください。
+使い方のドキュメントは、スキルとしてパッケージに含まれています。
+プロジェクトの AGENTS.md で、`node_modules/solarsql/skills/solarsql/SKILL.md` を参照するように書いてください。
 
 1. `module.ts` のテーブル、クエリ、コマンドを編集します。
 2. `npx solarsql build` を実行します。
@@ -56,5 +59,6 @@ npx solarsql init orders
 node --test
 ```
 
-`init` は、`solarsql.config.ts` と、仮のテーブル、クエリのカタログ、2 つのコマンド、node:sqlite 上のテストを持つモジュール `modules/orders/` を書き出します。
+`init` は、`solarsql.config.ts` と、モジュール `modules/orders/` を書き出します。
+このモジュールには、仮のテーブル、クエリのカタログ、2 つのコマンド、node:sqlite 上のテストが入っています。
 続けて最初のビルドを実行し、`migrations/0001_initial.sql` を書き出します。

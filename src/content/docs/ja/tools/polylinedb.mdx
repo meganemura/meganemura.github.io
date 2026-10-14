@@ -1,54 +1,55 @@
 ---
 title: polylinedb
-description: ローカルのツールとクラウドのエージェントのための、フィールドのバージョン、所有権の主張、プロジェクトの記憶を持つ個人用の課題ストアです。
+description: フィールドごとのバージョン、所有権の取得、プロジェクトメモリを備えた、ローカルのツールとクラウドのエージェント向けの個人用課題ストアです。
 ---
 
 import ToolFacts from '../../../../components/ToolFacts.astro';
 
 <ToolFacts slug="polylinedb" lang="ja" />
 
-polylinedb は、ローカルのツールとクラウドのエージェントのための個人用の課題ストアで、コマンド名は `pd` です。
+polylinedb は、ローカルのツールとクラウドのエージェント向けの個人用課題ストアで、コマンド名は `pd` です。
 CLI は、作業リポジトリの外にある SQLite ファイル 1 つか、認証付きのクラウド接続を使います。
 Cloudflare Worker は、D1 をデータベースにして、同じ操作を HTTP とリモート MCP で提供します。
 この 2 つは独立したストアで、polylinedb は両者を同期しません。
-ローカルのエージェントが事実と残りの作業を記録し、クラウドのエージェントが MCP で両方を読んで続きを進められます。
+ローカルのエージェントが事実と未完了の作業を記録し、クラウドのエージェントがその両方を MCP で読んで作業を引き継げます。
 
 ## 特徴
 
-- **フィールドのバージョン。**
+- **フィールドごとのバージョン。**
   `pd show` は、フィールドごとのバージョンを返します。
-  `pd update ISSUE_ID --status deferred --expect status=1` は、そのフィールドを別の書き手が先に変えていると、全体が失敗します。
+  `pd update ISSUE_ID --status deferred --expect status=1` は、別の書き手が先にそのフィールドを変更していた場合、更新全体が失敗します。
   polylinedb が新しいバージョンで勝手に再試行することはありません。
-- **所有権の主張。**
-  `pd claim acquire`、`pd claim renew`、`pd claim release` で、1 つのエージェントのセッションが課題を受け持ちます。
+- **所有権の取得。**
+  `pd claim acquire`、`pd claim renew`、`pd claim release` で、課題を 1 つのエージェントセッションに割り当てます。
   `in_progress` にするには、エピックを除き、有効な `--claim-proof` が必要です。
-- **プロジェクトの記憶。**
-  `pd memory create`、`pd memory search`、`pd memory context --project NAME` で、課題を閉じた後も役立つ知識を残します。
+- **プロジェクトメモリ。**
+  `pd memory create`、`pd memory search`、`pd memory context --project NAME` で、課題をクローズした後も役立つ知識を残します。
 - **前提条件と作業リスト。**
-  `pd dependency add --dependent ID --blocker ID` で、どの課題がどの課題を止めているかを記録します。
-  `pd ready` は、止めている課題がない未着手の課題を一覧し、`pd blocked` は残りを一覧します。
+  `pd dependency add --dependent ID --blocker ID` で、どの課題がどの課題をブロックしているかを記録します。
+  `pd ready` は、有効なブロッカーのないオープンな課題を一覧表示し、`pd blocked` はそれ以外を一覧表示します。
 - **変更フィード。**
-  `pd changes --since 0` は、課題の変更をコミット順に一覧します。
-  `pd wait --since SEQ --timeout SECONDS` は、条件に合うイベントが届いた時点で返るので、エージェントはすべての課題を読み直さずに、ほかのエージェントの作業を追えます。
+  `pd changes --since 0` は、課題の変更をコミット順に一覧表示します。
+  `pd wait --since SEQ --timeout SECONDS` は、条件に合うイベントが届いた時点で終了するので、エージェントはすべての課題を読み直さずに、ほかのエージェントの作業を追えます。
 - **JSON 出力と安全な再試行。**
-  どのコマンドも JSON を出力し、`--human` を付けると `show`、`list`、`search` が平文になります。
-  同じ `--request-id UUID` で `create` を再試行すると、2 つ目を作らずに既存の課題を返します。
+  どのコマンドも JSON を出力し、`--human` を付けると `show`、`list`、`search` がプレーンテキストを出力します。
+  同じ `--request-id UUID` で `create` を再試行すると、2 つ目の課題を作らずに既存の課題を返します。
 
 ## エージェントでの使い方
 
-パッケージには `polylinedb` と `polylinedb-queue` の 2 つのスキルが入っていて、エージェントのホストごとにスキルのディレクトリへコピーします。
+パッケージには、`polylinedb` と `polylinedb-queue` の 2 つのスキルが含まれています。
+これらを、エージェントのホストごとにスキルのディレクトリへコピーします。
 
-1. エージェントは `pd context` で選ばれた接続とプロジェクトを確かめ、`pd memory context --project PROJECT` でプロジェクトの記憶を読みます。
-2. 作業を選んで主張し、書き込みの前に毎回 `pd show` でフィールドのバージョンを読みます。
-3. 書き込みが衝突したら、読み直して、その編集がまだ当てはまるかを判断します。
-4. 確かめた事実を記憶に、結果をコメントに残すので、後のローカルやクラウドのセッションがストアから続きを始められます。
+1. エージェントは、`pd context` で選択中の接続とプロジェクトを確認し、`pd memory context --project PROJECT` でプロジェクトメモリを読みます。
+2. 作業を選んで所有権を取得し、書き込みの前に毎回 `pd show` でフィールドのバージョンを読みます。
+3. 書き込みが衝突したら、読み直して、その編集がまだ有効かを判断します。
+4. 確認した事実をメモリに、結果をコメントに残すので、後続のローカルやクラウドのセッションがストアから作業を再開できます。
 
-`polylinedb-queue` スキルは、仕上がったコミットを共有の `queue` ブランチに積みます。
+`polylinedb-queue` スキルは、完了したコミットを共有の `queue` ブランチに積みます。
 `queue` を main に取り込むのはオーナーで、エージェントは main に push しません。
 
 ## はじめかた
 
-polylinedb には、24.x 系なら Node.js 24.20 以降、または 26.7 以降と、`PATH` 上の Git が必要です。
+polylinedb には、Node.js 24.20 以降の 24.x か 26.7 以降と、`PATH` 上の Git が必要です。
 
 ```sh
 npm install --global polylinedb
@@ -59,4 +60,4 @@ pd list
 
 ## 組み合わせ
 
-polylinedb は、読み取りのクエリを [solarsql](/ja/tools/solarsql/) で、SQLite と D1 の両方で実行します。
+polylinedb は、SQLite と D1 のどちらでも、読み取りのクエリを [solarsql](/ja/tools/solarsql/) で実行します。
