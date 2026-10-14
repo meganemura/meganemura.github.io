@@ -44,7 +44,7 @@ const TEXT = {
     exitCode: "exit",
     graphLabel: "Which tool uses which",
     graphCaption:
-      "An arrow points from a tool to a tool it depends on. The edges come from each package's dependencies and devDependencies on npm, and the most used tools sit at the top.",
+      "An arrow points from a tool to a tool it depends on. The edges come from each package's dependencies and devDependencies on npm, the most used tool sits in the center, and a two-headed colored line marks two tools that use each other.",
   },
   ja: {
     install: "インストール",
@@ -57,7 +57,7 @@ const TEXT = {
     exitCode: "終了コード",
     graphLabel: "どのツールがどのツールを使うか",
     graphCaption:
-      "矢印は、使う側のツールから使われる側のツールに向かいます。辺は各パッケージの dependencies と devDependencies を npm から読んで作っています。よく使われるツールほど上に並びます。",
+      "矢印は、使う側のツールから使われる側のツールに向かいます。辺は各パッケージの dependencies と devDependencies を npm から読んで作っています。一番よく使われるツールが中央に、互いに使い合う2つのツールは両向きの色付きの線で結ばれます。",
   },
 } as const;
 

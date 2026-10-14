@@ -42,11 +42,16 @@ test("no two node centers are closer than a node diameter", () =>
     }
   }));
 
-test("the edge count and the node set are preserved", () =>
+test("every input edge is drawn by exactly one edge, and the node set is preserved", () =>
   hegel.test((tc) => {
     const { ids, edges } = tc.draw(graphGen);
     const layout = layoutGraph(ids, edges);
-    expect(layout.edges.length).toBe(edges.length);
+    for (const edge of edges) {
+      const drawn = layout.edges.filter(
+        (e) => (e.from === edge.from && e.to === edge.to) || (e.mutual && e.from === edge.to && e.to === edge.from),
+      );
+      expect(drawn.length).toBe(1);
+    }
     expect(layout.nodes.map((n) => n.id).sort()).toEqual([...ids].sort());
   }));
 
@@ -56,16 +61,20 @@ test("the same input always gives the same layout", () =>
     expect(layoutGraph(ids, edges)).toEqual(layoutGraph([...ids], edges.map((e) => ({ ...e }))));
   }));
 
-test("the most used tool takes the top of the circle", () => {
+test("the most used tool takes the center, and use in both directions is one mutual edge", () => {
   const layout = layoutGraph(
     ["a", "b", "c"],
     [
       { from: "a", to: "c" },
       { from: "b", to: "c" },
+      { from: "c", to: "b" },
     ],
   );
-  expect(layout.nodes[0]).toMatchObject({ id: "c", x: layout.width / 2 });
-  expect(layout.nodes[0]?.y).toBeLessThan(layout.height / 2);
+  expect(layout.nodes[0]).toMatchObject({ id: "c", x: layout.width / 2, y: layout.height / 2 });
+  expect(layout.edges.map((e) => [e.from, e.to, e.mutual])).toEqual([
+    ["a", "c", false],
+    ["b", "c", true],
+  ]);
 });
 
 test("an edge to an unknown node is a loud error", () => {

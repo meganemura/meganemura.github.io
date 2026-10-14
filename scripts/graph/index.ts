@@ -1,6 +1,7 @@
-// Pure geometry for the dogfood graph: nodes on a circle, ordered by how many
-// tools use them, and one curved path per edge. No DOM, no I/O.
-// Edges bend sideways so that A -> B and B -> A never draw on top of each other.
+// Pure geometry for the dogfood graph. No DOM, no I/O.
+// The most used tool sits in the center and the rest on a ring around it, so its many
+// incoming edges become short spokes instead of chords that cross the whole circle.
+// A -> B and B -> A merge into one two-way edge, which keeps mutual use visible.
 
 export interface GraphEdge {
   from: string;
@@ -19,6 +20,7 @@ export interface PositionedNode {
 
 export interface PositionedEdge extends GraphEdge {
   path: string;
+  mutual: boolean;
 }
 
 export interface GraphLayout {
@@ -48,7 +50,9 @@ export function layoutGraph(nodeIds: readonly string[], edges: readonly GraphEdg
   for (const edge of edges) inDegree.set(edge.to, (inDegree.get(edge.to) ?? 0) + 1);
   const ordered = [...nodeIds].sort((a, b) => (inDegree.get(b) ?? 0) - (inDegree.get(a) ?? 0) || (a < b ? -1 : a > b ? 1 : 0));
 
-  const count = ordered.length;
+  const hub = ordered.length >= 3 && (inDegree.get(ordered[0] as string) ?? 0) > 0 ? ordered[0] : undefined;
+  const ringIds = hub === undefined ? ordered : ordered.slice(1);
+  const count = ringIds.length;
   const ring = count < 2 ? 0 : Math.max(BASE_RING, MIN_GAP / (2 * Math.sin(Math.PI / count)));
   const half = ring + NODE_RADIUS + LABEL_ROOM;
   const width = round(2 * half);
@@ -56,13 +60,18 @@ export function layoutGraph(nodeIds: readonly string[], edges: readonly GraphEdg
   const cx = width / 2;
   const cy = height / 2;
 
-  const nodes: PositionedNode[] = ordered.map((id, i) => {
+  const nodes: PositionedNode[] = [];
+  if (hub !== undefined) {
+    const r = NODE_RADIUS * 1.6;
+    nodes.push({ id: hub, x: round(cx), y: round(cy), r, labelX: round(cx), labelY: round(cy + r + 18), anchor: "middle" });
+  }
+  ringIds.forEach((id, i) => {
     const angle = -Math.PI / 2 + (2 * Math.PI * i) / count;
     const cos = Math.cos(angle);
     const sin = Math.sin(angle);
     const side = Math.abs(cos) < 0.2 ? 0 : Math.sign(cos);
     const reach = NODE_RADIUS + 8;
-    return {
+    nodes.push({
       id,
       x: round(cx + ring * cos),
       y: round(cy + ring * sin),
@@ -70,11 +79,19 @@ export function layoutGraph(nodeIds: readonly string[], edges: readonly GraphEdg
       labelX: round(cx + ring * cos + side * reach),
       labelY: round(cy + ring * sin + (side === 0 ? Math.sign(sin) * (reach + 6) : 5)),
       anchor: side === 0 ? "middle" : side > 0 ? "start" : "end",
-    };
+    });
   });
 
   const byId = new Map(nodes.map((node) => [node.id, node]));
-  const paths: PositionedEdge[] = edges.map((edge) => {
+  const seen = new Set<string>();
+  const directed = new Set(edges.map((edge) => `${edge.from}\u0000${edge.to}`));
+  const paths: PositionedEdge[] = [];
+  for (const edge of edges) {
+    const key = `${edge.from}\u0000${edge.to}`;
+    const reverse = `${edge.to}\u0000${edge.from}`;
+    if (seen.has(key) || seen.has(reverse)) continue;
+    seen.add(key);
+    const mutual = directed.has(reverse);
     const a = byId.get(edge.from) as PositionedNode;
     const b = byId.get(edge.to) as PositionedNode;
     const dx = b.x - a.x;
@@ -82,11 +99,13 @@ export function layoutGraph(nodeIds: readonly string[], edges: readonly GraphEdg
     const length = Math.hypot(dx, dy);
     const ux = dx / length;
     const uy = dy / length;
-    const start = { x: a.x + ux * (a.r + 2), y: a.y + uy * (a.r + 2) };
+    const start = { x: a.x + ux * (a.r + (mutual ? 5 : 2)), y: a.y + uy * (a.r + (mutual ? 5 : 2)) };
     const end = { x: b.x - ux * (b.r + 5), y: b.y - uy * (b.r + 5) };
-    const control = { x: (a.x + b.x) / 2 - uy * length * BEND, y: (a.y + b.y) / 2 + ux * length * BEND };
-    return { ...edge, path: `M${round(start.x)} ${round(start.y)} Q${round(control.x)} ${round(control.y)} ${round(end.x)} ${round(end.y)}` };
-  });
+    const spoke = edge.from === hub || edge.to === hub;
+    const bend = spoke ? 0 : BEND;
+    const control = { x: (a.x + b.x) / 2 - uy * length * bend, y: (a.y + b.y) / 2 + ux * length * bend };
+    paths.push({ ...edge, mutual, path: `M${round(start.x)} ${round(start.y)} Q${round(control.x)} ${round(control.y)} ${round(end.x)} ${round(end.y)}` });
+  }
 
   return { width, height, nodes, edges: paths };
 }

@@ -33,8 +33,9 @@
 .dogfood svg { width: 100%; height: auto; display: block; }
 .dogfood figcaption { color: var(--sl-color-gray-3); font-size: var(--sl-text-sm); margin-top: 0.5rem; }
 .dogfood__node { fill: var(--sl-color-accent); stroke: var(--sl-color-bg); stroke-width: 2; }
-.dogfood__label { fill: var(--sl-color-text); font-size: 15px; }
+.dogfood__label { fill: var(--sl-color-text); font-size: 15px; paint-order: stroke; stroke: var(--sl-color-bg); stroke-width: 5px; stroke-linejoin: round; }
 .dogfood__edge { fill: none; stroke: var(--sl-color-gray-3); stroke-width: 1.5; }
+.dogfood__edge--mutual { stroke: var(--sl-color-accent); stroke-width: 2.25; }
 .dogfood__arrowhead { fill: var(--sl-color-gray-3); }
 .dogfood a:hover .dogfood__label { text-decoration: underline; }
 .claim__mark {
