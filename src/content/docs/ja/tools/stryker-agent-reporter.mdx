@@ -1,5 +1,6 @@
 ---
 title: stryker-agent-reporter
+description: 生き残った変異をパッチと再実行コマンドつきの JSON の行で書き出す Stryker のレポーターで、プルリクエストの関門も備えます。
 ---
 
 import ToolFacts from '../../../../components/ToolFacts.astro';
@@ -7,5 +8,51 @@ import ToolFacts from '../../../../components/ToolFacts.astro';
 <ToolFacts slug="stryker-agent-reporter" lang="ja" />
 
 stryker-agent-reporter は、コーディングエージェントのための Stryker レポーターです。
-生き残った変異ごとに 1 行の JSON Lines を書き出し、場所、元と変更後のテキスト、そのまま適用できるパッチ、再実行コマンドを載せます。
-convert と gate の 2 つのコマンドは、その出力だけで動きます。
+1 行に 1 つの JSON オブジェクトを書く JSON Lines を出力するので、エージェントは結果を 1 行ずつ読み、`grep` や `jq` で絞り込めます。
+生き残った変異の行には、場所、元と変更後のテキスト、そのまま適用できるパッチ、再実行コマンドが載ります。
+エージェントは、それらを Stryker 自身の報告から組み立て直す必要がありません。
+`convert` と `gate` の 2 つのコマンドは、その出力だけで動きます。
+
+## 特徴
+
+- **変異ごとに 1 行。**
+  `reports/mutation/agent.jsonl` は、`run` の行で始まり、変異させたファイルごとの `scope` の行、対処すべき変異ごとの行、どの変異も殺さなかったテストごとの `testWithoutKills` の行が続きます。
+  最後は `summary` の行なので、それがないファイルは終わらなかった実行です。
+- **直すための材料。**
+  `survivor` の行には、`git apply --unidiff-zero` でそのまま適用できる `patch` が付きます。
+  ファイルを再実行する `rerun` と、その変異だけを再実行する `rerunExact` も付きます。
+- **安定したキー。**
+  各変異の `key` は行番号ではなくそのソースのテキストから作るので、ファイルのほかの場所を編集しても変わりません。
+  `scope` の行はそのファイルのすべてのキーを並べるので、殺された変異と、狭い `mutate` の範囲から外れた変異を区別できます。
+- **実行中に読める結果。**
+  レポーターは、終わった変異を順に `reports/mutation/agent.partial.jsonl` に追記するので、Stryker の実行中でも `tail -f` で生き残りが見えます。
+- **プルリクエストの関門。**
+  `stryker-agent-reporter gate --since origin/main --format github` は、変更した行だけを検査し、GitHub Actions でその行に注記を付けます。
+  終了コード 1 は生き残りか未カバーの変異が残っていることを、終了コード 3 は欠けの証明ではなく測定の失敗を表します。
+  `--baseline <file>` を付けると、新しい生き残りだけが関門を落とします。
+- **保存済みの報告。**
+  `stryker-agent-reporter convert` は、保存済みの `mutation.json` を同じ JSON Lines に変換します。
+
+## エージェントでの使い方
+
+1. `agent` レポーターを付けて Stryker を実行し、実行中は `agent.partial.jsonl` を読みます。
+2. 生き残りを選び出します。
+   たとえば `jq -c 'select(.kind=="survivor")' reports/mutation/agent.jsonl` を使います。
+3. 生き残りごとに `original`、`replacement`、`patch` を読んで変更を加え、その `rerunExact` のコマンドでその変異をもう一度試します。
+4. CI では `gate --since` を実行し、プルリクエストが変更した行の変異だけで落ちるようにします。
+
+## はじめかた
+
+```sh
+npm install --save-dev stryker-agent-reporter
+```
+
+Stryker の設定に `agent` レポーターを加えます。
+Stryker の既定の `plugins` は `@stryker-mutator/*` しか読み込まないので、このパッケージも名前で挙げます。
+
+```json
+{
+  "reporters": ["clear-text", "agent"],
+  "plugins": ["@stryker-mutator/*", "stryker-agent-reporter"]
+}
+```

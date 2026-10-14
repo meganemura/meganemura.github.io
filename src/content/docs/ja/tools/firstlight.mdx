@@ -1,10 +1,63 @@
 ---
 title: firstlight
+description: コーディングエージェントのために lint、型検査、テストを並列で実行し、最初の失敗で結果を返します。
 ---
 
 import ToolFacts from '../../../../components/ToolFacts.astro';
 
 <ToolFacts slug="firstlight" lang="ja" />
 
-firstlight は、コーディングエージェントのために、lint、型検査、テストを並列で実行します。
-最初の失敗が出た時点で結果を返すので、エージェントは最も早く悪い知らせを受け取れます。
+firstlight は、コーディングエージェントのための並列のチェック実行ツールです。
+エージェントは、lint、型検査、テストを firstlight 経由で実行します。
+すべてのチェックを同時に始め、最初の 1 つが失敗した時点で返るので、エージェントはすぐに修正に取りかかれます。
+ほかのチェックは裏で動き続け、エージェントはその結果を後で読みます。
+チェックは任意のシェルコマンドなので、プロジェクトに Node や `package.json` はいりません。
+Node が必要なのは firstlight 自身だけです。
+firstlight は、検査するリポジトリには何も書き込みません。
+
+## 特徴
+
+- **`run-p` と同じ引数。**
+  `firstlight run lint typecheck test` は `package.json` のスクリプトを実行し、`"lint:*"` はパターンでスクリプトを選びます。
+  `"bundle exec rspec"` のように空白を含む引数は、シェルコマンドとして扱います。
+- **1 つの形の診断。**
+  `tsc`、`vitest`、`node --test`、`archstrict` では、失敗したチェックが `file:line:col rule message` の行を、10 行のログの末尾より先に表示します。
+- **成功の再利用。**
+  同じ作業ツリーで同じコマンドが成功したチェックは、もう一度は実行しません。
+  キーは git のツリーのハッシュ、コマンド、`after` のチェックのキーから作り、`--no-cache` を付けるとすべてのチェックを実行します。
+- **新しい失敗だけ。**
+  `firstlight results --new --wait` は、前回の実行になかった失敗があるときだけ 1 で終わるので、既知の失敗を抱えたプロジェクトでも変更を関門にかけられます。
+- **失敗したものだけ再実行。**
+  `firstlight run --failed` は、最新の実行で成功しなかったチェックだけを実行します。
+- **残り時間。**
+  実行中のチェックには、以前の成功から見積もったおおよその残り時間が付きます。
+  `firstlight follow` は状態の変化を起きた順に表示し、`--json` は JSON Lines を出力します。
+
+## エージェントでの使い方
+
+1. `firstlight run lint typecheck test` でチェックを始めます。
+   最初に失敗かタイムアウトしたチェックで返り、そのチェックの診断、ほかのすべてのチェックの状態、次のコマンドを示します。
+2. ほかのチェックが続く間に、失敗を直します。
+3. 残りは `firstlight results --wait` で読むか、`firstlight follow` で各チェックの終わりを見守ります。
+4. もう一度実行します。
+   新しい実行は手順 1 の残りを取り消し、`firstlight run --failed` は成功しなかったものだけを実行します。
+
+firstlight 自身が失敗したときは、次のコマンドを示す `do` フィールドを持つ JSON オブジェクトを 1 つ stderr に出力します。
+
+## はじめかた
+
+firstlight には Node.js 24 以降が必要です。
+
+```sh
+npm i -D firstlight
+npx firstlight --help
+npx firstlight run
+```
+
+`firstlight.json` がなければ、`firstlight run` は `package.json` のスクリプト `lint`、`typecheck`、`test`、`archstrict` のうち、あるものを実行します。
+`firstlight.json` では独自のチェックを定義でき、`after` で順序を、`timeoutSec` で制限時間を決めます。
+
+## 組み合わせ
+
+- vitest が [depug](/ja/tools/depug/) のレポーターを使っていると、firstlight は失敗した各テストの診断に、depug の証拠のパスと再実行のコマンドを添えます。
+- firstlight は [archstrict](/ja/tools/archstrict/) の `check` の出力を診断として読み、`package.json` に `archstrict` のスクリプトがあれば既定で実行します。

@@ -1,11 +1,49 @@
 ---
 title: nukadoko
+description: Runs Gherkin scenarios under typed step contracts, checks them before they run, and records what each step did.
 ---
 
 import ToolFacts from '../../../components/ToolFacts.astro';
 
 <ToolFacts slug="nukadoko" lang="en" />
 
-nukadoko runs Gherkin scenarios under typed step contracts, so a scenario can be told wrong before it runs.
-Every execution leaves a step record that the tool measured, not one that the agent reported.
+nukadoko runs Gherkin scenarios under typed step contracts and writes a step record for every execution.
+Implementations are generated now, and the criteria that check them have to stay fixed.
 The acceptance criteria stay in the language of the people who set them.
+Everything between those sentences and the system under test is typed, checked before execution, and reviewable in a diff.
+The tool measures each step record itself, so nobody has to trust an agent's account of the run.
+
+## Features
+
+- **Wrong before it runs.** `nuka check` reads every feature file and step file and reports problems such as an undefined step, a duplicate pattern, an ambiguous step, or a `from` binding in the wrong order. `nuka check --codes` lists every finding code.
+- **A vocabulary an agent can read.** `nuka steps --json` lists each step with its patterns, description, `mutates`, and `needs`. `nuka describe` shows a step's contract, with its schemas as JSON Schema.
+- **Step records.** `nuka do` runs one step by itself and prints a step record with the validated result and the network reads and writes the tool observed. `nuka run` runs scenarios and leaves the same records.
+- **Sign-off.** `nuka accept` freezes one green run as a Markdown record beside its feature. Its `Declared vs observed` section lists each step that declared `mutates: false` but was measured making a write.
+- **Reports with no wiring.** Every run writes Allure results and a cucumber-messages stream, with no configuration. Each step in Allure carries its validated result, its own trace, and a timeline of its waits and Playwright calls.
+- **A way in for an existing suite.** Switching one import from `@cucumber/cucumber` to `nukadoko/compat` keeps a cucumber-js suite running while nukadoko records its steps. Each step can then move to `defineStep` on its own.
+
+## How an agent uses it
+
+An agent can complete the whole loop without help.
+
+1. It discovers the vocabulary with `nuka steps --json`.
+2. It reads a contract with `nuka describe`.
+3. It runs one step with `nuka do`, reads the step record, and chooses the next call.
+4. When the vocabulary lacks an operation, it adds a step with `nuka scaffold <name>` and implements it. A person then reviews the pull request.
+
+`nuka check` is the static gate before every run.
+`nuka tend` runs from time to time and reports what is rotting rather than broken, such as a schema field with no description.
+The package ships two skills. `acceptance` takes a ticket's acceptance criteria to a committed record, and `migration` moves a cucumber-js suite across.
+
+## Getting started
+
+nukadoko needs Node 20 or later.
+
+```sh
+npm install -D nukadoko
+npx nuka init
+npx nuka steps
+npx nuka check
+```
+
+`nuka init` writes `nukadoko.config.ts` and the `.gitignore` entries. `gh skill install meganemura/nukadoko --all` installs both skills.

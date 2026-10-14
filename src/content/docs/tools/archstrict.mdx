@@ -1,5 +1,6 @@
 ---
 title: archstrict
+description: A TypeScript module boundary checker whose every violation names its rule, location, reason, and fix.
 ---
 
 import ToolFacts from '../../../components/ToolFacts.astro';
@@ -9,8 +10,38 @@ import Demo from '../../../components/Demo.astro';
 <ToolFacts slug="archstrict" lang="en" />
 
 archstrict checks TypeScript module boundaries, in the sense of ArchUnit.
+tsc and type checkers examine types, and ESLint examines style. archstrict examines the boundary between modules.
 A module shows the rest of the codebase one public-surface file, and an import that reaches past it is a violation.
 Each report carries a rule id, a location, the reason, and the command that fixes it, so an agent can repair its own mistake.
+
+## Features
+
+- **Declared modules.** `archstrict.config.ts` is one TypeScript value. `declaredModules` names each module as a directory or a single file, and `surface` names its public file. A file that matches no module and no `exclude` pattern is an `uncovered-module` violation.
+- **Reports an agent can act on.** `archstrict check` prints each violation with a rule id, `path:line:col`, the evidence, a `because` reason, and a `do:` command. `--json` gives the same data, and `--rule` and `--module` narrow it.
+- **Layer and domain rules.** `classify` puts tags on files, and `edges` checks the imports between tags with `allowDeny`, `order`, and `point` rules.
+- **A todo file that only shrinks.** The first `archstrict todo` freezes the current violations into `archstrict.todo.json`, and later runs only remove entries. A module listed in `strict` can hold no entry at all.
+- **Questions before an edit.** `archstrict rules <path>` reports the module, tags, and constraints that govern a path, even one that does not exist yet. `archstrict simulate` previews a source or config change without writing it.
+- **Next steps for the map.** `archstrict recommend` proposes `edges` rules and surfaces from the real import graph. `archstrict hotspots` scores modules by commits and fan-in, and lists module pairs that change together.
+
+## How an agent uses it
+
+1. Before it creates a file or adds an import, the agent runs `npx archstrict rules <path>`.
+2. After the edit, it runs `npx archstrict check` and does what each `do:` line says.
+3. In Claude Code, the archstrict plugin's PostToolUse hook runs `archstrict check <file>` after each edit and returns any violation into the agent's context. Its MCP server offers `check`, `rules`, `search`, and `simulate` as tools.
+4. On other hosts, `npx archstrict agents` adds the pre-edit instructions to `AGENTS.md`, and CI runs `archstrict check` on every change.
+
+## Getting started
+
+archstrict needs Node.js 22 or newer.
+
+```sh
+npm install -D archstrict
+npx archstrict init
+npx archstrict check
+```
+
+`init` declares one module per top-level source directory and one per loose top-level source file, so the first check covers every analyzed file.
+That first map is an inventory. Run `npx archstrict recommend` next, and add an `edges` rule before you treat the check as a finished architecture.
 
 ## Try it on a fixture
 

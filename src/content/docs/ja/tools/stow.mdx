@@ -1,5 +1,6 @@
 ---
 title: stow
+description: Git チェックアウト用の個人のエージェントスキルを自分のリポジトリに置き、エージェントが探すパスへリンクします。
 ---
 
 import ToolFacts from '../../../../components/ToolFacts.astro';
@@ -7,5 +8,47 @@ import ToolFacts from '../../../../components/ToolFacts.astro';
 <ToolFacts slug="stow" lang="ja" />
 
 stow は、Git チェックアウト用の個人のスキルを、そのチェックアウトの外に置いて管理します。
-コーディングエージェントが探すスキルのパスへリンクするので、相手のリポジトリに自分のオーバーレイが入ることはありません。
-オーバーレイは、自分のスキル用リポジトリに残ります。
+スキルは自分の GitHub リポジトリに置き、対象のリポジトリごとに `<owner>/<repo>/` のディレクトリを 1 つ持ちます。
+stow はそれを、コーディングエージェントが探すプロジェクトのスキルのパスへリンクするので、相手のリポジトリに自分のオーバーレイが入ることはありません。
+対象のリポジトリは GitHub 形式の `origin` の URL から識別し、リモートがないときや違うときは `--repo OWNER/REPO` で指定します。
+
+## 特徴
+
+- **リポジトリごとのオーバーレイ。**
+  `~/.stow/config.json` の `skillsDir` が自分のスキルのチェックアウトを指します。
+  `stow path` は、今のリポジトリのオーバーレイのパスを表示します。
+- **多くのホストへのリンク。**
+  `stow init --agents codex,claude-code,cursor` でホストを選びます。
+  Claude Code は `.claude/skills/<name>` を読み、Codex、Cursor、Antigravity、pi、Gemini CLI、GitHub Copilot、OpenCode、Devin Desktop は `.agents/skills/<name>` を共有します。
+- **生成したスキルの取り込み。**
+  `stow adopt .agents/skills/my-skill` は、スキルをオーバーレイにコピーし、元のディレクトリをシンボリックリンクに置き換えます。
+  `stow add /path/to/skill` はほかの場所のスキルをコピーし、`--link` を付けるとコピーせずにリンクします。
+- **git には何も入らない。**
+  stow はリンクごとに正確な `info/exclude` のパターンを加えるので、`git status` と `git add` はリンクを無視します。
+  除外は追跡されていないファイルにしか効かないので、追跡されているスキルは拒みます。
+- **別のマシンでの復元。**
+  スキルのリポジトリを pull した後、対象のチェックアウトで `stow` を実行します。
+  コマンドなしの `stow` は `sync` を実行してリンクを更新します。
+  `stow remove my-skill` は、エントリとそのリンクを消します。
+- **エージェントによる設定。**
+  `stow agent-instructions` は、設定の手引きと今の設定の状態を表示し、ファイルは変えません。
+
+## エージェントでの使い方
+
+シェルのショートカットがあるホストでは `!stow agent-instructions` を、グローバルに入れていなければ `!npx --yes @meganemura/stow agent-instructions` を実行します。
+エージェントは表示された手引きに従って、ホストを設定し、保存場所を説明し、役立つ個人のスキルを提案します。
+スキルを作るか、既存のスキルを取り込むか、何もしないかを尋ねます。
+設定の後、エージェントはそのリポジトリの `stow path` の下にあるスキルを読みます。
+stow は、スキルのリポジトリを clone、commit、pull、push しません。
+スキルの変更は、いつもの Git の手順でそのリポジトリにコミットします。
+
+## はじめかた
+
+stow には Node.js 20 以降が必要です。
+
+```sh
+npm install --global @meganemura/stow
+stow init --skills-dir ~/src/private-skills/skills --agents codex,claude-code,cursor
+stow adopt .agents/skills/my-skill
+stow list
+```

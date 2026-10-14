@@ -1,11 +1,46 @@
 ---
 title: solarsql
+description: A typed SQL layer for SQLite on Cloudflare D1 and Durable Objects, with types taken from the real engine at build time.
 ---
 
 import ToolFacts from '../../../components/ToolFacts.astro';
 
 <ToolFacts slug="solarsql" lang="en" />
 
-solarsql is a typed SQL layer for SQLite on Cloudflare D1 and Durable Objects.
-You write SQL, and the build step asks the real engine what the SQL returns and writes the types down.
-A command is a list of statements that runs as one transaction on both targets, and a failure comes back as a value.
+solarsql is a typed SQL layer for SQLite on Cloudflare, for D1 and Durable Objects.
+It is written for a coding agent that reads one module at a time, and for the person who reviews the agent's work.
+You write SQL in string literals, and the build step asks the real engine what each statement returns and writes the types down.
+When the SQL changes and the build has not run, tsc reports an error on the SQL string.
+Before 1.0, a minor version may change the API.
+
+## Features
+
+- **Types from the engine.** `npx solarsql build` runs every query against node:sqlite and writes `solarsql.generated.ts`. A failing statement comes back with its `at:` line, and a `no such column` message lists the table's columns.
+- **A command is one transaction.** A command is a `plan` of statements and `assert(...)` checks that runs as one D1 batch or one Durable Object transaction. `db.run` returns `{ ok: true, rows }`, or a failure value whose `kind` is, for example, `"assert"` or `"unique"`.
+- **Modules own their tables.** A module is `module.ts`, `public.ts`, and `solarsql.generated.ts`. The build refuses a statement that writes into another module's table, and other modules import only through `public.ts`.
+- **Migrations from the schema.** `npx solarsql migration <name>` writes `migrations/NNNN_<name>.sql` and `migrations/index.ts` for a Durable Object. The build asks for a new migration when the files no longer reproduce the schema.
+- **Rehearsal on real rows.** You can rehearse a migration against a snapshot of real data before you deploy it. The rehearsal fails on a row it lost or changed, unless `checks.json` declares that change.
+- **One API on three targets.** `d1(env.DB)`, `durable(ctx.storage)`, and `node(db)` give the same `db.all`, `db.first`, `db.run`, and `db.batch`. A module's tests run on node:sqlite.
+
+A project with an existing SQLite schema can start with schema-only query generation, which accepts the DDL without the module rules.
+
+## How an agent uses it
+
+The package ships the usage documentation as a skill. Point the project's AGENTS.md at `node_modules/solarsql/skills/solarsql/SKILL.md`.
+
+1. Edit a table, a query, or a command in `module.ts`.
+2. Run `npx solarsql build`. Each message names its fix.
+3. When the build prints the statements of a migration, run `npx solarsql migration <name>`.
+4. Run the module's test with `node --test`.
+
+## Getting started
+
+```sh
+npm install solarsql
+npm install --save-dev typescript @types/node
+npx solarsql init orders
+node --test
+```
+
+`init` writes `solarsql.config.ts` and the module `modules/orders/` with a placeholder table, a query catalog, two commands, and a test on node:sqlite.
+It then runs the first build and writes `migrations/0001_initial.sql`.

@@ -1,10 +1,50 @@
 ---
 title: firstlight
+description: Runs lint, typecheck, and tests in parallel for a coding agent and returns at the first failure.
 ---
 
 import ToolFacts from '../../../components/ToolFacts.astro';
 
 <ToolFacts slug="firstlight" lang="en" />
 
-firstlight runs lint, typecheck, and tests in parallel for a coding agent.
-It returns at the first failure, so the agent gets the earliest bad news.
+firstlight is a parallel check runner for coding agents. An agent runs lint, typecheck, and tests through it.
+It starts every check at the same time and returns as soon as the first one fails, so the agent can start on the fix.
+The other checks keep running in the background, and the agent reads their results later.
+A check is any shell command, so the project does not need Node or a `package.json`. Only firstlight itself needs Node.
+firstlight never writes into the repository it checks.
+
+## Features
+
+- **Arguments like `run-p`.** `firstlight run lint typecheck test` runs `package.json` scripts, `"lint:*"` matches scripts by pattern, and an argument with a space, such as `"bundle exec rspec"`, is a shell command.
+- **Diagnostics in one shape.** For `tsc`, `vitest`, `node --test`, and `archstrict`, a failed check prints `file:line:col rule message` lines before a 10-line log tail.
+- **Reused passes.** A check that passed on the same working tree with the same command does not run again. The key comes from the git tree hash, the command, and the keys of its `after` checks, and `--no-cache` runs every check.
+- **Only new failures.** `firstlight results --new --wait` exits 1 only for a failure that the previous run did not have, so a project with known failures can still gate a change.
+- **Run what failed.** `firstlight run --failed` runs only the checks that did not pass in the latest run.
+- **Time left.** A running check shows about how long it has left, based on earlier passes. `firstlight follow` prints each status change as it happens, and `--json` prints JSON Lines.
+
+## How an agent uses it
+
+1. Start the checks with `firstlight run lint typecheck test`. It returns at the first failed or timed-out check, with that check's diagnostics, the status of every other check, and the next command.
+2. Fix the failure while the other checks continue.
+3. Read the rest with `firstlight results --wait`, or watch each check finish with `firstlight follow`.
+4. Run again. A new run cancels anything left from step 1, and `firstlight run --failed` runs only what did not pass.
+
+When firstlight itself fails, it prints one JSON object on stderr with a `do` field that names the next command.
+
+## Getting started
+
+firstlight needs Node.js 24 or newer.
+
+```sh
+npm i -D firstlight
+npx firstlight --help
+npx firstlight run
+```
+
+Without `firstlight.json`, `firstlight run` runs whichever of the `package.json` scripts `lint`, `typecheck`, `test`, and `archstrict` exist.
+A `firstlight.json` can name its own checks, with `after` for order and `timeoutSec` for a time limit.
+
+## Works with
+
+- When vitest uses the [depug](/tools/depug/) reporter, firstlight attaches depug's evidence path and rerun command to each failed test's diagnostic.
+- firstlight reads the text of [archstrict](/tools/archstrict/) `check` as diagnostics, and runs an `archstrict` script by default when the `package.json` has one.

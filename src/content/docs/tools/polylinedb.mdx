@@ -1,11 +1,49 @@
 ---
 title: polylinedb
+description: A personal issue store with field versions, ownership claims, and project memory, for local tools and cloud agents.
 ---
 
 import ToolFacts from '../../../components/ToolFacts.astro';
 
 <ToolFacts slug="polylinedb" lang="en" />
 
-polylinedb is a personal issue store for local tools and cloud agents.
+polylinedb is a personal issue store for local tools and cloud agents, and its command is `pd`.
 The CLI uses one SQLite file outside your working repository, or an authenticated cloud connection.
 The Cloudflare Worker offers the same operations over HTTP and remote MCP, with D1 as its database.
+These are independent stores, and polylinedb does not synchronize them.
+A local agent can record facts and open work, and a cloud agent can read both through MCP and continue.
+
+## Features
+
+- **Field versions.** `pd show` returns a version for each field. `pd update ISSUE_ID --status deferred --expect status=1` fails as a whole when another writer changed that field first, and polylinedb never retries with the newer version on its own.
+- **Ownership claims.** `pd claim acquire`, `pd claim renew`, and `pd claim release` give one agent session an issue. Setting `in_progress` requires a current `--claim-proof`, unless the issue is an epic.
+- **Project memory.** `pd memory create`, `pd memory search`, and `pd memory context --project NAME` keep knowledge that stays useful after an issue closes.
+- **Prerequisites and worklists.** `pd dependency add --dependent ID --blocker ID` records which issue blocks which. `pd ready` lists open issues with no active blocker, and `pd blocked` lists the others.
+- **A change feed.** `pd changes --since 0` lists issue changes in commit order. `pd wait --since SEQ --timeout SECONDS` returns when a matching event arrives, so an agent can follow other agents' work without rereading every issue.
+- **JSON output and safe retries.** Every command prints JSON, and `--human` prints plain text for `show`, `list`, and `search`. A `create` retried with the same `--request-id UUID` returns the existing issue instead of a second one.
+
+## How an agent uses it
+
+The package ships two skills, `polylinedb` and `polylinedb-queue`, which you copy into each agent host's skill directory.
+
+1. The agent runs `pd context` to see the selected connection and project, then reads project memory with `pd memory context --project PROJECT`.
+2. It selects work, claims it, and reads the field versions with `pd show` before each write.
+3. When a write conflicts, it reads again and decides whether the edit still applies.
+4. It saves confirmed facts as memory and its results as comments, so a later local or cloud session can continue from the store.
+
+The `polylinedb-queue` skill enqueues finished commits on a shared `queue` branch. The owner lands `queue` onto main, and agents do not push main.
+
+## Getting started
+
+polylinedb needs Node.js 24.20 or later in the 24.x line, or 26.7 or later, and Git on `PATH`.
+
+```sh
+npm install --global polylinedb
+pd init --tool compiler --project parser --actor local:owner
+pd --actor local:owner create --tool compiler --project parser --body 'Handle empty input'
+pd list
+```
+
+## Works with
+
+polylinedb runs its read queries with [solarsql](/tools/solarsql/), on SQLite and on D1.

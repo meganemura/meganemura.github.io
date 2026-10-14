@@ -1,10 +1,40 @@
 ---
 title: finderscope
+description: Turns V8 CPU and heap profiles into short, ranked reports that name the next command to run.
 ---
 
 import ToolFacts from '../../../components/ToolFacts.astro';
 
 <ToolFacts slug="finderscope" lang="en" />
 
-finderscope turns a V8 profile into a short, ranked report that a coding agent can read in one pass.
-The report ends by naming the next command to run.
+finderscope turns a V8 profile (`.cpuprofile`, `.heapprofile`, or `.heapsnapshot`) into a short, ranked report that a coding agent can read in one pass.
+The report ends with a `do:` line that names the next command to run.
+Its summary ranks the functions the agent can edit by the cost they caused.
+Each sample belongs to the deepest function in your own code, so time spent inside a dependency counts against the code that called it.
+
+## Features
+
+- **Profile a command.** `finderscope run -- <command>` profiles the command and keeps a scratch directory with the profile and the child's output. It writes the full report to `report.txt`, or `report.json` with `--json`.
+- **Your code first.** `own` means real source the agent can edit. Each row shows a function's self time and its three largest calls into other areas, such as a package.
+- **Commands to dig in.** `top`, `callers`, `callees`, and `lines` take a function key exactly as a report printed it, or a name that matches one function. A failed lookup prints up to three runnable commands for the closest keys.
+- **Time windows.** `timeline` splits a CPU profile into 20 equal buckets, and `--from` and `--to` limit any report to one window.
+- **Memory.** `run --heap` records a heap profile, and `run --heap-snapshot` writes a snapshot as `heapUsed` reaches higher peaks. `retainers <snapshot> <constructor-or-#id>` shows what retains an object.
+- **Comparison and JSON.** `finderscope diff <before> <after>` compares two profiles. Every `--json` report has a top-level `unit`, `"us"` for a CPU profile or `"bytes"` for a heap profile.
+
+## How an agent uses it
+
+The package includes a skill with a short profiling workflow.
+
+1. Run `finderscope run -- <command>`.
+2. Read the fix candidates and the `do:` line at the end.
+3. Run the `do:` command, such as `finderscope lines`, then `callers` or `callees` to follow the cost.
+4. After a change, compare the old and new profiles with `finderscope diff`.
+
+Every argument in a `do:` command is single-quoted, so the line survives `sh -c` whatever the path contains.
+
+## Getting started
+
+```sh
+npm install --save-dev finderscope
+npx finderscope run -- node app.js
+```

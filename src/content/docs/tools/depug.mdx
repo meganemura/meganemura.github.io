@@ -1,5 +1,6 @@
 ---
 title: depug
+description: Reruns a failed TypeScript test with instrumentation and reports what the values actually were.
 ---
 
 import ToolFacts from '../../../components/ToolFacts.astro';
@@ -7,5 +8,50 @@ import ToolFacts from '../../../components/ToolFacts.astro';
 <ToolFacts slug="depug" lang="en" />
 
 depug turns TypeScript test failures into evidence that a coding agent can read.
-It reruns the test with instrumentation and reports what a value actually was, instead of inferring it from source.
-It works with vitest and with the Node test runner.
+An agent that debugs a failed test usually infers what a value was from the code around it.
+depug reruns the test with instrumentation and reports what the value actually was.
+It works with vitest and with Node's own test runner.
+
+## Features
+
+- **Evidence on failure.** With the reporter in place, a failed test prints a `depug evidence:` line with a JSON file and a `depug rerun:` line with the command that reruns that one test. A note says whether the code that produced the wrong value is still on the stack.
+- **`probe`.** It lists every call to one function with its arguments and return values. It also puts the observed shape beside the declared type, as in `mismatch: id was string, declared number (5 of 5 calls)`.
+- **`flt`.** It follows one call line by line and shows which local changed at which line.
+- **`frames` and `preflight`.** `frames` lists the functions a test called, and `--at <file:line>` turns a source line into a function id. `preflight` checks that call indexes stay the same between two runs.
+- **`exec`.** It runs an expression at one line, in the function's own scope, and reports the run's outcome.
+- **`rerun`.** It runs a test command under a clock and stops it after 120 seconds by default, because a test that never returns blocks the worker that the runner's own timeout depends on.
+
+A function id has the form `path:name@line:column#k`, where `k` counts the calls of that function inside one test.
+
+## How an agent uses it
+
+1. A failed test prints the evidence path and the rerun command.
+2. If the note says the failing call is in the recorded frames, the agent reads the evidence file.
+3. Otherwise, the agent puts a verb in front of the printed command. It runs `depug preflight`, then `depug probe` on a suspect function, then `depug flt` on the call that went wrong.
+
+In the README's worked example, this found a truncation bug in IPv6 handling in three commands and about four seconds, without reading the implementation to guess a value.
+depug starts a process only when you run a verb, so a green suite pays nothing.
+The package includes a skill that tells an agent how to read the output.
+
+## Getting started
+
+```sh
+npm install --save-dev @meganemura/depug
+```
+
+Add the reporter to the vitest config. The verbs need no configuration.
+
+```ts
+import { defineConfig } from "vitest/config";
+import DepugReporter from "@meganemura/depug/reporter";
+
+export default defineConfig({
+  test: {
+    reporters: ["default", new DepugReporter()],
+  },
+});
+```
+
+```sh
+npx depug probe "src/utils/ipaddr.ts:expandIPv6@13:14" -- npx vitest run "src/utils/ipaddr.test.ts" -t "^expandIPv6 Should result be valid$"
+```

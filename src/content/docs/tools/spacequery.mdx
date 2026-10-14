@@ -1,5 +1,6 @@
 ---
 title: spacequery
+description: Named queries that join git, gh, terminal, and process state into one read-only view of a developer's machine.
 ---
 
 import ToolFacts from '../../../components/ToolFacts.astro';
@@ -7,5 +8,35 @@ import ToolFacts from '../../../components/ToolFacts.astro';
 <ToolFacts slug="spacequery" lang="en" />
 
 spacequery gives a coding agent one current view of a developer's machine.
-It observes sources such as git, herdr, gh, and polylinedb, joins their rows in a fresh in-memory SQLite database, prints the answer, and exits.
-It only reads: the tools that own the state keep the actions.
+Before an agent edits, starts a server, opens a pull request, or takes over old work, it needs to know who and what already occupies the machine and the repository.
+git, gh, process tools, and terminal sessions each show one slice of that.
+spacequery observes those sources, called providers, joins their rows in a fresh in-memory SQLite database, prints the result, and exits.
+It reads the sources and never changes them.
+
+## Features
+
+- **A report for one repository.** `spacequery here` shows the other agents in the repository, the git state, linked worktrees, the branch's pull request, listening ports, local processes, Docker containers, and mise tools, among other sections.
+- **Questions across tools.** spacequery joins rows by repository root, so `agents-in-dirty-repos`, `failing-checks-with-agents`, `idle-worktrees`, and `servers-with-agents` are each one named query.
+- **A gate before work.** Queries that list agents leave out the caller. `spacequery here --expect-empty --strict` fails when another agent is in the repository or a provider did not answer, and `spacequery watch in-dir --until empty` waits until the repository is free.
+- **Gaps that show.** The default output is JSON, and its `providers` field gives `source`, `ok`, `observed_at`, `ms`, and `error` for each provider that ran. A failed provider leaves its tables empty, so empty rows beside it mean unknown, not none. `spacequery doctor` checks which built-in providers answer.
+- **Only the providers a query needs.** A query loads the providers for the tables it reads, so `tools-in-dir` does not call GitHub. Every call starts from an empty database, so no cache can go stale.
+- **A terminal browser.** `spacequery ui` shows the tables and queries with their columns and SQL, and fetches rows when you press `r`. `--tsv` prints a compact table for a person.
+
+## How an agent uses it
+
+The workflow lives in the spacequery skill, which `gh skill install` puts on each agent host.
+
+1. Before work starts in a repository, the agent runs `spacequery here`.
+2. It reads `section_status` to see whether the providers behind each section answered.
+3. It picks a safer next action from the rows. It waits with `spacequery watch in-dir --until empty` when another agent works there, reuses an idle worktree, avoids a port that a local server holds, or reads failing checks before it asks to merge.
+
+## Getting started
+
+spacequery needs Node 24.10 or later, and the tools it observes on `PATH`, such as `git`, `gh`, `herdr`, `docker`, and `lsof`.
+
+```sh
+npm install -g spacequery
+spacequery here
+spacequery doctor
+gh skill install meganemura/spacequery spacequery --scope user --agent claude-code
+```

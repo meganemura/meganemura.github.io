@@ -1,5 +1,6 @@
 ---
 title: stow
+description: Keeps your personal agent skills for a Git checkout in your own repository and links them into the paths agents discover.
 ---
 
 import ToolFacts from '../../../components/ToolFacts.astro';
@@ -7,5 +8,34 @@ import ToolFacts from '../../../components/ToolFacts.astro';
 <ToolFacts slug="stow" lang="en" />
 
 stow keeps personal skills for a Git checkout outside that checkout.
-It links them into the skill paths that coding agents discover, so the other repository never holds your overlay.
-The overlay stays in your own skills repository.
+You keep the skills in your own GitHub repository, with one `<owner>/<repo>/` directory for each target repository.
+stow links them into the project skill paths that coding agents discover, so the other repository never holds your overlay.
+It reads the target's identity from its GitHub-style `origin` URL, and `--repo OWNER/REPO` sets it when the remote is missing or different.
+
+## Features
+
+- **One overlay per repository.** `skillsDir` in `~/.stow/config.json` points at your skills checkout. `stow path` prints the overlay of the current repository.
+- **Links for many hosts.** `stow init --agents codex,claude-code,cursor` selects the hosts. Claude Code reads `.claude/skills/<name>`, and Codex, Cursor, Antigravity, pi, Gemini CLI, GitHub Copilot, OpenCode, and Devin Desktop share `.agents/skills/<name>`.
+- **Adopt a generated skill.** `stow adopt .agents/skills/my-skill` copies the skill into the overlay and replaces the original directory with a symlink. `stow add /path/to/skill` copies a skill from elsewhere, and `--link` links it instead.
+- **Nothing reaches git.** stow adds exact `info/exclude` patterns for its links, so `git status` and `git add` omit them. It refuses a tracked skill, because exclusions apply only to untracked files.
+- **Restore on another machine.** After you pull your skills repository, run `stow` in the target checkout. With no command, it runs `sync` and updates the links. `stow remove my-skill` deletes the entry and its links.
+- **Setup through an agent.** `stow agent-instructions` prints a setup guide and the current config state, and changes no files.
+
+## How an agent uses it
+
+In a host with shell shortcuts, run `!stow agent-instructions`, or `!npx --yes @meganemura/stow agent-instructions` without a global install.
+The agent follows the printed guide to configure its host, explain the storage, and suggest a useful personal skill.
+It asks whether you want to create a skill, adopt an existing one, or skip.
+After setup, agents read the skills under `stow path` for the repository.
+stow does not clone, commit, pull, or push your skills repository. You commit skill changes there with your usual Git workflow.
+
+## Getting started
+
+stow needs Node.js 20 or later.
+
+```sh
+npm install --global @meganemura/stow
+stow init --skills-dir ~/src/private-skills/skills --agents codex,claude-code,cursor
+stow adopt .agents/skills/my-skill
+stow list
+```

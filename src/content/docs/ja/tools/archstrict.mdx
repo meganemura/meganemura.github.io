@@ -1,5 +1,6 @@
 ---
 title: archstrict
+description: 違反ごとに規則、場所、理由、直し方を示す、TypeScript のモジュール境界の検査ツールです。
 ---
 
 import ToolFacts from '../../../../components/ToolFacts.astro';
@@ -9,8 +10,53 @@ import Demo from '../../../../components/Demo.astro';
 <ToolFacts slug="archstrict" lang="ja" />
 
 archstrict は、ArchUnit と同じ意味で、TypeScript のモジュール境界を検査します。
+tsc や型検査ツールは型を、ESLint はスタイルを調べます。
+archstrict が調べるのは、モジュールの間の境界です。
 モジュールは、コードベースの残りに公開用のファイルを 1 つだけ見せ、それを飛び越える import は違反になります。
 違反の報告には、規則の ID、場所、理由、直すためのコマンドが付くので、エージェントが自分の誤りを自分で直せます。
+
+## 特徴
+
+- **宣言するモジュール。**
+  `archstrict.config.ts` は 1 つの TypeScript の値です。
+  `declaredModules` で各モジュールをディレクトリか単一のファイルとして名付け、`surface` でその公開用のファイルを名付けます。
+  どのモジュールにも `exclude` のパターンにも当てはまらないファイルは、`uncovered-module` の違反になります。
+- **エージェントが動ける報告。**
+  `archstrict check` は、各違反を規則の ID、`path:line:col`、証拠、`because` の理由、`do:` のコマンドつきで表示します。
+  `--json` は同じ内容を返し、`--rule` と `--module` で絞り込めます。
+- **層と領域の規則。**
+  `classify` でファイルにタグを付け、`edges` が `allowDeny`、`order`、`point` の規則でタグ間の import を検査します。
+- **減るだけの todo ファイル。**
+  最初の `archstrict todo` は、今ある違反を `archstrict.todo.json` に凍結し、その後の実行はエントリを取り除くだけです。
+  `strict` に挙げたモジュールは、エントリを 1 つも持てません。
+- **編集前の問い合わせ。**
+  `archstrict rules <path>` は、まだ存在しないパスでも、そのパスを管理するモジュール、タグ、制約を答えます。
+  `archstrict simulate` は、ソースや設定の変更を書き込まずに試算します。
+- **地図の次の一手。**
+  `archstrict recommend` は、実際の import のグラフから `edges` の規則と公開面を提案します。
+  `archstrict hotspots` は、コミット数とファンインでモジュールに点を付け、一緒に変わるモジュールの組を一覧します。
+
+## エージェントでの使い方
+
+1. ファイルを作る前や import を足す前に、エージェントは `npx archstrict rules <path>` を実行します。
+2. 編集の後で `npx archstrict check` を実行し、各 `do:` の行のとおりに直します。
+3. Claude Code では、archstrict プラグインの PostToolUse フックが、編集のたびに `archstrict check <file>` を実行し、違反をエージェントの文脈へ返します。
+   その MCP サーバーは、`check`、`rules`、`search`、`simulate` をツールとして提供します。
+4. ほかのホストでは、`npx archstrict agents` が `AGENTS.md` に編集前の指示を加え、CI が変更のたびに `archstrict check` を実行します。
+
+## はじめかた
+
+archstrict には Node.js 22 以降が必要です。
+
+```sh
+npm install -D archstrict
+npx archstrict init
+npx archstrict check
+```
+
+`init` は、最上位のソースのディレクトリごとと、最上位にあるばらのソースファイルごとにモジュールを 1 つ宣言するので、最初の検査から解析するすべてのファイルが対象になります。
+この最初の地図は目録です。
+続けて `npx archstrict recommend` を実行し、検査を完成した設計として扱う前に `edges` の規則を加えてください。
 
 ## フィクスチャで試す
 

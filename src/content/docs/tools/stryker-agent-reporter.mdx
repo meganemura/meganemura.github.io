@@ -1,5 +1,6 @@
 ---
 title: stryker-agent-reporter
+description: A Stryker reporter that writes each surviving mutant as a JSON line with a patch and a rerun command, plus a pull request gate.
 ---
 
 import ToolFacts from '../../../components/ToolFacts.astro';
@@ -7,5 +8,38 @@ import ToolFacts from '../../../components/ToolFacts.astro';
 <ToolFacts slug="stryker-agent-reporter" lang="en" />
 
 stryker-agent-reporter is a Stryker reporter for a coding agent.
-It writes JSON Lines with one line per surviving mutant, carrying its location, the original and replacement text, a ready-to-apply patch, and a rerun command.
-Two more commands, convert and gate, work from that output alone.
+It writes JSON Lines, one object per line, so an agent can read the result a line at a time and filter it with `grep` or `jq`.
+Each surviving mutant's line carries its location, the original and replacement text, a ready-to-apply patch, and a rerun command.
+The agent does not need to work any of that out again from Stryker's own report.
+Two more commands, `convert` and `gate`, work from that output alone.
+
+## Features
+
+- **One line per mutant.** `reports/mutation/agent.jsonl` starts with a `run` line, then one `scope` line per mutated file, one line per actionable mutant, and one `testWithoutKills` line per test that killed no mutant. A `summary` line comes last, so a file without one is a run that did not finish.
+- **Material for a fix.** A `survivor` line carries `patch`, ready for `git apply --unidiff-zero`. It also carries `rerun` for its file and `rerunExact` for that one mutant.
+- **Stable keys.** Each mutant's `key` comes from its own source text, not its line number, so an edit elsewhere in the file keeps it. A `scope` line lists every key of its file, which tells a killed mutant apart from one that a narrower `mutate` range left out.
+- **Results during the run.** The reporter appends each finished mutant to `reports/mutation/agent.partial.jsonl`, so `tail -f` shows survivors while Stryker still runs.
+- **A gate for pull requests.** `stryker-agent-reporter gate --since origin/main --format github` checks only the changed lines and annotates them in GitHub Actions. Exit code 1 means a survivor or an uncovered mutant remains, and exit code 3 means a measurement failure, not a proven gap. With `--baseline <file>`, only a new survivor fails the gate.
+- **Saved reports.** `stryker-agent-reporter convert` turns a saved `mutation.json` into the same JSON Lines.
+
+## How an agent uses it
+
+1. Run Stryker with the `agent` reporter, and read `agent.partial.jsonl` while the run goes.
+2. Select the survivors, for example with `jq -c 'select(.kind=="survivor")' reports/mutation/agent.jsonl`.
+3. For each survivor, read `original`, `replacement`, and `patch`, make the change, then run its `rerunExact` command to test that mutant again.
+4. In CI, run `gate --since`, so a pull request fails only on mutants in the lines it changed.
+
+## Getting started
+
+```sh
+npm install --save-dev stryker-agent-reporter
+```
+
+Add the `agent` reporter to the Stryker config. Stryker's default `plugins` loads only `@stryker-mutator/*`, so name this package too.
+
+```json
+{
+  "reporters": ["clear-text", "agent"],
+  "plugins": ["@stryker-mutator/*", "stryker-agent-reporter"]
+}
+```
