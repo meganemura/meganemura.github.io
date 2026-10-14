@@ -44,6 +44,22 @@
     ]
   },
   {
+    "source": "github",
+    "section": "mods",
+    "slug": "buffer-pane",
+    "name": "buffer-pane",
+    "version": "0.1.0",
+    "description": "A pane beside the transcript that holds the next things to tell the agent: write blocks of text while a turn runs, then press [+] to put one block into the prompt box.",
+    "license": "MIT",
+    "repo": "https://github.com/meganemura/buffer-pane",
+    "skills": [],
+    "install": [
+      "claude plugin marketplace add meganemura/buffer-pane",
+      "claude plugin install buffer-pane@buffer-pane"
+    ],
+    "commit": "214211a"
+  },
+  {
     "source": "rubygems",
     "slug": "bulldogger",
     "name": "bulldogger",
@@ -65,6 +81,24 @@
     "license": "MIT",
     "repo": "https://github.com/meganemura/depug",
     "uses": []
+  },
+  {
+    "source": "github",
+    "section": "mods",
+    "slug": "draft-pane",
+    "name": "draft-pane",
+    "version": "0.4.0",
+    "description": "A pane beside the transcript that shows the model's newest open draft and sends your comments on it, span by span, as one prompt.",
+    "license": "MIT",
+    "repo": "https://github.com/meganemura/draft-pane",
+    "skills": [
+      "draft"
+    ],
+    "install": [
+      "claude plugin marketplace add meganemura/draft-pane",
+      "claude plugin install draft-pane@draft-pane"
+    ],
+    "commit": "6f4acfe"
   },
   {
     "source": "npm",
@@ -101,6 +135,24 @@
   },
   {
     "source": "github",
+    "section": "mods",
+    "slug": "grilling-pane",
+    "name": "grilling-pane",
+    "version": "0.4.2",
+    "description": "A pane beside the transcript that shows the model's open interview questions and submits every pick as one prompt.",
+    "license": "MIT",
+    "repo": "https://github.com/meganemura/grilling-pane",
+    "skills": [
+      "grilling"
+    ],
+    "install": [
+      "claude plugin marketplace add meganemura/grilling-pane",
+      "claude plugin install grilling-pane@grilling-pane"
+    ],
+    "commit": "0be0da8"
+  },
+  {
+    "source": "github",
     "section": "skills",
     "slug": "headsign",
     "name": "headsign",
@@ -116,6 +168,22 @@
       "gh skill install meganemura/headsign --all --agent codex --scope user"
     ],
     "commit": "d4d2bea"
+  },
+  {
+    "source": "github",
+    "section": "mods",
+    "slug": "jira-ticket-pane",
+    "name": "jira-ticket-pane",
+    "version": "0.3.1",
+    "description": "A pane beside the transcript that fetches one Jira issue by key and lets you attach it to your next prompt.",
+    "license": "MIT",
+    "repo": "https://github.com/meganemura/jira-ticket-pane",
+    "skills": [],
+    "install": [
+      "claude plugin marketplace add meganemura/jira-ticket-pane",
+      "claude plugin install jira-ticket-pane@jira-ticket-pane"
+    ],
+    "commit": "e7aceb6"
   },
   {
     "source": "github",
@@ -199,6 +267,22 @@
       "claude plugin install pstack@pstack-portable"
     ],
     "commit": "33e2311"
+  },
+  {
+    "source": "github",
+    "section": "mods",
+    "slug": "pull-request-pane",
+    "name": "pull-request-pane",
+    "version": "0.3.0",
+    "description": "A pane beside the transcript with the GitHub pull requests and issues related to the current session: drag a title or description to leave a comment on it, add as many as you like, then Submit sends them all as one prompt. Watch each pull request's checks, review decision and mergeability update on a timer.",
+    "license": "MIT",
+    "repo": "https://github.com/meganemura/pull-request-pane",
+    "skills": [],
+    "install": [
+      "claude plugin marketplace add meganemura/pull-request-pane",
+      "claude plugin install pull-request-pane@pull-request-pane"
+    ],
+    "commit": "2b07251"
   },
   {
     "source": "npm",

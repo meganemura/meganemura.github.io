@@ -1,0 +1,39 @@
+---
+title: buffer-pane
+description: A Claude Code mod with a pane beside the transcript where you write the next things to tell the agent while a turn runs.
+---
+
+import ToolFacts from '../../../components/ToolFacts.astro';
+
+<ToolFacts slug="buffer-pane" lang="en" />
+
+An idea for the next request often comes while the agent runs a long turn.
+Text in the prompt box is one Enter away from the agent, and Enter interrupts the turn or puts the text in the queue.
+buffer-pane is a Claude Code plugin, a Claude Mod, that opens a pane beside the transcript where you collect that text until you are ready.
+It works only in Claude Code, in a terminal session, because print mode (`-p`) has no pane.
+
+## Features
+
+- **Blocks while a turn runs.** Type in the last field and press Enter to add a block. Blank lines split the buffer into blocks, and in this version one block is one line.
+- **`[+]` fills the prompt box.** The block replaces all the text in the prompt box and stays in the pane with a `✓`. The plugin cannot read the prompt box, so press `[+]` when the box is empty.
+- **`[>]` sends the block.** The block goes to the agent as your next prompt and leaves the pane. During a turn, it waits in the queue until the turn ends.
+- **Order and removal.** `[^]` and `[v]` move a block, and `[x]` deletes it.
+- **A buffer per directory.** Claude Code's plugin store holds the buffer under `buffer:<working directory>`, so it survives sessions and each directory has its own.
+
+## How an agent uses it
+
+The agent sees a block only when you send it.
+`[>]` sends it as your next prompt, and `[+]` puts it in the prompt box for you to read and send with Enter.
+Until then, the text stays in the pane and does not interrupt the turn.
+
+## Getting started
+
+buffer-pane needs Claude Code 2.1.273 or later, with `CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1`.
+
+```sh
+claude plugin marketplace add meganemura/buffer-pane
+claude plugin install buffer-pane@buffer-pane
+```
+
+Type `/buffer-pane` to show the pane, and type it again to hide it.
+The README marks the plugin as early access, because the function-hooks API can change between Claude Code releases.

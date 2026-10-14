@@ -1,0 +1,59 @@
+---
+title: grilling-pane
+description: モデルが出すインタビューの質問をトランスクリプトの横のペインに描き、選んだ答えをまとめて 1 つのプロンプトで送る Claude Code の mod です。
+---
+
+import ToolFacts from '../../../../components/ToolFacts.astro';
+
+<ToolFacts slug="grilling-pane" lang="ja" />
+
+grilling-pane は、Claude が計画に取りかかる前に、その計画について人に質問する Claude Code のプラグイン（Claude Mod）です。
+Claude Code でしか動きません。
+プラグインのスキル `grilling-pane:grilling` は、方法として Matt Pocock の `grilling` スキルを呼び出し、各回の質問を `grilling` というラベルのフェンス付きブロックに書きます。
+grilling-pane はその回をトランスクリプトの横のペインに描き、1 回の Submit で、その回のすべての答えを 1 ターンで送ります。
+
+## 特徴
+
+- **ボタンとしての選択肢。**
+  選択肢を押すと選ばれ、もう一度押すと選択が外れます。
+  矢印キーでボタンを移り、Enter で押し、Esc でプロンプト欄に戻ります。
+- **Talk about this one。**
+  どの質問も最後にこの選択肢があります。
+  押すと任意の 1 行の入力欄が開き、`(discuss)` と入力した文を送ります。
+- **1 つの回答のプロンプト。**
+  `Submit` は `Answers (grilling-pane):` に続けて質問ごとに 1 行を送り、何も選ばなかった質問には `(skipped)` を送ります。
+- **素朴な質問のブロック。**
+  `Q<n>: <question>` の行が質問を始め、その下の `- ` の行が選択肢です。
+  推奨する選択肢は `(recommended: <reason>)` で終わります。
+- **トランスクリプトだけで読める。**
+  質問はすべてアシスタントのメッセージの中の文で、答えはすべて質問を繰り返すプロンプトなので、プラグインがなくてもトランスクリプトを読めます。
+- **ひとりでに開くペイン。**
+  一度表示すると、キーボードを奪わずに、新しい回が届くたびにペインが開きます。
+  `/grilling-pane` で隠せます。
+
+## エージェントでの使い方
+
+`/grilling-pane:grilling <plan>` で始めます。
+Claude は `grilling` ブロックに 1 回分の質問を書き、番号は会話全体で 1 つの連番です。
+Claude は回答のプロンプトを、その回への答えとして読みます。
+回が開いている間にメッセージを打つと、プラグインはそれを変えずに送り、Claude は名前を挙げなかった質問を、飛ばしたのではなくまだ開いているものとして読みます。
+
+## はじめかた
+
+grilling-pane には、Claude Code 2.1.280 以降と `CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1`、そして上流の `grilling` スキルの v1.2.0 以降が必要です。
+
+```sh
+gh skill install mattpocock/skills grilling --agent claude-code
+claude plugin marketplace add meganemura/grilling-pane
+claude plugin install grilling-pane@grilling-pane
+```
+
+毎回のセッションでこの変数を設定するには、`settings.json` の `env` に加えます。
+
+```json
+{
+  "env": {
+    "CLAUDE_CODE_ENABLE_FUNCTION_HOOKS": "1"
+  }
+}
+```

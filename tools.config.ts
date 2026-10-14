@@ -115,4 +115,9 @@ export const tools: readonly ToolEntry[] = [
       "claude plugin install pstack@pstack-portable",
     ],
   }),
+  mod("grilling-pane", ["plugin/skills/grilling/SKILL.md"]),
+  mod("buffer-pane"),
+  mod("draft-pane", ["plugin/skills/draft/SKILL.md"]),
+  mod("jira-ticket-pane"),
+  mod("pull-request-pane"),
 ];

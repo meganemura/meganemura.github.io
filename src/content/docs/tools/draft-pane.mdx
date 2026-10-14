@@ -1,0 +1,39 @@
+---
+title: draft-pane
+description: A Claude Code mod that shows the model's newest draft in a pane and sends your comments on its spans as one prompt.
+---
+
+import ToolFacts from '../../../components/ToolFacts.astro';
+
+<ToolFacts slug="draft-pane" lang="en" />
+
+draft-pane is a Claude Code plugin, a Claude Mod, for feedback on a draft in place, with fewer turns.
+It works only in Claude Code.
+Its skill, `draft-pane:draft`, makes Claude write a requested draft inside a fenced `draft` block, and the pane beside the transcript shows the newest open draft.
+You drag over a span and type a comment, comment on the whole draft, or approve it, and one Submit sends every comment as one prompt that quotes each span.
+
+## Features
+
+- **Comments on spans.** Drag over a span of the draft, type in the `comment` input, and press Enter. Each comment stays under the line of the words it quotes.
+- **The whole draft.** `whole draft` opens one comment on the whole draft, and `Approve` sends `(approved)` to say the draft can be used as it is.
+- **One feedback prompt.** `Submit` sends `Feedback (draft-pane) on D3:`, then each quoted span as a `> ` line with its comment under it, in draft order, and the whole-draft comment last.
+- **Numbered drafts.** A draft starts with `D<n>: <title>`, and a revision starts with `D<m> (revises D<n>): <title>`. Numbers are never reused.
+- **File drafts.** A `file: <path>` line after the header shows a file that already exists as the draft, and the feedback prompt names that file.
+- **The transcript stays complete.** Every draft is text in an assistant message, and every piece of feedback is a prompt that quotes the draft.
+
+## How an agent uses it
+
+Start with `/draft-pane:draft <what to draft>`, or ask Claude for a draft of any text.
+Claude writes the draft in a `draft` block.
+The feedback prompt reaches Claude with each comment next to the exact span it is about, and a revision comes back as a new numbered block.
+
+## Getting started
+
+draft-pane needs Claude Code 2.1.273 or later, with `CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1`.
+
+```sh
+claude plugin marketplace add meganemura/draft-pane
+claude plugin install draft-pane@draft-pane
+```
+
+`/draft-pane` shows or hides the pane and gives it keyboard focus.

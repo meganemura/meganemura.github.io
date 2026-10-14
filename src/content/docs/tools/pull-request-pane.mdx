@@ -1,0 +1,39 @@
+---
+title: pull-request-pane
+description: A Claude Code mod that lists the session's GitHub pull requests and issues in a pane and sends your comments on them as one prompt.
+---
+
+import ToolFacts from '../../../components/ToolFacts.astro';
+
+<ToolFacts slug="pull-request-pane" lang="en" />
+
+pull-request-pane is a Claude Code plugin, a Claude Mod, that shows the GitHub pull requests related to the current session in a pane beside the transcript.
+It works only in Claude Code.
+Issues that a pull request closes, and issues the transcript mentions, appear as entries too.
+You drag over a title or a description to comment on that span, and Submit sends the comments as one prompt.
+While the pane is open, each pull request's checks, review decision, and mergeability refresh every 60 seconds.
+
+## Features
+
+- **Comments on spans.** Drag over an entry's title or description to open a `comment` field with the span quoted above it. The `overall` field takes one comment on the entry as a whole.
+- **One prompt per entry.** `Submit` sends a header that names the entry, then each comment with the text it is about quoted above it, and the overall comment last.
+- **Checks at a glance.** Each pull request shows one word, `failing`, `running`, `passing`, or `no checks`. The `▶ checks` toggle opens a summary line and each check, linked to its run.
+- **Refresh on demand.** The `↻ refreshed <time>` button fetches every entry's title, description, and checks now. An entry's title and description stop refreshing while it has a pending selection, a comment, or unsent text, so nothing a comment quotes changes before you press Submit.
+- **Entries after a reload.** The pane saves its data to the plugin's own store, so a reload shows the last known entries right away.
+
+## How an agent uses it
+
+The agent receives your review as one prompt.
+Each comment arrives with the text it is about quoted above it, and the overall comment comes last.
+
+## Getting started
+
+pull-request-pane needs Claude Code 2.1.273 or later, with `CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1`, and `gh` logged in to GitHub.
+
+```sh
+claude plugin marketplace add meganemura/pull-request-pane
+claude plugin install pull-request-pane@pull-request-pane
+```
+
+Type `/pull-request-pane` to show or hide the pane.
+The README marks the plugin as early access, because the function-hooks API can change between Claude Code releases.

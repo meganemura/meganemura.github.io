@@ -1,0 +1,47 @@
+---
+title: draft-pane
+description: モデルの最新の下書きをペインに表示し、範囲ごとのコメントを 1 つのプロンプトで送る Claude Code の mod です。
+---
+
+import ToolFacts from '../../../../components/ToolFacts.astro';
+
+<ToolFacts slug="draft-pane" lang="ja" />
+
+draft-pane は、下書きにその場でフィードバックを付け、ターンの数を減らすための Claude Code のプラグイン（Claude Mod）です。
+Claude Code でしか動きません。
+プラグインのスキル `draft-pane:draft` は、頼まれた下書きを Claude に `draft` というラベルのフェンス付きブロックの中で書かせ、トランスクリプトの横のペインが最新の開いている下書きを表示します。
+範囲をドラッグしてコメントを打つか、下書き全体にコメントするか、承認するかを選び、1 回の Submit で、各範囲を引用したすべてのコメントを 1 つのプロンプトとして送ります。
+
+## 特徴
+
+- **範囲へのコメント。**
+  下書きの範囲をドラッグし、`comment` の入力欄に打って Enter を押します。
+  各コメントは、引用した語句がある行の下に残ります。
+- **下書き全体。**
+  `whole draft` は下書き全体への 1 つのコメントの欄を開き、`Approve` は、下書きをそのまま使ってよいという意味の `(approved)` を送ります。
+- **1 つのフィードバックのプロンプト。**
+  `Submit` は `Feedback (draft-pane) on D3:` に続けて、引用した各範囲を `> ` の行に、その下にコメントを、下書きの順に送り、全体へのコメントを最後に送ります。
+- **番号付きの下書き。**
+  下書きは `D<n>: <title>` で始まり、改訂は `D<m> (revises D<n>): <title>` で始まります。
+  番号は使い回しません。
+- **ファイルの下書き。**
+  見出しの次の `file: <path>` の行は、すでにあるファイルを下書きとして表示し、フィードバックのプロンプトはそのファイルを示します。
+- **トランスクリプトだけで読める。**
+  下書きはすべてアシスタントのメッセージの中の文で、フィードバックはすべて下書きを引用するプロンプトです。
+
+## エージェントでの使い方
+
+`/draft-pane:draft <what to draft>` で始めるか、Claude に何かの文の下書きを頼みます。
+Claude は下書きを `draft` ブロックに書きます。
+フィードバックのプロンプトは、各コメントをそれが指す範囲と並べて Claude に届け、改訂は新しい番号のブロックとして返ってきます。
+
+## はじめかた
+
+draft-pane には、Claude Code 2.1.273 以降と `CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1` が必要です。
+
+```sh
+claude plugin marketplace add meganemura/draft-pane
+claude plugin install draft-pane@draft-pane
+```
+
+`/draft-pane` はペインを表示するか隠し、キーボードの操作をペインに移します。

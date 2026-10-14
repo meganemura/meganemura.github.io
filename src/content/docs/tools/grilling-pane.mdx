@@ -1,0 +1,49 @@
+---
+title: grilling-pane
+description: A Claude Code mod that draws the model's interview questions in a pane beside the transcript and sends every pick as one prompt.
+---
+
+import ToolFacts from '../../../components/ToolFacts.astro';
+
+<ToolFacts slug="grilling-pane" lang="en" />
+
+grilling-pane is a Claude Code plugin, a Claude Mod, that interviews you about a plan before Claude acts on it.
+It works only in Claude Code.
+Its skill, `grilling-pane:grilling`, invokes Matt Pocock's `grilling` skill for the method and writes each round of questions in a fenced `grilling` block.
+grilling-pane draws that round in a pane beside the transcript, and one Submit sends your answers to the whole round in one turn.
+
+## Features
+
+- **Options as buttons.** Press an option to pick it, and press it again to clear the pick. The arrow keys move between buttons, Enter presses one, and Esc returns focus to the prompt box.
+- **Talk about this one.** Every question ends with this option. It opens an optional one-line field and sends `(discuss)` with the text you typed.
+- **One answer prompt.** `Submit` sends `Answers (grilling-pane):` with one line per question, and `(skipped)` for a question with no pick.
+- **A plain question block.** A `Q<n>: <question>` line starts a question, and the `- ` lines under it are its options. A recommended option ends in `(recommended: <reason>)`.
+- **The transcript stays complete.** Every question is text in an assistant message, and every answer is a prompt that repeats the question, so the transcript reads without the plugin.
+- **A pane that opens on its own.** After you show it once, the pane opens whenever a round arrives, without taking the keyboard. `/grilling-pane` hides it.
+
+## How an agent uses it
+
+Start with `/grilling-pane:grilling <plan>`.
+Claude writes a round of questions in a `grilling` block, numbered in one sequence for the whole conversation.
+Claude reads the answer prompt as the answers to that round.
+If you type a message while a round is open, the plugin does not change it, and Claude reads the questions you did not name as still open, not as skipped.
+
+## Getting started
+
+grilling-pane needs Claude Code 2.1.280 or later, with `CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1`, and the upstream `grilling` skill v1.2.0 or later:
+
+```sh
+gh skill install mattpocock/skills grilling --agent claude-code
+claude plugin marketplace add meganemura/grilling-pane
+claude plugin install grilling-pane@grilling-pane
+```
+
+To set the variable for each session, add it to the `env` of `settings.json`:
+
+```json
+{
+  "env": {
+    "CLAUDE_CODE_ENABLE_FUNCTION_HOOKS": "1"
+  }
+}
+```

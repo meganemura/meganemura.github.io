@@ -1,0 +1,50 @@
+---
+title: jira-ticket-pane
+description: 接続済みの MCP サーバーから Jira の課題を 1 つ取得し、トランスクリプトの横のペインに表示する Claude Code の mod です。
+---
+
+import ToolFacts from '../../../../components/ToolFacts.astro';
+
+<ToolFacts slug="jira-ticket-pane" lang="ja" />
+
+jira-ticket-pane は、Claude Code のプラグイン（Claude Mod）です。
+Claude Code の、ターミナルのセッションでしか動きません。
+`/jira DEMO-1` は、セッションにすでに接続した MCP サーバーから Jira の課題を 1 つ取得し、トランスクリプトの横のペインに描きます。
+取得はプラグインの中で動き、モデルのターンの一部として動くことはありません。
+ボタン 1 つで、課題の文を次のプロンプトに文脈として添えられます。
+
+## 特徴
+
+- **キーで 1 つの課題。**
+  `/jira <KEY>` は課題を取得してペインを開き、`/jira` だけならペインの表示を切り替え、`↻ <HH:MM>` は課題を取得し直します。
+  プラグインはタイマーで何も取りに行きません。
+- **2 つのタブ。**
+  キー、要約、状態、種類、優先度、担当者を示す見出しの下で、`issue` タブは説明を、`meta` タブはフィールドと生の JSON を表示します。
+- **文脈として添える。**
+  `attach` は課題の文を添える準備をし、ラベルは `attached ✓` になり、プロンプトが送られると文は外れます。
+  プラグインは、プロンプトの 32,000 文字の文脈の予算の残りに収まるよう、文を合わせます。
+- **実行時に見つけるツール。**
+  名前に "jira" と "issue"、そして "get"、"fetch"、"read"、"show" のどれかを含む MCP のツールを探します。
+  `/jira config server=<name> tool=<name>` でサーバーとツールを固定し、`/jira config clear` で探す方式に戻します。
+- **フィクスチャーのモード。**
+  `JIRA_TICKET_PANE_FIXTURE=<dir>` を設定すると、本物の MCP サーバーを呼ぶ代わりに `<dir>/<KEY>.json` を読みます。
+- **読むだけ。**
+  プラグインは Jira に書き込まず、1 度に 1 つの課題を取得し、認証は MCP サーバーに任せます。
+
+## エージェントでの使い方
+
+モデルが課題を目にするのは、添えたときだけです。
+`attach` を押すと、課題の文が次のプロンプトに文脈として付き、収まらないときは行の単位で切り、最後に注記を付けます。
+取得そのものは、モデルのターンの一部として動くことはありません。
+
+## はじめかた
+
+jira-ticket-pane には、`CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1` を付けた Claude Code と、Jira の課題を読むツールを持つ MCP サーバーのセッションへの接続が必要です。
+CI は Claude Code 2.1.273 に固定しています。
+
+```sh
+claude plugin marketplace add meganemura/jira-ticket-pane
+claude plugin install jira-ticket-pane@jira-ticket-pane
+```
+
+その後、セッションで `/jira <KEY>` を実行します。

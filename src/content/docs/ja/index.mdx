@@ -3,10 +3,10 @@ title: "meganemura/*"
 head:
   - tag: title
     content: "meganemura/*"
-description: コーディングエージェントが読み、人が確認するための、小さなコマンドラインツール集です。
+description: コーディングエージェントが読み、人が確認するための、小さなツール、スキル、Claude Code の mod です。
 template: splash
 hero:
-  tagline: コーディングエージェントが読み、人が確認するための、小さなコマンドラインツール集です。
+  tagline: コーディングエージェントが読み、人が確認するための、小さなツール、スキル、Claude Code の mod です。
   actions:
     - text: ツールを見る
       link: "#cli"
@@ -34,6 +34,12 @@ import DogfoodGraph from '../../../components/DogfoodGraph.astro';
 下のバージョン、ライセンス、スキルの名前は、既定のブランチの最新のコミットにあるリポジトリ自身のマニフェスト、スキルのファイル、README、LICENSE から読んでいます。
 インストールコマンドは、README と照らし合わせて確かめています。
 どのエージェントに対応するかは、各ページに書いてあります。
+</ToolSection>
+
+<ToolSection lang="ja" section="mods">
+どれも Claude Code のプラグインで、README では Claude Mod と呼び、トランスクリプトの横にペインを描きます。
+Claude Code でしか動かず、どれも `CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1` が必要です。
+情報は、上のプラグインとスキルと同じ方法で各リポジトリから読んでいます。
 </ToolSection>
 
 ## 実行される文

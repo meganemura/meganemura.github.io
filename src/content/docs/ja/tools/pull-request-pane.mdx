@@ -1,0 +1,47 @@
+---
+title: pull-request-pane
+description: セッションに関わる GitHub のプルリクエストと課題をペインに並べ、それへのコメントを 1 つのプロンプトで送る Claude Code の mod です。
+---
+
+import ToolFacts from '../../../../components/ToolFacts.astro';
+
+<ToolFacts slug="pull-request-pane" lang="ja" />
+
+pull-request-pane は、今のセッションに関わる GitHub のプルリクエストを、トランスクリプトの横のペインに表示する Claude Code のプラグイン（Claude Mod）です。
+Claude Code でしか動きません。
+プルリクエストが閉じる課題と、トランスクリプトが触れた課題も、項目として並びます。
+タイトルか説明をドラッグしてその範囲にコメントし、Submit でコメントを 1 つのプロンプトとして送ります。
+ペインが開いている間、各プルリクエストのチェック、レビューの判定、マージできるかどうかは 60 秒ごとに更新されます。
+
+## 特徴
+
+- **範囲へのコメント。**
+  項目のタイトルか説明をドラッグすると、その範囲を引用した `comment` の欄が開きます。
+  `overall` の欄には、項目全体への 1 つのコメントを書きます。
+- **項目ごとに 1 つのプロンプト。**
+  `Submit` は項目を示す見出しに続けて、各コメントを対象の文の引用の下に送り、全体へのコメントを最後に送ります。
+- **一目でわかるチェック。**
+  各プルリクエストは `failing`、`running`、`passing`、`no checks` のどれか 1 語を示します。
+  `▶ checks` を開くと、要約の行と、実行へのリンク付きの各チェックが出ます。
+- **好きなときに更新。**
+  `↻ refreshed <time>` のボタンは、すべての項目のタイトル、説明、チェックをすぐに取得し直します。
+  選択中の範囲、コメント、未送信の文がある項目は、タイトルと説明の更新を止めるので、Submit を押す前にコメントが引用する文が変わることはありません。
+- **再読み込みの後も残る項目。**
+  ペインはデータをプラグインのストアに保存するので、再読み込みの後もすぐに最後の項目を表示します。
+
+## エージェントでの使い方
+
+エージェントはレビューを 1 つのプロンプトとして受け取ります。
+各コメントは対象の文の引用とともに届き、全体へのコメントは最後に届きます。
+
+## はじめかた
+
+pull-request-pane には、Claude Code 2.1.273 以降と `CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1`、そして GitHub にログインした `gh` が必要です。
+
+```sh
+claude plugin marketplace add meganemura/pull-request-pane
+claude plugin install pull-request-pane@pull-request-pane
+```
+
+`/pull-request-pane` と打つと、ペインを表示するか隠します。
+function hooks の API は Claude Code のリリースの間で変わることがあるので、README はこのプラグインを早期アクセスとしています。

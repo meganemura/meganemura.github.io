@@ -3,10 +3,10 @@ title: "meganemura/*"
 head:
   - tag: title
     content: "meganemura/*"
-description: Small command-line tools written for coding agents to read and for people to review.
+description: Small tools, skills, and Claude Code mods, written for coding agents to read and for people to review.
 template: splash
 hero:
-  tagline: Small command-line tools written for coding agents to read and for people to review.
+  tagline: Small tools, skills, and Claude Code mods, written for coding agents to read and for people to review.
   actions:
     - text: Browse the tools
       link: "#cli"
@@ -32,6 +32,12 @@ Every version, description, and install command below is read from RubyGems.
 These have no package registry.
 Each description, version, license, and skill name below is read from the repository's own manifest, skill files, README, and LICENSE at the latest commit of its default branch, and each install command is checked against its README.
 Each page says which agents the repository supports.
+</ToolSection>
+
+<ToolSection lang="en" section="mods">
+Each of these is a Claude Code plugin, which its README calls a Claude Mod, that draws a pane beside the transcript.
+They work only in Claude Code, and each one needs `CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1`.
+Their facts are read from each repository in the same way as for the plugins and skills above.
 </ToolSection>
 
 ## Sentences that run

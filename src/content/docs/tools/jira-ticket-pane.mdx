@@ -1,0 +1,40 @@
+---
+title: jira-ticket-pane
+description: A Claude Code mod that fetches one Jira issue through a connected MCP server and shows it in a pane beside the transcript.
+---
+
+import ToolFacts from '../../../components/ToolFacts.astro';
+
+<ToolFacts slug="jira-ticket-pane" lang="en" />
+
+jira-ticket-pane is a Claude Code plugin, a Claude Mod.
+It works only in Claude Code, in a terminal session.
+`/jira DEMO-1` fetches one Jira issue from an MCP server already connected to the session and draws it in a pane beside the transcript.
+The fetch runs inside the plugin, never as part of a model turn, and a button attaches the issue text to the next prompt as context.
+
+## Features
+
+- **One issue by key.** `/jira <KEY>` fetches the issue and opens the pane, `/jira` alone shows or hides the pane, and `↻ <HH:MM>` fetches the issue again. The plugin polls nothing on a timer.
+- **Two tabs.** Under a header with the key, summary, status, type, priority, and assignee, the `issue` tab shows the description and the `meta` tab shows the fields and the raw JSON.
+- **Attach as context.** `attach` arms the issue text, its label reads `attached ✓`, and the text drops once a prompt goes out. The plugin fits the text into the room left in the prompt's 32,000-character context budget.
+- **The tool, found at run time.** The plugin looks for an MCP tool whose name contains "jira", "issue", and one of "get", "fetch", "read", or "show". `/jira config server=<name> tool=<name>` pins a server and tool, and `/jira config clear` returns to the search.
+- **Fixture mode.** `JIRA_TICKET_PANE_FIXTURE=<dir>` reads `<dir>/<KEY>.json` in place of a call to a real MCP server.
+- **Read only.** The plugin does not write to Jira, fetches one issue at a time, and leaves authentication to the MCP server.
+
+## How an agent uses it
+
+The model sees the issue only when you attach it.
+After you press `attach`, the issue text goes with your next prompt as context, cut to whole lines with a note at the end when it does not fit.
+The fetch itself never runs as part of a model turn.
+
+## Getting started
+
+jira-ticket-pane needs Claude Code with `CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1`, and an MCP server connected to the session with a tool that reads Jira issues.
+Its CI pins Claude Code 2.1.273.
+
+```sh
+claude plugin marketplace add meganemura/jira-ticket-pane
+claude plugin install jira-ticket-pane@jira-ticket-pane
+```
+
+Then run `/jira <KEY>` in a session.
