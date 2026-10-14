@@ -1,0 +1,44 @@
+---
+// Replaces Starlight's header so the language switch stays visible on narrow screens.
+// The default hides it in the sidebar menu, which the splash home pages do not have.
+import LanguageSelect from "virtual:starlight/components/LanguageSelect";
+import SiteTitle from "virtual:starlight/components/SiteTitle";
+import SocialIcons from "virtual:starlight/components/SocialIcons";
+import ThemeSelect from "virtual:starlight/components/ThemeSelect";
+---
+
+<div class="header">
+  <div class="title-wrapper sl-flex">
+    <SiteTitle />
+  </div>
+  <div class="sl-flex right-group print:hidden">
+    <div class="sl-hidden md:sl-flex social-icons">
+      <SocialIcons />
+    </div>
+    <div class="sl-hidden md:sl-flex">
+      <ThemeSelect />
+    </div>
+    <LanguageSelect />
+  </div>
+</div>
+
+<style>
+  .header {
+    display: flex;
+    gap: var(--sl-nav-gap);
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
+  }
+  .title-wrapper {
+    overflow: clip;
+    padding: 0.25rem;
+    margin: -0.25rem;
+    min-width: 0;
+  }
+  .right-group,
+  .social-icons {
+    gap: 1rem;
+    align-items: center;
+  }
+</style>
