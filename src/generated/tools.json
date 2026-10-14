@@ -100,6 +100,42 @@
     ]
   },
   {
+    "source": "github",
+    "section": "skills",
+    "slug": "headsign",
+    "name": "headsign",
+    "version": null,
+    "description": "Skills that help a coding agent create and improve a project's way of working.",
+    "license": "MIT",
+    "repo": "https://github.com/meganemura/headsign",
+    "skills": [
+      "create-project-skill",
+      "improve-project-skill"
+    ],
+    "install": [
+      "gh skill install meganemura/headsign --all --agent codex --scope user"
+    ],
+    "commit": "d4d2bea"
+  },
+  {
+    "source": "github",
+    "section": "skills",
+    "slug": "mutation-testing-skills",
+    "name": "mutation-testing-skills",
+    "version": null,
+    "description": "Claude Code skills for mutation testing. Each skill covers one tool and walks an agent through setup, running, reading results, and fixing surviving mutants.",
+    "license": "MIT",
+    "repo": "https://github.com/meganemura/mutation-testing-skills",
+    "skills": [
+      "stryker",
+      "mutineer-practice"
+    ],
+    "install": [
+      "npx skills add meganemura/mutation-testing-skills --skill stryker -g -a claude-code"
+    ],
+    "commit": "910fa5f"
+  },
+  {
     "source": "npm",
     "slug": "nukadoko",
     "name": "nukadoko",
@@ -146,6 +182,25 @@
     "uses": []
   },
   {
+    "source": "github",
+    "section": "skills",
+    "slug": "pstack-portable",
+    "name": "pstack-portable",
+    "version": "0.4.3",
+    "description": "Run unmodified upstream pstack in Claude Code, Codex, and Cursor through a thin execution wrapper.",
+    "license": "MIT",
+    "repo": "https://github.com/meganemura/pstack-portable",
+    "skills": [
+      "poteto-mode-portable"
+    ],
+    "install": [
+      "claude plugin marketplace add meganemura/pstack-portable",
+      "claude plugin install pstack-portable@pstack-portable",
+      "claude plugin install pstack@pstack-portable"
+    ],
+    "commit": "33e2311"
+  },
+  {
     "source": "npm",
     "slug": "runtag",
     "name": "runtag",
@@ -188,6 +243,24 @@
     "uses": [
       "solarsql"
     ]
+  },
+  {
+    "source": "github",
+    "section": "skills",
+    "slug": "steerhook",
+    "name": "steerhook",
+    "version": null,
+    "description": "Rules that block or warn before a tool runs and tell Claude the alternative. Rules live in ~/.claude/steerhook/ and apply in every project.",
+    "license": "Apache-2.0",
+    "repo": "https://github.com/meganemura/steerhook",
+    "skills": [
+      "writing-steerhook-rules"
+    ],
+    "install": [
+      "/plugin marketplace add meganemura/steerhook",
+      "/plugin install steerhook@steerhook"
+    ],
+    "commit": "6f72ea5"
   },
   {
     "source": "npm",

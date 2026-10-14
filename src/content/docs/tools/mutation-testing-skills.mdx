@@ -1,0 +1,45 @@
+---
+title: mutation-testing-skills
+description: Claude Code skills for mutation testing, one for StrykerJS on JavaScript and TypeScript and one for mutineer on Ruby.
+---
+
+import ToolFacts from '../../../components/ToolFacts.astro';
+
+<ToolFacts slug="mutation-testing-skills" lang="en" />
+
+mutation-testing-skills holds Claude Code skills for mutation testing.
+Each skill covers one tool and walks an agent through setup, running, reading results, and fixing surviving mutants.
+The tool-neutral concepts live once, in shared references that every skill in the repository uses.
+
+## Features
+
+- **`stryker`.** A skill for StrykerJS on JavaScript and TypeScript. It reads the output of stryker-agent-reporter, which turns a Stryker run into a list of survivors an agent can act on.
+- **`mutineer-practice`.** A skill for mutineer on Ruby with Minitest or RSpec. It covers setup and measured pitfalls, and goes beside mutineer's own `mutineer` skill, which covers the CLI and the agent loop.
+- **Shared references.** `references/` holds the mutation testing concepts, including how to gate a pull request on the change's own diff (`references/operations.md`). The installer copies each skill's `references/general` link as a directory, so an installed skill carries them.
+- **A list of skills.** `npx skills add meganemura/mutation-testing-skills --list` shows the skills in the repository.
+
+## How an agent uses it
+
+The agent loads the `stryker` skill to set up Stryker, read a mutation score, triage surviving mutants, and speed up a run.
+It loads `mutineer-practice` to survey a Ruby project before a first `mutineer run`, avoid setup pitfalls, and triage surviving mutants.
+
+## Getting started
+
+This command installs the StrykerJS skill for Claude Code, for all of your projects:
+
+```sh
+npx skills add meganemura/mutation-testing-skills --skill stryker -g -a claude-code
+```
+
+For the mutineer skills, install the author's own skill from its URL, then this repository's:
+
+```sh
+npx skills add https://davidteren.github.io/mutineer/skill.md -g -a claude-code
+npx skills add meganemura/mutation-testing-skills --skill mutineer-practice -g -a claude-code
+```
+
+Leave out `-g` to install into the current project.
+
+## Works with
+
+- The `stryker` skill reads the agent output of [stryker-agent-reporter](/tools/stryker-agent-reporter/).

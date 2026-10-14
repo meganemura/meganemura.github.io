@@ -1,0 +1,66 @@
+---
+title: steerhook
+description: ツールの呼び出しの前に止めるか警告する規則を持ち、代わりの方法を書いた規則のメッセージを Claude に渡す Claude Code のプラグインです。
+---
+
+import ToolFacts from '../../../../components/ToolFacts.astro';
+
+<ToolFacts slug="steerhook" lang="ja" />
+
+steerhook は、向きを変えるフックを持つ Claude Code のプラグインです。
+規則には、Claude に実行してほしくないコマンドのパターンと、代わりに使ってほしい形を書きます。
+Claude がツールを実行する前に、steerhook はその呼び出しを規則と照らし合わせ、規則は呼び出しを止めるか、警告を付けて通します。
+どちらの場合も規則のメッセージが Claude に届くので、Claude は動く直前に代わりの方法を知ります。
+steerhook は、Anthropic の Claude Code 向けプラグイン hookify のフォークで、Apache License 2.0 です。
+
+## 特徴
+
+- **メッセージが Claude に届く。**
+  止めるときは規則のメッセージを `permissionDecisionReason` として、警告のときは `additionalContext` として送ります。
+  ユーザーには `systemMessage` として見えます。
+- **自分の規則を 1 か所に。**
+  規則は `~/.claude/steerhook/` のファイルで、すべてのプロジェクトに効きます。
+  `STEERHOOK_RULES_DIR` で別のディレクトリを指定でき、プロジェクト自身の規則は読みません。
+- **シェルが実行するものに合わせる。**
+  bash の規則は、steerhook がクォートを読んだ後のコードに合わせるので、クォートされた引数の中の `codex exec` では発火しません。
+  `command_literal`、`command_expanded`、`command_raw` は、コマンドの別の見え方を指定します。
+- **言葉から規則を作る。**
+  `/steerhook:add <what to prevent>` は、言葉と直近のやり取りの実例から規則の案を作り、`block` か `warn` かを尋ね、同意を得てからファイルを書きます。
+- **見える規則。**
+  `/steerhook:list` は読み込んだすべての規則を、メッセージの最初の行とともに出力し、`/steerhook:configure` は規則の有効と無効を切り替えます。
+
+## エージェントでの使い方
+
+「force-push を止めて」のように自分の言葉で規則を頼むと、Claude は `writing-steerhook-rules` スキルを読み込み、`/steerhook:add` も最初にこれを読み込みます。
+このスキルには、ファイルの形式、本当の誤りを捕まえるパターンの書き方、Claude が動けるメッセージの書き方が入っています。
+後のツールの呼び出しが規則に当たると、Claude は拒否か警告とともにそのメッセージを読みます。
+規則は次のツールの呼び出しから効き、再起動はいりません。
+
+## はじめかた
+
+フックは node がそのまま実行する TypeScript のファイルなので、steerhook には Node 22.18 以降が必要です。
+
+```sh
+/plugin marketplace add meganemura/steerhook
+/plugin install steerhook@steerhook
+```
+
+規則は、`~/.claude/steerhook/no-direct-codex-exec.md` のような、frontmatter 付きの markdown のファイルです。
+
+```markdown
+---
+name: no-direct-codex-exec
+enabled: true
+event: bash
+pattern: (^|[\s;&|(])codex\s+exec\b
+action: block
+---
+
+Do not run `codex exec` from Bash. Send the task to the `codex:codex-rescue`
+subagent with `--wait`, so the completion arrives as an agent notification.
+```
+
+## 組み合わせ
+
+- `features/` の下のシナリオは steerhook の振る舞いの契約で、[nukadoko](/ja/tools/nukadoko/) で書かれています。
+  `npx nuka check` がそれを検査し、`npx nuka run features` がフックのスクリプトに対してすべてのシナリオを実行します。

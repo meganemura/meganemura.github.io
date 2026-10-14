@@ -1,0 +1,52 @@
+---
+title: mutation-testing-skills
+description: ミューテーションテストのための Claude Code のスキル集で、JavaScript と TypeScript の StrykerJS 向けと、Ruby の mutineer 向けがあります。
+---
+
+import ToolFacts from '../../../../components/ToolFacts.astro';
+
+<ToolFacts slug="mutation-testing-skills" lang="ja" />
+
+mutation-testing-skills は、ミューテーションテストのための Claude Code のスキルを集めたリポジトリです。
+各スキルは 1 つのツールを扱い、準備、実行、結果の読み方、生き残ったミュータントの直し方を、エージェントに順に示します。
+ツールに依存しない考え方は、リポジトリのすべてのスキルが使う共有の参照資料に 1 度だけ書いてあります。
+
+## 特徴
+
+- **`stryker`。**
+  JavaScript と TypeScript の StrykerJS のためのスキルです。
+  stryker-agent-reporter の出力を読み、Stryker の実行をエージェントが扱える生き残りの一覧にします。
+- **`mutineer-practice`。**
+  Minitest か RSpec を使う Ruby の mutineer のためのスキルです。
+  準備と、測って確かめた落とし穴を扱い、CLI とエージェントの手順を扱う mutineer 自身の `mutineer` スキルと並べて使います。
+- **共有の参照資料。**
+  `references/` には、変更自身の差分でプルリクエストを関門にかける方法（`references/operations.md`）を含む、ミューテーションテストの考え方があります。
+  インストーラーは各スキルの `references/general` のリンクをディレクトリとしてコピーするので、インストールしたスキルにも入ります。
+- **スキルの一覧。**
+  `npx skills add meganemura/mutation-testing-skills --list` は、リポジトリのスキルを表示します。
+
+## エージェントでの使い方
+
+エージェントは、Stryker を準備し、ミューテーションスコアを読み、生き残ったミュータントを仕分け、実行を速くするために `stryker` スキルを読み込みます。
+Ruby のプロジェクトで最初の `mutineer run` の前に様子を調べ、準備の落とし穴を避け、生き残ったミュータントを仕分けるときは `mutineer-practice` を読み込みます。
+
+## はじめかた
+
+次のコマンドは、StrykerJS のスキルを、すべてのプロジェクトの Claude Code にインストールします。
+
+```sh
+npx skills add meganemura/mutation-testing-skills --skill stryker -g -a claude-code
+```
+
+mutineer のスキルは、作者自身のスキルを URL からインストールしてから、このリポジトリのスキルをインストールします。
+
+```sh
+npx skills add https://davidteren.github.io/mutineer/skill.md -g -a claude-code
+npx skills add meganemura/mutation-testing-skills --skill mutineer-practice -g -a claude-code
+```
+
+今のプロジェクトだけに入れるときは `-g` を外します。
+
+## 組み合わせ
+
+- `stryker` スキルは、[stryker-agent-reporter](/ja/tools/stryker-agent-reporter/) のエージェント向けの出力を読みます。

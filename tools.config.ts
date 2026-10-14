@@ -89,4 +89,30 @@ export const tools: readonly ToolEntry[] = [
   npm("portful"),
   gem("bulldogger"),
   gem("archspec_diagram"),
+  github("headsign", {
+    section: "skills",
+    skills: ["skills/create-project-skill/SKILL.md", "skills/improve-project-skill/SKILL.md"],
+    install: ["gh skill install meganemura/headsign --all --agent codex --scope user"],
+  }),
+  github("steerhook", {
+    section: "skills",
+    manifest: "plugin/.claude-plugin/plugin.json",
+    skills: ["plugin/skills/writing-rules/SKILL.md"],
+    install: ["/plugin marketplace add meganemura/steerhook", "/plugin install steerhook@steerhook"],
+  }),
+  github("mutation-testing-skills", {
+    section: "skills",
+    skills: ["skills/stryker/SKILL.md", "skills/mutineer-practice/SKILL.md"],
+    install: ["npx skills add meganemura/mutation-testing-skills --skill stryker -g -a claude-code"],
+  }),
+  github("pstack-portable", {
+    section: "skills",
+    manifest: ".claude-plugin/marketplace.json",
+    skills: ["skills/poteto-mode-portable/SKILL.md"],
+    install: [
+      "claude plugin marketplace add meganemura/pstack-portable",
+      "claude plugin install pstack-portable@pstack-portable",
+      "claude plugin install pstack@pstack-portable",
+    ],
+  }),
 ];

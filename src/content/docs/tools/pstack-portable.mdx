@@ -1,0 +1,56 @@
+---
+title: pstack-portable
+description: A wrapper skill that runs unmodified upstream pstack workflows in Claude Code and Codex.
+---
+
+import ToolFacts from '../../../components/ToolFacts.astro';
+
+<ToolFacts slug="pstack-portable" lang="en" />
+
+pstack-portable runs upstream [pstack](https://github.com/cursor/plugins/tree/main/pstack) in Claude Code and Codex.
+Upstream owns the workflows.
+This repository adds one wrapper skill, `poteto-mode-portable`, that translates Cursor tools into the tools of the current host.
+Use it where upstream uses `/poteto-mode`.
+Cursor runs upstream pstack natively and does not need the wrapper, and the wrapper's manifest for Cursor is untested.
+
+## Features
+
+- **Two plugins in one marketplace.** `pstack-portable` is the wrapper, and `pstack` is upstream pstack, unchanged and pinned to the commit the wrapper supports. Install `pstack` and keep it disabled, because the wrapper reads its files.
+- **Workflows by name.** A request such as "Use poteto-mode-portable to fix this bug." runs the upstream workflow through the wrapper. The slash command is `/pstack-portable:poteto-mode-portable`.
+- **Model settings per host.** "Use poteto-mode-portable to configure pstack." writes `.pstack/models/<host>.md` for one project or `~/.agents/pstack/models/<host>.md` for all projects, where `<host>` is `claude-code` or `codex`. The project file takes precedence.
+- **Checked scripts.** The wrapper blocks upstream scripts that it does not know or that changed, and checks script prerequisites before a run.
+- **Gaps that show.** When a workflow needs a capability the host does not have, the wrapper reports the gap instead of a substitute result.
+- **Pinned releases.** Each release has a `v<version>` tag. Add the marketplace at `meganemura/pstack-portable#v<version>` in Claude Code, or with `--ref v<version>` in Codex.
+
+## How an agent uses it
+
+Ask for a pstack workflow through the wrapper:
+
+```text
+Use poteto-mode-portable to fix this bug.
+Use poteto-mode-portable to interrogate this diff.
+Use poteto-mode-portable to tdd this fix.
+```
+
+The wrapper delegates only to subagents of the current host.
+It does not start other agent applications or provider CLIs, and it does not provide hooks, Cursor Automations, cloud workers, or durable schedules.
+
+## Getting started
+
+Claude Code installs `pstack` disabled:
+
+```sh
+claude plugin marketplace add meganemura/pstack-portable
+claude plugin install pstack-portable@pstack-portable
+claude plugin install pstack@pstack-portable
+```
+
+Codex:
+
+```sh
+codex plugin marketplace add meganemura/pstack-portable
+codex plugin add pstack-portable@pstack-portable
+codex plugin add pstack@pstack-portable
+```
+
+Then set `enabled = false` under `[plugins."pstack@pstack-portable"]` in `~/.codex/config.toml`.

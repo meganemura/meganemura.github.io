@@ -1,0 +1,46 @@
+---
+title: headsign
+description: Two skills that let a coding agent create a project-local skill from repository evidence and improve it from work feedback.
+---
+
+import ToolFacts from '../../../components/ToolFacts.astro';
+
+<ToolFacts slug="headsign" lang="en" />
+
+headsign is a pair of skills that help a coding agent create and improve a project's way of working.
+You give the agent the outcome, the constraints, and the checks the project can run.
+The agent chooses the method, uses those checks, and improves the method when feedback exposes a weakness.
+They are ordinary skills that use the host's own tools and the project's commands, and they need no headsign CLI, workflow state, hooks, npm installation, or build step.
+The README gives install commands for Codex and Claude Code.
+
+## Features
+
+- **`create-project-skill`.** Creates a local skill from repository evidence or from commands you supply.
+- **`improve-project-skill`.** Improves an existing local skill from work feedback and evidence.
+- **Repairs during the work.** When review findings repeat, the agent assesses why its method missed them, repairs the method, and applies the repair before it submits again.
+- **Limits that hold.** Improvement stays within the task's authority and remaining budget. The agent keeps explicit constraints, honors a stop, and asks for authority for work beyond the request.
+- **Checks as evidence.** A check supplies evidence, and a model still judges whether that evidence covers the requested outcome. Passing tests do not show that every requirement is met.
+
+## How an agent uses it
+
+Ask the agent to use a skill by name, for example:
+
+> Use create-project-skill to create a local skill for this repository.
+> Discover the checks it can run. Preserve our required outcomes and constraints.
+
+Creating a skill and doing the work it describes are separate tasks.
+To authorize both, add "Then use the new skill to complete the task we agreed on."
+Installing these skills does not turn off the hooks of an older headsign plugin, and the README points to a migration guide for an update from v0.16.0 or older.
+
+## Getting started
+
+Either installer works.
+These commands install both skills for Codex at user scope:
+
+```sh
+gh skill install meganemura/headsign --all --agent codex --scope user
+npx skills add meganemura/headsign --skill '*' --agent codex --global
+```
+
+For Claude Code, replace `codex` with `claude-code`.
+`gh skill` uses the latest GitHub Release, and `npx skills` uses the default branch.
