@@ -1,4 +1,7 @@
 ---
+// English cards show the npm description; Japanese cards show the description
+// of the Japanese tool page, because npm has no Japanese text to read.
+import { getCollection } from "astro:content";
 import { t, toolFacts, toolHref, type Lang } from "../lib/data.ts";
 
 interface Props {
@@ -6,13 +9,29 @@ interface Props {
 }
 const { lang } = Astro.props;
 const text = t(lang);
+
+const jaDescriptions = new Map(
+  (await getCollection("docs", (entry) => entry.id.startsWith("ja/tools/"))).map((entry) => [
+    entry.id.slice("ja/tools/".length),
+    entry.data.description,
+  ]),
+);
+
+function cardDescription(slug: string, npmDescription: string): string {
+  if (lang === "en") return npmDescription;
+  const description = jaDescriptions.get(slug);
+  if (!description) {
+    throw new Error(`no description in src/content/docs/ja/tools/${slug}.mdx\ndo: add a description to its frontmatter`);
+  }
+  return description;
+}
 ---
 
 <ul class="tool-cards">
   {toolFacts.map((fact) => (
     <li class="tool-card">
       <h3><a href={toolHref(fact.slug, lang)}>{fact.slug}</a> <span class="tool-card__version">v{fact.version}</span></h3>
-      <p>{fact.description}</p>
+      <p>{cardDescription(fact.slug, fact.description)}</p>
       <code>{`npm install ${fact.name}`}</code>
       {fact.uses.length > 0 && <p class="tool-card__uses">{text.uses}: {fact.uses.join(", ")}</p>}
     </li>

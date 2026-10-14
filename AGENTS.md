@@ -11,7 +11,11 @@ Never add a top-level `/<slug>/` page: a tool repository may publish its own Git
 
 Facts and prose have different sources.
 A tool's version, description, bins, license, and dependencies come from the npm registry (`src/generated/tools.json`).
-The hand-written prose is only the reason a tool exists, one to three sentences per language.
+The hand-written prose on a tool page describes the tool from its own README, docs, and skills, and every statement must be traceable to one of them.
+A tool page keeps this order: the `ToolFacts` box, a lead paragraph on the problem the tool solves and for whom, `## Features` with four to six bullets that each name the command, flag, or output that delivers the capability, `## How an agent uses it`, `## Getting started` with the README's first commands, and `## Works with` only when the tool's README names another tool on this site.
+The Japanese page carries the same content under `## 特徴`, `## エージェントでの使い方`, `## はじめかた`, and `## 組み合わせ`.
+Each tool page has a one-sentence frontmatter `description` in its own language. The Japanese tool cards on `/ja/` show that description, and the English cards show the npm description.
+Describe what the published npm version does, and leave out a feature that exists only on a tool's main branch.
 A sentence that states what a tool does can be tied to a command with `<Claim>`, and a command's real output can be embedded with `<Demo>`.
 `npm run claims` runs those commands and fails when a sentence stops being true.
 
