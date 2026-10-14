@@ -1,0 +1,28 @@
+{
+  "name": "meganemura-github-io",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "facts": "node scripts/facts.ts",
+    "claims": "node scripts/claims.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "archstrict": "archstrict check",
+    "check": "npm run typecheck && npm test && npm run archstrict && node scripts/facts.ts --check && npm run claims"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "0.42.5",
+    "astro": "7.3.6"
+  },
+  "devDependencies": {
+    "@hegeldev/hegel": "0.4.5",
+    "@types/node": "26.5.1",
+    "archstrict": "0.2.1",
+    "typescript": "6.0.3",
+    "vitest": "4.1.11"
+  }
+}
