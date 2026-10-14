@@ -26,6 +26,7 @@
   padding: 0 1rem;
   margin-bottom: 1.5rem;
 }
+.tool-facts__head { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: baseline; }
 .tool-facts__label { margin-bottom: 0; color: var(--sl-color-gray-3); font-size: var(--sl-text-sm); }
 .tool-facts__links { padding-left: 1.2rem; }
 .dogfood { margin: 1.5rem 0; }
