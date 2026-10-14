@@ -1,0 +1,35 @@
+---
+title: archspec_diagram
+description: Draws an Archspec.rb as a Mermaid flowchart, without analyzing the code or booting Rails.
+---
+
+import ToolFacts from '../../../components/ToolFacts.astro';
+
+<ToolFacts slug="archspec_diagram" lang="en" />
+
+archspec_diagram draws an [Archspec](https://archspecrb.dev) `Archspec.rb` as a Mermaid flowchart.
+Components become boxes, allowed and forbidden dependencies become arrows, and the other rules become text inside the boxes.
+It reads the config the way `archspec check` does but never analyzes the code, so it needs no Rails boot.
+
+## Features
+
+- **Three formats.** `-f mermaid` is the bare diagram, `-f markdown` adds a heading and a legend table, and `-f html` writes a standalone page.
+- **Detail levels.** `--detail names` draws components and arrows, `rules` (the default) adds selectors and rule lines, and `reasons` adds every `because:` text.
+- **One component.** `--focus billing` keeps one component, every component it links to or from, and the project-wide rules.
+- **A safe output file.** `-o` writes to a temporary file and renames it, so a failed run leaves the previous diagram in place.
+
+## How an agent uses it
+
+The command prints an error as one line on stderr, never a backtrace.
+It exits 0 on success, 1 for a config or I/O problem, and 2 for a usage error.
+Rendering is deterministic, so a test such as `assert_equal File.read("docs/architecture.mmd"), ArchspecDiagram.render("Archspec.rb")` fails when a committed diagram is stale.
+
+## Getting started
+
+archspec_diagram needs Ruby 3.2 or later and archspec 1.1.x.
+
+```sh
+gem install archspec_diagram
+archspec_diagram
+archspec_diagram -f markdown -o ARCHITECTURE.md
+```

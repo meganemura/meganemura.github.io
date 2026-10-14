@@ -1,0 +1,57 @@
+---
+title: bulldogger
+description: Ruby のテストの失敗をコーディングエージェント向けの JSON の証拠ファイルに書き、エージェントが求めたときに 1 つのテストを観測付きで再実行します。
+---
+
+import ToolFacts from '../../../../components/ToolFacts.astro';
+
+<ToolFacts slug="bulldogger" lang="ja" />
+
+bulldogger は、Ruby のテストの失敗を、コーディングエージェントのための構造化された証拠として書き出します。
+各 JSON ファイルには、例外、バックトレース、取得したフレームの値が入ります。
+失敗の出力は、そのファイルの絶対パスと、そのテストだけを再実行するコマンドを示します。
+1 つのフレームを追うような重い収集は、エージェントが明示的なコマンドを実行したときだけ始まります。
+
+## 特徴
+
+- **失敗のスナップショット。**
+  `require "bulldogger/minitest"` か `require "bulldogger/rspec"` で、失敗した各テストを `tmp/bulldogger/` の下の JSON ファイルに記録し、実行ごとに `index.json` を作ります。
+  `debug` gem があれば各フレームのローカル変数を、なければ例外を投げたフレームのローカル変数を記録します。
+- **再実行の行。**
+  各失敗は、`bulldogger evidence:` のパスと、テストとシードを含む `bulldogger rerun:` のコマンドを出力します。
+  bulldogger がそのコマンドを自分で実行することはありません。
+- **呼び出しの索引。**
+  `bulldogger frames -- <command>` はテストを新しいプロセスで実行し、各呼び出しに `path:method#k` という形のフレーム id を付けます。
+- **決定性の確認。**
+  `bulldogger preflight -- <command>` はコマンドを 2 回実行してアプリケーションのフレームを比べます。
+  `flt` と `exec` は、これが `deterministic` と報告したときだけ使います。
+- **1 つのフレーム、1 つの文。**
+  `bulldogger flt '<fid>' -- <command>` は 1 つのフレームのローカル変数を行ごとに追います。
+  `bulldogger exec '<fid>' --line N --statement <text> -- <command>` は、ある行の 1 回の通過で 1 つの文を評価します。
+- **プローブ。**
+  `Bulldogger.probe("Billing::Invoice#amount") { ... }` は、引数と戻り値のクラス、`nil` の値、例外での脱出、呼び出し元をまとめます。
+  `Bulldogger.probe_compare` は、2 つのプローブのファイルが `identical` かどうかを報告します。
+
+## エージェントでの使い方
+
+1. テストを実行し、失敗したテストが示す証拠のパスを開きます。
+   そこには 1 つの失敗と、取得した値が入っています。
+2. スナップショットで足りなければ、示された再実行のコマンドを `bulldogger frames` の下で実行し、フレーム id を得ます。
+3. 同じコマンドに `bulldogger preflight` を実行し、`deterministic` のときだけ先に進みます。
+4. `bulldogger flt` でフレームを追うか、`bulldogger exec` で 1 つの文を評価します。
+   文は結果を変えることがあるので、証拠として使う前に結果のファイルを読みます。
+
+bulldogger のスキルは、エージェントにこれらのファイルの読み方を伝えます。
+`gh skill install meganemura/bulldogger` は既定のブランチからインストールし、`bulldogger skill path` はインストールした gem に合うスキルの場所を出力します。
+
+## はじめかた
+
+両方の gem をテストのグループに加えます。
+
+```ruby
+gem "bulldogger", group: :test
+gem "debug", group: :test
+```
+
+そのうえで、`test_helper.rb` に `require "bulldogger/minitest"` を、または `spec_helper.rb` に `require "bulldogger/rspec"` を 1 行加えます。
+`BULLDOGGER_DISABLE=1` を付けると、そのテストのプロセスでは記録も出力もしません。

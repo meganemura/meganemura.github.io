@@ -87,4 +87,6 @@ export const tools: readonly ToolEntry[] = [
   npm("runtag"),
   npm("autospawn"),
   npm("portful"),
+  gem("bulldogger"),
+  gem("archspec_diagram"),
 ];

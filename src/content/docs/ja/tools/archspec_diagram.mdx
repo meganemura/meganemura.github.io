@@ -1,0 +1,39 @@
+---
+title: archspec_diagram
+description: Archspec.rb を Mermaid のフローチャートとして描きます。コードの解析も Rails の起動もしません。
+---
+
+import ToolFacts from '../../../../components/ToolFacts.astro';
+
+<ToolFacts slug="archspec_diagram" lang="ja" />
+
+archspec_diagram は、[Archspec](https://archspecrb.dev) の `Archspec.rb` を Mermaid のフローチャートとして描きます。
+コンポーネントは箱に、許可された依存と禁じられた依存は矢印に、その他の規則は箱の中の文字になります。
+設定は `archspec check` と同じように読みますが、コードは解析しないので、Rails を起動する必要がありません。
+
+## 特徴
+
+- **3 つの形式。**
+  `-f mermaid` は図だけを、`-f markdown` は見出しと凡例の表を加えて、`-f html` は単独で開けるページを出力します。
+- **詳しさの段階。**
+  `--detail names` はコンポーネントと矢印だけを描き、既定の `rules` はセレクターと規則の行を加え、`reasons` はすべての `because:` の文を加えます。
+- **1 つのコンポーネント。**
+  `--focus billing` は、そのコンポーネントと、それとつながるコンポーネント、プロジェクト全体の規則だけを残します。
+- **安全な出力ファイル。**
+  `-o` は一時ファイルに書いてから名前を変えるので、失敗した実行は前の図をそのまま残します。
+
+## エージェントでの使い方
+
+エラーはバックトレースではなく、stderr の 1 行で示します。
+終了コードは、成功で 0、設定か入出力の問題で 1、使い方の誤りで 2 です。
+描画は決定的なので、`assert_equal File.read("docs/architecture.mmd"), ArchspecDiagram.render("Archspec.rb")` のようなテストは、コミットした図が古くなると失敗します。
+
+## はじめかた
+
+archspec_diagram には Ruby 3.2 以降と archspec 1.1.x が必要です。
+
+```sh
+gem install archspec_diagram
+archspec_diagram
+archspec_diagram -f markdown -o ARCHITECTURE.md
+```

@@ -1,0 +1,43 @@
+---
+title: bulldogger
+description: Writes Ruby test failures as JSON evidence files for a coding agent, and reruns one test under an observing command when the agent asks.
+---
+
+import ToolFacts from '../../../components/ToolFacts.astro';
+
+<ToolFacts slug="bulldogger" lang="en" />
+
+bulldogger writes Ruby test failures as structured evidence for coding agents.
+Each JSON file holds the exception, the backtrace, and captured frame values.
+The failure output gives the absolute path of that file and the command that reruns the one test.
+Heavier collection, such as tracing one frame, starts only when the agent runs an explicit verb.
+
+## Features
+
+- **Failure snapshots.** `require "bulldogger/minitest"` or `require "bulldogger/rspec"` records each failed test as a JSON file under `tmp/bulldogger/`, with an `index.json` for the run. With the `debug` gem, it records the locals of each frame, and without it, the locals of the raising frame.
+- **A rerun line.** Each failure prints a `bulldogger evidence:` path and a `bulldogger rerun:` command with the test and the seed. bulldogger does not run that command on its own.
+- **An index of calls.** `bulldogger frames -- <command>` runs the test in a fresh process and names each call with a frame id, `path:method#k`.
+- **A determinism check.** `bulldogger preflight -- <command>` runs the command twice and compares the application frames. Use `flt` or `exec` only when it reports `deterministic`.
+- **One frame, one statement.** `bulldogger flt '<fid>' -- <command>` traces one frame's locals line by line, and `bulldogger exec '<fid>' --line N --statement <text> -- <command>` evaluates one statement at one visit to a line.
+- **Probes.** `Bulldogger.probe("Billing::Invoice#amount") { ... }` summarizes argument and return classes, `nil` values, raised exits, and callers, and `Bulldogger.probe_compare` reports whether two probe files are `identical`.
+
+## How an agent uses it
+
+1. Run the suite. Open the evidence path that a failed test prints, which holds one failure and its captured values.
+2. When the snapshot is not enough, run the printed rerun command under `bulldogger frames` to get frame ids.
+3. Run `bulldogger preflight` on the same command, and continue only when it reports `deterministic`.
+4. Trace the frame with `bulldogger flt`, or evaluate one statement with `bulldogger exec`. A statement can change the outcome, so read the result file before using it as evidence.
+
+The bulldogger skill tells an agent how to read these files. `gh skill install meganemura/bulldogger` installs it from the default branch, and `bulldogger skill path` prints the copy that matches the installed gem.
+
+## Getting started
+
+Add both gems to the test group:
+
+```ruby
+gem "bulldogger", group: :test
+gem "debug", group: :test
+```
+
+Then add one entry point, `require "bulldogger/minitest"` in `test_helper.rb` or `require "bulldogger/rspec"` in `spec_helper.rb`.
+`BULLDOGGER_DISABLE=1` turns capture and output off for one test process.
