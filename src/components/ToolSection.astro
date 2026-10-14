@@ -1,0 +1,16 @@
+---
+// One home page section: its heading from the section table, the page's own intro, and the cards.
+import type { Section } from "../../tools.config.ts";
+import { sectionLabel, type Lang } from "../lib/data.ts";
+import ToolCards from "./ToolCards.astro";
+
+interface Props {
+  lang: Lang;
+  section: Section;
+}
+const { lang, section } = Astro.props;
+---
+
+<h2 id={section}>{sectionLabel(section, lang)}</h2>
+<slot />
+<ToolCards lang={lang} section={section} />

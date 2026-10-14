@@ -9,23 +9,21 @@ hero:
   tagline: コーディングエージェントが読み、人が確認するための、小さなコマンドラインツール集です。
   actions:
     - text: ツールを見る
-      link: "#ツール"
+      link: "#cli"
       icon: right-arrow
 ---
 
-import ToolCards from '../../../components/ToolCards.astro';
+import ToolSection from '../../../components/ToolSection.astro';
 import DogfoodGraph from '../../../components/DogfoodGraph.astro';
 
 ## ツール同士の使い方
 
 <DogfoodGraph lang="ja" />
 
-## ツール
-
+<ToolSection lang="ja" section="cli">
 下のバージョンとインストールコマンドは、手で書いたものではなく npm レジストリから読んだ値です。
-説明は、各ツールの日本語のページから読んでいます。
-
-<ToolCards lang="ja" />
+各セクションのカードの説明は、各ツールの日本語のページから読んでいます。
+</ToolSection>
 
 ## 実行される文
 

@@ -12,6 +12,7 @@ const TIMEOUT_MS = 60_000;
 function versionOf(tool: string): string {
   const entry = tools.find((candidate) => candidate.slug === tool);
   if (!entry) throw new ScanError(`unknown tool "${tool}": add it to tools.config.ts`);
+  if (entry.source !== "npm") throw new ScanError(`${tool} comes from ${entry.source}: claims run only npm tools installed in node_modules`);
   const manifest = resolve(root, "node_modules", entry.npm, "package.json");
   if (!existsSync(manifest)) throw new ScanError(`${tool} is not installed: ${entry.npm} is missing from node_modules`);
   return (JSON.parse(readFileSync(manifest, "utf8")) as { version: string }).version;

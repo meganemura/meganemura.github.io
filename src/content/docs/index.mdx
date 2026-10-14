@@ -9,22 +9,20 @@ hero:
   tagline: Small command-line tools written for coding agents to read and for people to review.
   actions:
     - text: Browse the tools
-      link: "#tools"
+      link: "#cli"
       icon: right-arrow
 ---
 
-import ToolCards from '../../components/ToolCards.astro';
+import ToolSection from '../../components/ToolSection.astro';
 import DogfoodGraph from '../../components/DogfoodGraph.astro';
 
 ## How the tools use each other
 
 <DogfoodGraph lang="en" />
 
-## Tools
-
+<ToolSection lang="en" section="cli">
 Every version, description, and install command below is read from the npm registry, not typed by hand.
-
-<ToolCards lang="en" />
+</ToolSection>
 
 ## Sentences that run
 

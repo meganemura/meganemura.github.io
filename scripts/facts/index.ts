@@ -1,62 +1,34 @@
-// Turns npm registry metadata into the facts the site renders.
-// Boundary: no file or process access here; the CLI in scripts/facts.ts does the I/O.
+// Turns each tool's source (the npm registry, RubyGems, or the repository's own files)
+// into the facts the site renders, and compares two sets of facts.
+// Boundary: no file or process access here; the CLI in scripts/facts.ts does that I/O
+// and passes in how to resolve a repository's default branch.
 import type { ToolEntry } from "../../tools.config.ts";
+import { fetchRepoFact } from "./github.ts";
+import { fetchNpmManifest, toNpmFact } from "./npm.ts";
+import { fetchGemPayload, toGemFact } from "./rubygems.ts";
+import type { GemFact, NpmFact, RepoFact, ToolFact } from "./types.ts";
 
-export interface ToolFact {
-  slug: string;
-  name: string;
-  version: string;
-  description: string;
-  bins: string[];
-  license: string | null;
-  repo: string;
-  uses: string[];
-}
-
-export interface RegistryManifest {
-  name: string;
-  version: string;
-  description?: string;
-  bin?: string | Record<string, string>;
-  license?: string;
-  dependencies?: Record<string, string>;
-  devDependencies?: Record<string, string>;
-}
+export type { GemFact, NpmFact, PackageFact, RepoFact, ToolFact } from "./types.ts";
+export { licenseId, parseFrontmatter, readManifest, readmeLead, toRepoFact, type PluginManifest, type RepoFiles } from "./github.ts";
+export { toNpmFact, type RegistryManifest } from "./npm.ts";
+export { toGemFact, type GemPayload } from "./rubygems.ts";
 
 export interface FactChange {
+  source: string;
   slug: string;
   field: string;
   committed: string;
   fresh: string;
 }
 
-const FIELDS = ["name", "version", "description", "bins", "license", "repo", "uses"] as const;
-
-// A string `bin` means the command carries the package name without its scope.
-function binNames(manifest: RegistryManifest): string[] {
-  const { bin } = manifest;
-  if (bin === undefined) return [];
-  if (typeof bin === "string") return [manifest.name.replace(/^@[^/]+\//, "")];
-  return Object.keys(bin).sort();
-}
-
-export function toFact(entry: ToolEntry, manifest: RegistryManifest, registry: readonly ToolEntry[]): ToolFact {
-  const dependencies = { ...manifest.dependencies, ...manifest.devDependencies };
-  const uses = registry
-    .filter((other) => other.slug !== entry.slug && other.npm in dependencies)
-    .map((other) => other.slug)
-    .sort();
-  return {
-    slug: entry.slug,
-    name: manifest.name,
-    version: manifest.version,
-    description: manifest.description ?? "",
-    bins: binNames(manifest),
-    license: manifest.license ?? null,
-    repo: entry.repo,
-    uses,
-  };
-}
+// The fields a drift check compares, per source. A repository fact leaves out `commit`:
+// the default branch moves with every push, so comparing it would fail the daily check
+// on commits that change nothing the site shows. The commit is kept for display only.
+const COMPARED: { [S in ToolFact["source"]]: readonly (keyof Extract<ToolFact, { source: S }>)[] } = {
+  npm: ["name", "version", "description", "bins", "license", "repo", "uses"] satisfies (keyof NpmFact)[],
+  rubygems: ["name", "version", "description", "license", "repo", "uses"] satisfies (keyof GemFact)[],
+  github: ["name", "version", "description", "license", "repo", "section", "skills", "install"] satisfies (keyof RepoFact)[],
+};
 
 export function sortFacts(facts: readonly ToolFact[]): ToolFact[] {
   return [...facts].sort((a, b) => (a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0));
@@ -74,30 +46,46 @@ export function diffFacts(committed: readonly ToolFact[], fresh: readonly ToolFa
     const old = before.get(slug);
     const next = after.get(slug);
     if (old === undefined || next === undefined) {
-      changes.push({ slug, field: "(tool)", committed: old ? "present" : "missing", fresh: next ? "present" : "missing" });
+      const source = (next ?? old)?.source ?? "";
+      changes.push({ source, slug, field: "(tool)", committed: old ? "present" : "missing", fresh: next ? "present" : "missing" });
       continue;
     }
-    for (const field of FIELDS) {
-      const a = JSON.stringify(old[field]);
-      const b = JSON.stringify(next[field]);
-      if (a !== b) changes.push({ slug, field, committed: a, fresh: b });
+    if (old.source !== next.source) {
+      changes.push({ source: next.source, slug, field: "source", committed: old.source, fresh: next.source });
+      continue;
+    }
+    const record = (fact: ToolFact) => fact as unknown as Record<string, unknown>;
+    for (const field of COMPARED[next.source] as readonly string[]) {
+      const a = JSON.stringify(record(old)[field]);
+      const b = JSON.stringify(record(next)[field]);
+      if (a !== b) changes.push({ source: next.source, slug, field, committed: a, fresh: b });
     }
   }
   return changes;
 }
 
 export function formatChanges(changes: readonly FactChange[]): string {
-  const lines = changes.map((c) => `facts-drift ${c.slug}.${c.field}: committed ${c.committed}, registry ${c.fresh}`);
+  const lines = changes.map((c) => `facts-drift ${c.source} ${c.slug}.${c.field}: committed ${c.committed}, fresh ${c.fresh}`);
   return [...lines, "do: npm run facts"].join("\n");
 }
 
-export async function fetchManifest(name: string, fetchFn: typeof fetch = fetch): Promise<RegistryManifest> {
-  const response = await fetchFn(`https://registry.npmjs.org/${name}/latest`);
-  if (!response.ok) throw new Error(`registry returned ${response.status} for ${name}`);
-  return (await response.json()) as RegistryManifest;
+export interface FactSources {
+  fetch: typeof fetch;
+  // Resolves a repository URL to the full commit its default branch points at.
+  resolveHead: (repo: string) => Promise<string>;
 }
 
-export async function fetchFacts(registry: readonly ToolEntry[], fetchFn: typeof fetch = fetch): Promise<ToolFact[]> {
-  const manifests = await Promise.all(registry.map((entry) => fetchManifest(entry.npm, fetchFn)));
-  return sortFacts(registry.map((entry, i) => toFact(entry, manifests[i] as RegistryManifest, registry)));
+function fetchFact(entry: ToolEntry, registry: readonly ToolEntry[], io: FactSources): Promise<ToolFact> {
+  switch (entry.source) {
+    case "npm":
+      return fetchNpmManifest(entry.npm, io.fetch).then((manifest) => toNpmFact(entry, manifest, registry));
+    case "rubygems":
+      return fetchGemPayload(entry.gem, io.fetch).then((payload) => toGemFact(entry, payload, registry));
+    case "github":
+      return io.resolveHead(entry.repo).then((commit) => fetchRepoFact(entry, commit, io.fetch));
+  }
+}
+
+export async function fetchFacts(registry: readonly ToolEntry[], io: FactSources): Promise<ToolFact[]> {
+  return sortFacts(await Promise.all(registry.map((entry) => fetchFact(entry, registry, io))));
 }

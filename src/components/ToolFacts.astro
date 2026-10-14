@@ -1,5 +1,5 @@
 ---
-import { factFor, installCommand, t, toolHref, usersOf, type Lang } from "../lib/data.ts";
+import { commitHref, factFor, installLines, t, toolHref, usersOf, type Lang } from "../lib/data.ts";
 
 interface Props {
   slug: string;
@@ -14,15 +14,21 @@ const users = usersOf(slug);
 <section class="tool-facts">
   <p class="tool-facts__head">
     <strong>{fact.name}</strong>
-    <span class="tool-facts__version">v{fact.version}</span>
+    {fact.version !== null && <span class="tool-facts__version">v{fact.version}</span>}
     {fact.license && <span class="tool-facts__license">{fact.license}</span>}
   </p>
   <p>{fact.description}</p>
   <p class="tool-facts__label">{text.install}</p>
-  <pre><code>{installCommand(fact)}</code></pre>
+  <pre><code>{installLines(fact).join("\n")}</code></pre>
   <ul class="tool-facts__links">
     <li><a href={fact.repo}>{text.repo}</a></li>
-    {fact.uses.length > 0 && (
+    {fact.source === "github" && fact.skills.length > 0 && (
+      <li>{text.skills}: {fact.skills.map((skill, i) => <>{i > 0 && ", "}<code>{skill}</code></>)}</li>
+    )}
+    {fact.source === "github" && (
+      <li>{text.readAt} <a href={commitHref(fact)}><code>{fact.commit}</code></a></li>
+    )}
+    {fact.source !== "github" && fact.uses.length > 0 && (
       <li>{text.uses}: {fact.uses.map((use, i) => <>{i > 0 && ", "}<a href={toolHref(use, lang)}>{use}</a></>)}</li>
     )}
     {users.length > 0 && (

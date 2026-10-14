@@ -1,13 +1,13 @@
 ---
 import { layoutGraph } from "../../scripts/graph/index.ts";
-import { graphEdges, t, toolFacts, toolHref, type Lang } from "../lib/data.ts";
+import { graphEdges, packageFacts, t, toolHref, type Lang } from "../lib/data.ts";
 
 interface Props {
   lang: Lang;
 }
 const { lang } = Astro.props;
 const text = t(lang);
-const layout = layoutGraph(toolFacts.map((fact) => fact.slug), graphEdges);
+const layout = layoutGraph(packageFacts.map((fact) => fact.slug), graphEdges);
 ---
 
 <figure class="dogfood">

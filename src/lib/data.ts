@@ -1,7 +1,8 @@
 // Typed access to the generated files that pages render from.
 // Boundary: read-only; nothing here fetches or runs a command.
 import { claimKey, type ClaimRecord, type ClaimSpec } from "../../scripts/claims/index.ts";
-import type { ToolFact } from "../../scripts/facts/index.ts";
+import type { PackageFact, RepoFact, ToolFact } from "../../scripts/facts/index.ts";
+import { sectionOf, sections, type Section } from "../../tools.config.ts";
 import claimsJson from "../generated/claims.json" with { type: "json" };
 import toolsJson from "../generated/tools.json" with { type: "json" };
 
@@ -19,8 +20,34 @@ export function toolHref(slug: string, lang: Lang): string {
   return lang === "ja" ? `/ja/tools/${slug}/` : `/tools/${slug}/`;
 }
 
-export function installCommand(fact: ToolFact): string {
-  return `npm install ${fact.name}`;
+// npm and RubyGems install by package name. A repository has no package, so its lines
+// are the ones its README gives, which the facts check against that README.
+export function installLines(fact: ToolFact): readonly string[] {
+  switch (fact.source) {
+    case "npm":
+      return [`npm install ${fact.name}`];
+    case "rubygems":
+      return [`gem install ${fact.name}`];
+    case "github":
+      return fact.install;
+  }
+}
+
+export function sectionLabel(section: Section, lang: Lang): string {
+  const found = sections.find((candidate) => candidate.id === section);
+  if (!found) throw new Error(`unknown section "${section}"`);
+  return found.label[lang];
+}
+
+export function factsIn(section: Section): ToolFact[] {
+  return toolFacts.filter((fact) => sectionOf(fact) === section);
+}
+
+// Only packages have dependencies to read, so plugins and mods stay off the graph.
+export const packageFacts = toolFacts.filter((fact): fact is PackageFact => fact.source !== "github");
+
+export function commitHref(fact: RepoFact): string {
+  return `${fact.repo}/tree/${fact.commit}`;
 }
 
 export function claimFor(spec: ClaimSpec): ClaimRecord {
@@ -39,12 +66,14 @@ const TEXT = {
     uses: "Uses",
     usedBy: "Used by",
     none: "no other tool here",
+    skills: "Skills",
+    readAt: "Read from the default branch at",
     checkedWith: "checked with",
     ran: "ran in",
     exitCode: "exit",
     graphLabel: "Which tool uses which",
     graphCaption:
-      "An arrow points from a tool to a tool it depends on. The edges come from each package's dependencies and devDependencies on npm, the most used tool sits in the center, and a two-headed colored line marks two tools that use each other.",
+      "An arrow points from a tool to a tool it depends on. The edges come from each package's runtime and development dependencies on npm and RubyGems, the most used tool sits in the center, and a two-headed colored line marks two tools that use each other.",
   },
   ja: {
     install: "インストール",
@@ -52,12 +81,14 @@ const TEXT = {
     uses: "使うツール",
     usedBy: "使われるツール",
     none: "ほかのツールは使っていません",
+    skills: "スキル",
+    readAt: "既定のブランチから読んだコミット",
     checkedWith: "確認に使用",
     ran: "実行場所",
     exitCode: "終了コード",
     graphLabel: "どのツールがどのツールを使うか",
     graphCaption:
-      "矢印は、使う側のツールから使われる側のツールに向かいます。辺は各パッケージの dependencies と devDependencies を npm から読んで作っています。一番よく使われるツールが中央に、互いに使い合う2つのツールは両向きの色付きの線で結ばれます。",
+      "矢印は、使う側のツールから使われる側のツールに向かいます。辺は、各パッケージの実行時と開発時の依存関係を npm と RubyGems から読んで作っています。一番よく使われるツールが中央に、互いに使い合う2つのツールは両向きの色付きの線で結ばれます。",
   },
 } as const;
 
@@ -66,7 +97,7 @@ export function t(lang: Lang) {
 }
 
 export function usersOf(slug: string): string[] {
-  return toolFacts.filter((fact) => fact.uses.includes(slug)).map((fact) => fact.slug);
+  return packageFacts.filter((fact) => fact.uses.includes(slug)).map((fact) => fact.slug);
 }
 
-export const graphEdges = toolFacts.flatMap((fact) => fact.uses.map((to) => ({ from: fact.slug, to })));
+export const graphEdges = packageFacts.flatMap((fact) => fact.uses.map((to) => ({ from: fact.slug, to })));

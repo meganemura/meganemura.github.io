@@ -1,13 +1,15 @@
 ---
-// English cards show the npm description; Japanese cards show the description
-// of the Japanese tool page, because npm has no Japanese text to read.
+// English cards show the description from the tool's source; Japanese cards show the
+// description of the Japanese tool page, because no source has Japanese text to read.
 import { getCollection } from "astro:content";
-import { t, toolFacts, toolHref, type Lang } from "../lib/data.ts";
+import type { Section } from "../../tools.config.ts";
+import { factsIn, installLines, t, toolHref, type Lang } from "../lib/data.ts";
 
 interface Props {
   lang: Lang;
+  section: Section;
 }
-const { lang } = Astro.props;
+const { lang, section } = Astro.props;
 const text = t(lang);
 
 const jaDescriptions = new Map(
@@ -17,8 +19,8 @@ const jaDescriptions = new Map(
   ]),
 );
 
-function cardDescription(slug: string, npmDescription: string): string {
-  if (lang === "en") return npmDescription;
+function cardDescription(slug: string, sourceDescription: string): string {
+  if (lang === "en") return sourceDescription;
   const description = jaDescriptions.get(slug);
   if (!description) {
     throw new Error(`no description in src/content/docs/ja/tools/${slug}.mdx\ndo: add a description to its frontmatter`);
@@ -28,12 +30,13 @@ function cardDescription(slug: string, npmDescription: string): string {
 ---
 
 <ul class="tool-cards">
-  {toolFacts.map((fact) => (
+  {factsIn(section).map((fact) => (
     <li class="tool-card">
-      <h3><a href={toolHref(fact.slug, lang)}>{fact.slug}</a> <span class="tool-card__version">v{fact.version}</span></h3>
+      <h3><a href={toolHref(fact.slug, lang)}>{fact.slug}</a> {fact.version !== null && <span class="tool-card__version">v{fact.version}</span>}</h3>
       <p>{cardDescription(fact.slug, fact.description)}</p>
-      <code>{`npm install ${fact.name}`}</code>
-      {fact.uses.length > 0 && <p class="tool-card__uses">{text.uses}: {fact.uses.join(", ")}</p>}
+      {installLines(fact).map((line) => <code class="tool-card__install">{line}</code>)}
+      {fact.source !== "github" && fact.uses.length > 0 && <p class="tool-card__uses">{text.uses}: {fact.uses.join(", ")}</p>}
+      <p class="tool-card__repo"><a href={fact.repo}>{text.repo}</a></p>
     </li>
   ))}
 </ul>

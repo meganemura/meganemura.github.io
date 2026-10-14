@@ -1,5 +1,6 @@
 [
   {
+    "source": "npm",
     "slug": "archstrict",
     "name": "archstrict",
     "version": "0.3.0",
@@ -16,6 +17,7 @@
     ]
   },
   {
+    "source": "npm",
     "slug": "depug",
     "name": "@meganemura/depug",
     "version": "0.1.3",
@@ -28,6 +30,7 @@
     "uses": []
   },
   {
+    "source": "npm",
     "slug": "finderscope",
     "name": "finderscope",
     "version": "0.3.0",
@@ -43,6 +46,7 @@
     ]
   },
   {
+    "source": "npm",
     "slug": "firstlight",
     "name": "firstlight",
     "version": "0.2.0",
@@ -59,6 +63,7 @@
     ]
   },
   {
+    "source": "npm",
     "slug": "nukadoko",
     "name": "nukadoko",
     "version": "0.14.1",
@@ -74,6 +79,7 @@
     ]
   },
   {
+    "source": "npm",
     "slug": "polylinedb",
     "name": "polylinedb",
     "version": "0.5.2",
@@ -90,6 +96,7 @@
     ]
   },
   {
+    "source": "npm",
     "slug": "solarsql",
     "name": "solarsql",
     "version": "0.7.1",
@@ -105,6 +112,7 @@
     ]
   },
   {
+    "source": "npm",
     "slug": "spacequery",
     "name": "spacequery",
     "version": "0.3.0",
@@ -119,6 +127,7 @@
     ]
   },
   {
+    "source": "npm",
     "slug": "stow",
     "name": "@meganemura/stow",
     "version": "0.1.1",
@@ -131,6 +140,7 @@
     "uses": []
   },
   {
+    "source": "npm",
     "slug": "stryker-agent-reporter",
     "name": "stryker-agent-reporter",
     "version": "0.2.0",

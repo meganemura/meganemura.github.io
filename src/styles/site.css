@@ -14,6 +14,8 @@
 .tool-card h3 { margin: 0 0 0.5rem; font-size: var(--sl-text-lg); }
 .tool-card p { margin: 0 0 0.5rem; font-size: var(--sl-text-sm); }
 .tool-card code { font-size: var(--sl-text-xs); overflow-wrap: anywhere; }
+.tool-card__install { display: block; width: fit-content; margin-bottom: 0.25rem; }
+.tool-card__repo { margin-top: 0.5rem; }
 .tool-card__version, .tool-facts__version, .tool-facts__license {
   color: var(--sl-color-gray-3);
   font-size: var(--sl-text-sm);
@@ -47,3 +49,4 @@
 .demo figcaption { font-size: var(--sl-text-sm); }
 .demo__meta { color: var(--sl-color-gray-3); margin-left: 0.5rem; }
 .demo pre { overflow-x: auto; }
+.tool-facts pre { white-space: pre-wrap; overflow-wrap: anywhere; }
