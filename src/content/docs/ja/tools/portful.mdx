@@ -1,0 +1,77 @@
+---
+title: portful
+description: 1 つの固定ポートを、その時に有効な git worktree に向け、クライアントを再起動せずに切り替えます。
+---
+
+import ToolFacts from '../../../../components/ToolFacts.astro';
+
+<ToolFacts slug="portful" lang="ja" />
+
+git worktree を使うと複数のブランチを同時に動かせますが、フロントエンドの開発サーバーのような、サーバーと話すクライアントは 1 つのポートを使い続けます。
+portful がなければ、切り替えのたびに動いているサーバーを止め、別の worktree から起動し直すことになります。
+portful は、worktree ごとのバックエンドサーバーをそれぞれのポートで動かしたままにし、固定ポートに小さなリバースプロキシを置いて、有効な worktree に転送します。
+`portful use` で有効な worktree を変えると、次のリクエストからそこに届き、クライアントの再起動も、`.env` の編集も、`cd` もいりません。
+portful は、portless と同じことをする部分では、portless のコマンド名と設定の配置を借りています。
+
+## 特徴
+
+- **リポジトリごとに 1 つの固定ポート。**
+  `portful proxy start <repo>` は、リポジトリの `fixedPort` でプロキシをフォアグラウンドで動かします。
+  有効な worktree をリクエストのたびに読み直し、各 HTTP レスポンスに `X-Portful-Worktree` ヘッダーを付けます。
+- **worktree ごとに動き続けるサーバー。**
+  `portful serve <repo>/<worktree>` は、その worktree のサーバーを `portRange` のポートで起動し、そのポートは再起動しても変わりません。
+  どのサーバーも、環境変数 `PORT`、`HOST`、`PORTFUL_URL` を受け取ります。
+- **1 つのコマンドで切り替え。**
+  `portful use <repo>/<worktree>` は有効な worktree を設定します。
+  `portful use <repo>` は、peco、fzf、番号を選ぶプロンプトのいずれかで選択画面を開きます。
+- **各ポートの行き先。**
+  `portful list` は、クライアントが使うアドレス、届く先の worktree、プロキシが動いているかを、リポジトリごとに 1 行で出力します。
+  `portful status --json` は、より詳しい内容を JSON で出力します。
+- **worktree の中でコマンドを実行。**
+  `portful exec <repo>/<worktree> <cmd...>` は、その worktree のディレクトリでコマンドを実行し、フラグには手を加えません。
+- **読み取りだけの診断。**
+  `portful doctor` は設定、ポート、状態を報告し、おかしな点があれば 0 以外で終わります。
+
+## エージェントでの使い方
+
+1. `portful whoami` で、今のディレクトリがどのリポジトリと worktree にあるかを確かめます。
+   `api/feature-x port 3101 (running, active)` のような 1 行を出力し、`--json` は詳細を出力します。
+   登録したリポジトリの外では 0 以外で終わります。
+2. `portful list --json` か `portful status --json` を読み、各固定ポートの行き先と、動いているサーバーを確かめます。
+3. サーバーが応答しないときは `portful doctor` を実行します。
+   `status` が報告するのはプロセスが生きているかどうかで、届くかどうかではありません。
+   `doctor` は、各ポートの実際の `lsof` の状態を、portful が期待する状態と比べます。
+
+## はじめかた
+
+portful には Node.js 24 以降、macOS か Linux、そして `git` が必要です。
+
+```sh
+npm install -g portful
+```
+
+リポジトリをマシンごとに 1 度 `~/.config/portful/config.json` に登録し、チェックアウトの中の `portful.json` でポートを決めます。
+
+```sh
+mkdir -p ~/.config/portful
+cat > ~/.config/portful/config.json <<'JSON'
+{ "repos": { "api": { "path": "~/work/api" } } }
+JSON
+
+cat > ~/work/api/portful.json <<'JSON'
+{
+  "fixedPort": 3000,
+  "portRange": [3101, 3199],
+  "serve": "bundle exec rails s -p {port}"
+}
+JSON
+```
+
+worktree ごとのサーバーとプロキシを、それぞれ別のターミナルのタブで起動し、切り替えます。
+
+```sh
+portful serve api/feature-x
+portful serve api/feature-y
+portful proxy start api
+portful use api
+```

@@ -1,0 +1,43 @@
+---
+title: runtag
+description: Records one child process under XDG so a coding agent can read its pid and exit code later.
+---
+
+import ToolFacts from '../../../components/ToolFacts.astro';
+
+<ToolFacts slug="runtag" lang="en" />
+
+runtag wraps one child process and records its pid and exit code in a JSON file under XDG, outside the repository the command runs in.
+It is for a coding agent that starts a long command, such as a test run, and comes back later for the result.
+runtag does not decide pass or fail.
+A job is `running` or `exited`, and `exit_code` is the number the process returned.
+
+## Features
+
+- **One job file per command.** `runtag exec -- <cmd>...` writes `$XDG_DATA_HOME/runtag/jobs/<id>.json`, or `~/.local/share/runtag/jobs/` when that variable is unset. Nothing goes into the working tree, and `exec` does not use a shell.
+- **Detach and come back.** `runtag exec --detach` prints the job JSON and exits 0, and a per-job supervisor waits for the child and writes `exit_code`. Detached stdout and stderr are discarded.
+- **JSON queries.** `runtag status <id>` prints one job. `runtag list --root DIR --status running` prints a JSON array, newest first, of the jobs whose `repo_root` or `cwd` is inside DIR.
+- **No invented exit codes.** When a job file says `running` but its supervisor is gone, `status` and `list` add `orphan: true` and leave `exit_code` null.
+- **Failures that name the next command.** When runtag cannot do what was asked, it exits 1 with `{"error","do"}` on stderr. A child that exits 1 gives its own code, not this envelope.
+- **Cleanup.** `runtag gc --older-than 7d` deletes exited jobs that ended at least that long ago and keeps running ones.
+
+## How an agent uses it
+
+1. Start the command and keep the id with `runtag exec --detach --cwd <repo> -- npm test`.
+2. Wait until the job leaves the running set. runtag does not watch, so this step is `spacequery watch runs-in-dir --root <repo> --until status=exited`.
+3. Read the code with `runtag status <id>`. Treat `orphan: true` as an unknown exit code.
+
+The runtag skill ships in the package at `node_modules/runtag/skills/runtag/SKILL.md`, and `gh skill install meganemura/runtag runtag --scope user --agent claude-code` installs it from the repository.
+
+## Getting started
+
+runtag needs Node.js 20 or newer.
+
+```sh
+npm i -g runtag
+npx runtag --help
+```
+
+## Works with
+
+- runtag writes the job files, and [spacequery](/tools/spacequery/) reads and watches them. A job is in a directory under the same rule as `runtag list --root`, and an orphan does not satisfy `status=exited`.

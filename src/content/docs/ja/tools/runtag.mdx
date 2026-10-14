@@ -1,0 +1,58 @@
+---
+title: runtag
+description: 子プロセスを 1 つ XDG の下に記録し、コーディングエージェントが後から pid と終了コードを読めるようにします。
+---
+
+import ToolFacts from '../../../../components/ToolFacts.astro';
+
+<ToolFacts slug="runtag" lang="ja" />
+
+runtag は、子プロセスを 1 つ包み、その pid と終了コードを XDG の下の JSON ファイルに記録します。
+記録先は、コマンドを実行するリポジトリの外です。
+テストの実行のような長いコマンドを始め、結果を後で取りに来るコーディングエージェントのためのツールです。
+runtag は成功か失敗かを判定しません。
+ジョブは `running` か `exited` のどちらかで、`exit_code` はプロセスが返した数値です。
+
+## 特徴
+
+- **コマンドごとに 1 つのジョブファイル。**
+  `runtag exec -- <cmd>...` は `$XDG_DATA_HOME/runtag/jobs/<id>.json` に書き込み、その変数がなければ `~/.local/share/runtag/jobs/` を使います。
+  作業ツリーには何も書かず、`exec` はシェルを使いません。
+- **切り離して後で戻る。**
+  `runtag exec --detach` はジョブの JSON を出力して 0 で終わり、ジョブごとの監視プロセスが子の終了を待って `exit_code` を書きます。
+  切り離したプロセスの標準出力と標準エラーは捨てます。
+- **JSON の問い合わせ。**
+  `runtag status <id>` は 1 つのジョブを出力します。
+  `runtag list --root DIR --status running` は、`repo_root` か `cwd` が DIR の中にあるジョブを、新しい順に JSON の配列で出力します。
+- **終了コードを作り出さない。**
+  ジョブファイルが `running` のままで監視プロセスがいなくなったとき、`status` と `list` は `orphan: true` を加え、`exit_code` を null のままにします。
+- **次のコマンドを示す失敗。**
+  runtag が頼まれたことをできないときは、stderr に `{"error","do"}` を出して 1 で終わります。
+  子が 1 で終わったときは子自身の終了コードで、この形ではありません。
+- **片付け。**
+  `runtag gc --older-than 7d` は、終わってからその期間が過ぎたジョブを消し、実行中のジョブは残します。
+
+## エージェントでの使い方
+
+1. `runtag exec --detach --cwd <repo> -- npm test` でコマンドを始め、id を控えます。
+2. ジョブが実行中でなくなるまで待ちます。
+   runtag は見張らないので、この手順は `spacequery watch runs-in-dir --root <repo> --until status=exited` です。
+3. `runtag status <id>` で終了コードを読みます。
+   `orphan: true` は終了コードが不明という意味です。
+
+runtag のスキルはパッケージの `node_modules/runtag/skills/runtag/SKILL.md` に入っています。
+`gh skill install meganemura/runtag runtag --scope user --agent claude-code` で、リポジトリからインストールできます。
+
+## はじめかた
+
+runtag には Node.js 20 以降が必要です。
+
+```sh
+npm i -g runtag
+npx runtag --help
+```
+
+## 組み合わせ
+
+- runtag がジョブファイルを書き、[spacequery](/ja/tools/spacequery/) がそれを読んで見張ります。
+  ジョブがディレクトリの中にあるかどうかは `runtag list --root` と同じ規則で決まり、孤児のジョブは `status=exited` を満たしません。

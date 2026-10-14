@@ -1,0 +1,63 @@
+---
+title: portful
+description: Keeps one fixed port pointed at whichever git worktree is active, and switches it without a restart of the client.
+---
+
+import ToolFacts from '../../../components/ToolFacts.astro';
+
+<ToolFacts slug="portful" lang="en" />
+
+With git worktrees, several branches can run at once, but the client that talks to the server, such as a frontend dev server, still uses one port.
+Without portful, every switch means stopping the running server and starting it again from another worktree.
+portful keeps each worktree's backend server running on its own port and puts a small reverse proxy on the fixed port, which forwards to whichever worktree is active.
+`portful use` changes the active worktree, and the next request reaches it, with no restart of the client, no edit to `.env`, and no `cd`.
+portful takes its command names and config layout from portless wherever the two tools do the same thing.
+
+## Features
+
+- **One fixed port per repo.** `portful proxy start <repo>` runs the proxy on the repo's `fixedPort` in the foreground. It reads the active worktree again on every request and adds an `X-Portful-Worktree` header to each HTTP response.
+- **A running server per worktree.** `portful serve <repo>/<worktree>` starts that worktree's server on a port from `portRange` that stays the same across restarts. Every server gets `PORT`, `HOST`, and `PORTFUL_URL` in its environment.
+- **One command to switch.** `portful use <repo>/<worktree>` sets the active worktree, and `portful use <repo>` opens peco, fzf, or a numbered prompt to pick one.
+- **Where each port goes.** `portful list` prints one row per repo with the address clients use, the worktree it reaches, and whether the proxy runs. `portful status --json` prints the fuller view as JSON.
+- **Commands inside a worktree.** `portful exec <repo>/<worktree> <cmd...>` runs a command in that worktree's directory and passes its flags through untouched.
+- **A read-only check.** `portful doctor` reports on config, ports, and state, and exits non-zero when something looks off.
+
+## How an agent uses it
+
+1. Run `portful whoami` to confirm which repo and worktree the current directory is in. It prints one line such as `api/feature-x port 3101 (running, active)`, `--json` prints the full detail, and it exits non-zero outside a registered repo.
+2. Read `portful list --json` or `portful status --json` to see where each fixed port goes and which servers run.
+3. Run `portful doctor` when a server does not answer. `status` reports process liveness, not reachability, and `doctor` compares each port's real `lsof` state with what portful expects.
+
+## Getting started
+
+portful needs Node.js 24 or newer, macOS or Linux, and `git`.
+
+```sh
+npm install -g portful
+```
+
+Register the repo once per machine in `~/.config/portful/config.json`, then give it ports in a `portful.json` in the checkout:
+
+```sh
+mkdir -p ~/.config/portful
+cat > ~/.config/portful/config.json <<'JSON'
+{ "repos": { "api": { "path": "~/work/api" } } }
+JSON
+
+cat > ~/work/api/portful.json <<'JSON'
+{
+  "fixedPort": 3000,
+  "portRange": [3101, 3199],
+  "serve": "bundle exec rails s -p {port}"
+}
+JSON
+```
+
+Start one server per worktree and the proxy, each in its own terminal tab, then switch:
+
+```sh
+portful serve api/feature-x
+portful serve api/feature-y
+portful proxy start api
+portful use api
+```

@@ -1,0 +1,60 @@
+---
+title: autospawn
+description: Starts a stdio program, such as an MCP server, once through a wrapper such as op run, and attaches every later client to it.
+---
+
+import ToolFacts from '../../../components/ToolFacts.astro';
+
+<ToolFacts slug="autospawn" lang="en" />
+
+autospawn is an attach-or-spawn launcher for programs that talk over stdin and stdout.
+A client runs `autospawn connect`.
+If a resident is already running under that name, connect attaches to it, and if not, connect starts one that every later client shares.
+The resident starts once, through a command you choose, such as `op run` from the 1Password CLI, and then starts your program as a fresh child for each connection.
+autospawn relays bytes and does not read them, so it works for an MCP server, a command-line tool, or a long-running watcher.
+
+The README's use case is an MCP server that needs a secret.
+1Password approves CLI access per terminal session, and an MCP client starts its server as a new process, so each start asks for approval again, and the number of approvals grows with the number of clients.
+With autospawn, `op run` runs once, for the resident, and approval happens once.
+
+## Features
+
+- **Attach or spawn.** `autospawn connect --name <name> -- <command...>` attaches to the resident named `<name>`, or starts it from `<command...>`. `--timeout` (default 120 seconds) bounds the wait for a new resident, which leaves time to approve a 1Password prompt.
+- **A fresh child per connection.** `autospawn serve -- <command...>` starts the program for every connection, with the environment the resident got at its one start, minus autospawn's own `AUTOSPAWN_*` variables. `--idle-timeout` ends the resident after that many seconds with no children.
+- **The program's exit code.** connect exits with the program's exit code, 128 plus the signal number for a program ended by a signal, and 127 for a program that cannot start.
+- **Values per connection.** `connect --param key=value` sends a value for one connection, and `serve --param key=ENV_NAME` declares the key and the variable it sets in the child. `serve --arg key=v1,v2` declares the values a connection may choose for a `{key}` in the command.
+- **A fingerprint, not a restart.** A second connect with the same `--name` and a different command gets `fingerprint_mismatch` and exits 1. `autospawn stop --name <name>` ends the resident.
+- **One private directory.** The socket, log, and spawn lock for each name live under `$AUTOSPAWN_DIR` or `$HOME/.local/state/autospawn`, created with mode 0700. autospawn refuses a directory with looser permissions or another owner.
+
+## How an agent uses it
+
+An MCP client, such as Claude Code, Codex, or Cursor, starts the server through autospawn instead of directly:
+
+```sh
+autospawn connect --name example -- op run -- autospawn serve -- node /path/to/server.js
+```
+
+The first client to start `example` triggers one 1Password approval, and later starts from any client attach to the resident.
+
+An agent that runs a tool needing a token once per task uses the same shape:
+
+```sh
+autospawn connect --name example-cli -- \
+  op run -- \
+  autospawn serve --idle-timeout 3600 -- \
+  example-tool fetch
+```
+
+The tool's output arrives on stdout, and connect exits with the tool's exit code, as if the agent had run `example-tool fetch` directly.
+After a change to the 1Password item, or to anything else the program depends on, `autospawn stop --name example` makes the next connect start a fresh resident.
+
+## Getting started
+
+autospawn needs Node.js 24.10 or later, and runs on macOS and Linux.
+It talks over Unix domain sockets, so it does not run on Windows.
+
+```sh
+npm install -g autospawn
+```
+
+The README gives the full `mcp.json`, `claude mcp add-json`, and `~/.codex/config.toml` entries for the 1Password example.

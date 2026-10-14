@@ -84,4 +84,7 @@ export const tools: readonly ToolEntry[] = [
   npm("nukadoko"),
   npm("depug", "@meganemura/depug"),
   npm("firstlight"),
+  npm("runtag"),
+  npm("autospawn"),
+  npm("portful"),
 ];
