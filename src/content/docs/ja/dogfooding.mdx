@@ -69,3 +69,32 @@ Node はこうしたスキーム付きの組み込みモジュールを `node:` 
 その中で、`nuka tend` は `from` で値が埋まる引数を「説明がない」と数えていました。
 今はその値を作ったステップの説明を読みます。
 [nukadoko 899c71d](https://github.com/meganemura/nukadoko/commit/899c71d)
+
+## 2 回目: 図で孤立していたリポジトリ
+
+トップページの図では、stow と runtag が他のツールをほとんど使っていなかったので、2 回目はこれらのリポジトリにツールを導入しました。
+図は公開済みの依存関係から作るので、ここで増えた矢印は、各リポジトリが新しいバージョンを公開したときに表示されます。
+
+### stow に archstrict を導入する
+
+stow は CI でレイヤーの順序を検査するようになりました。
+一番下が `config.ts`、その上が `agent-instructions.ts` と `hosts.ts`、一番上が `cli.ts` です。
+[stow 8bb9913](https://github.com/meganemura/stow/commit/8bb9913)
+その途中で、`archstrict recommend` が、import の矢印が 1 本もないモジュール 2 つを、名前だけを根拠に提案するレイヤーの順序に入れていました。
+今はそうしたモジュールを順序から外し、名前を挙げて知らせます。
+[archstrict cb4a8e8](https://github.com/meganemura/archstrict/commit/cb4a8e8)
+
+### runtag に nukadoko を導入する
+
+runtag の README にあるエージェントの手順を、CI で nukadoko のシナリオとして実行するようになりました。
+切り離して実行し、終了コード 3 で終わるまで状態を確かめ、一覧を出し、後片付けをし、片付けた ID に対するエラーと `do:` 行を確かめます。
+同じ変更で、archstrict の固定バージョンを 0.1.0 から 0.2.1 に上げました。
+新しいシナリオにあった 1 つの間違いは `nuka check` が正確に指摘したので、nukadoko 側の変更は要りませんでした。
+[runtag cd49ee4](https://github.com/meganemura/runtag/commit/cd49ee4d7efef2a6e0a618cbafe1a9295c21a03f)
+
+### archstrict が双方向の組を数える
+
+別のリポジトリにレイヤーの順序を提案したとき、`archstrict recommend` は「support 100%」と「would add 3 violation(s)」を並べて出力していました。
+互いに同じ回数ずつ import し合っているモジュールの組を、計算から外していたためです。
+今はそうした組も support に数えて名前を挙げるので、2 つの数字が食い違いません。
+[archstrict ba4498b](https://github.com/meganemura/archstrict/commit/ba4498b)
