@@ -254,7 +254,7 @@
     "section": "skills",
     "slug": "pstack-portable",
     "name": "pstack-portable",
-    "version": "0.4.3",
+    "version": "0.4.4",
     "description": "Run unmodified upstream pstack in Claude Code, Codex, and Cursor through a thin execution wrapper.",
     "license": "MIT",
     "repo": "https://github.com/meganemura/pstack-portable",
@@ -266,7 +266,7 @@
       "claude plugin install pstack-portable@pstack-portable",
       "claude plugin install pstack@pstack-portable"
     ],
-    "commit": "33e2311"
+    "commit": "dad0b50"
   },
   {
     "source": "github",

@@ -1,0 +1,71 @@
+---
+title: ツールが互いを直した記録
+description: 各ツールを他のリポジトリで動かし、つまずいた点をそのツール自身で直した記録です。
+---
+
+トップページの図は、どのパッケージがどれに依存しているかを示します。
+このページはもう半分の記録です。
+各ツールをエージェントと同じように他のリポジトリで動かし、エージェントが先へ進めなくなった箇所は、次のツールに移る前にそのツールの側で直しました。
+各項目には、動かしたツール、動かした場所、つまずいた点、直したコミットを書いています。
+
+これらの修正は各リポジトリの main ブランチにあります。
+まだリリースしていないので、ツールのページに載っているバージョンには含まれません。
+
+## firstlight で各リポジトリのチェックを動かす
+
+depug と nukadoko の `test` スクリプトは、コマンドを `&&` でつないでいます。
+firstlight はこの形のスクリプトに使う診断パーサーを見つけられず、失敗してもログの末尾の切れ端しか表示しませんでした。
+今は `&&` だけでつないだコマンド列なら、各コマンドのパーサーでログを読みます。
+[firstlight 5ab251f](https://github.com/meganemura/firstlight/commit/5ab251fc19ab9e5aed5860ed3fe14f3903abdb5f)
+
+## depug で finderscope の失敗したテストを追う
+
+finderscope のテストのうち 2 件は、`NODE_OPTIONS` が空であることを前提にしていたため、値が設定されたコンテナで失敗していました。
+テストは [finderscope 2bbab0d](https://github.com/meganemura/finderscope/commit/2bbab0d) で直しました。
+その途中で、本体が式 1 つだけの関数に `flt` を使うと「文がない」とだけ表示され、次に追う呼び出しはエージェントがフレームの索引から探す必要がありました。
+今の `flt` は、その関数が行った呼び出しを、次の `flt` にそのまま渡せる完全な id で並べます。
+[depug 7b073d8](https://github.com/meganemura/depug/commit/7b073d8)
+
+## finderscope で archstrict の起動を測る
+
+`archstrict --help` は 0.5 秒かかり、その 94.6% がモジュールの読み込みでした。
+このとき finderscope は行き止まりで何も表示しませんでした。
+`top --area "module loading"` は空で、読み込み処理のフレームに `callers` を使っても空の一覧が返りました。
+今は空になる報告すべてに、説明と、次に進むための `do:` 行が付きます。
+[finderscope b7477e0](https://github.com/meganemura/finderscope/commit/b7477e0)
+
+見つかった遅さそのものは archstrict で直しました。
+archstrict はすべてのサブコマンドを起動時に読み込んでいましたが、今は実行するサブコマンドだけを読み込みます。
+`--help` は 0.5 秒から約 40 ミリ秒になりました。
+[archstrict 9ad2f25](https://github.com/meganemura/archstrict/commit/9ad2f25)
+
+## stryker-agent-reporter で depug にミューテーションテストをかける
+
+depug のソースファイル 1 つに対して実行すると、ミュータントが 45 個、生き残りが 7 個、`testWithoutKills` の行が 90 行出ました。
+そのうち 86 行は、どのミュータントにも到達しなかったテストで、本当に見るべき数行が埋もれていました。
+今は各行に `coveredMutants` が付きます。
+付けたうえで再実行すると、28 から 45 個のミュータントに到達しながら 1 つも倒していないテストが 4 件見つかりました。
+これらは子プロセスを起動するテストで、子プロセスからは有効なミュータントが見えません。
+[stryker-agent-reporter 1fd564e](https://github.com/meganemura/stryker-agent-reporter/commit/1fd564e)
+
+## archstrict の最新のソースで全リポジトリを検査する
+
+polylinedb、solarsql、spacequery で、解決できない import がそれぞれ 6 から 8 件報告されました。
+すべて `node:sqlite` でした。
+Node はこうしたスキーム付きの組み込みモジュールを `node:` 付きの名前でしか列挙せず、archstrict はこれらを組み込みモジュールとして扱っていませんでした。
+今は `node:sqlite`、`node:test`、`node:sea`、`node:test/reporters` を組み込みモジュールとして扱い、3 つのリポジトリの報告は 0 件です。
+[archstrict 2014f60](https://github.com/meganemura/archstrict/commit/2014f60)、[archstrict f9b0176](https://github.com/meganemura/archstrict/commit/f9b0176)
+
+## spacequery でこのマシンのチェックアウトを調べる
+
+`gh` が失敗したとき、`pull_requests` の欄に出るエラーは GraphQL のクエリ全文で、失敗の理由はどこにもありませんでした。
+今は gh 自身のメッセージ、たとえば受け取った HTTP 403 を表示します。
+[spacequery fcbd1e5](https://github.com/meganemura/spacequery/commit/fcbd1e5)
+
+## nukadoko で各ツールのメインシナリオを動かす
+
+この記録より前に、各ツールの主な使い方を Gherkin のシナリオにし、各リポジトリの CI で nukadoko が実行するようにしました。
+対象は stryker-agent-reporter、finderscope、firstlight、stow、polylinedb、spacequery、depug、solarsql、archstrict です。
+その中で、`nuka tend` は `from` で値が埋まる引数を「説明がない」と数えていました。
+今はその値を作ったステップの説明を読みます。
+[nukadoko 899c71d](https://github.com/meganemura/nukadoko/commit/899c71d)

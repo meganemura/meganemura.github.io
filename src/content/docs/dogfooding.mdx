@@ -1,0 +1,64 @@
+---
+title: How the tools fixed each other
+description: Each tool ran on the other repositories, and each friction it hit was fixed in the tool itself.
+---
+
+The graph on the home page shows which packages depend on which.
+This page records the other half: each tool was run on the other repositories, the way an agent would run it, and every place where it left the agent stuck was fixed in that tool before the next round.
+Each entry names the tool, where it ran, what got in the way, and the commit that fixed it.
+
+These fixes are on each repository's main branch.
+They are not released yet, so the versions on the tool pages do not include them.
+
+## firstlight runs every repository's checks
+
+depug's and nukadoko's `test` scripts chain commands with `&&`.
+firstlight found no diagnostics parser for such a script, so a failure showed only the cut tail of the log.
+Now a list joined only by `&&` is read through the parser of each command in it.
+[firstlight 5ab251f](https://github.com/meganemura/firstlight/commit/5ab251fc19ab9e5aed5860ed3fe14f3903abdb5f)
+
+## depug follows a failing test in finderscope
+
+Two finderscope tests failed because they assumed an empty `NODE_OPTIONS`, and the container sets one.
+The tests were fixed in [finderscope 2bbab0d](https://github.com/meganemura/finderscope/commit/2bbab0d).
+On the way, `flt` on a function whose body is one expression said "no statements", and the agent had to search a frames index for the call to follow.
+Now `flt` lists the calls the function made, each as a full id for the next `flt`.
+[depug 7b073d8](https://github.com/meganemura/depug/commit/7b073d8)
+
+## finderscope profiles archstrict's start
+
+`archstrict --help` took 0.5 s, and 94.6% of it was module loading.
+finderscope's dead ends printed nothing: `top --area "module loading"` was empty, and `callers` on a loader frame gave an empty list.
+Now each empty report carries a note and a `do:` line that leads on.
+[finderscope b7477e0](https://github.com/meganemura/finderscope/commit/b7477e0)
+
+The finding itself was fixed in archstrict: it imported every verb up front, and now each verb loads when it runs.
+`--help` went from 0.5 s to about 40 ms.
+[archstrict 9ad2f25](https://github.com/meganemura/archstrict/commit/9ad2f25)
+
+## stryker-agent-reporter mutates depug
+
+A run on one depug source file gave 45 mutants, 7 survivors, and 90 `testWithoutKills` lines.
+86 of those lines were tests that never reached a mutant of the run, so they buried the few that mattered.
+Now each line carries `coveredMutants`.
+The re-run showed 4 tests that reached 28 to 45 mutants and killed none: they spawn a child process that never sees the active mutant.
+[stryker-agent-reporter 1fd564e](https://github.com/meganemura/stryker-agent-reporter/commit/1fd564e)
+
+## archstrict checks every repository with its latest source
+
+polylinedb, solarsql, and spacequery each reported 6 to 8 unresolved imports, all `node:sqlite`.
+Node lists such scheme-only builtins only with their `node:` prefix, and archstrict did not count them as builtins.
+Now `node:sqlite`, `node:test`, `node:sea`, and `node:test/reporters` are builtins, and the three repositories report none.
+[archstrict 2014f60](https://github.com/meganemura/archstrict/commit/2014f60), [archstrict f9b0176](https://github.com/meganemura/archstrict/commit/f9b0176)
+
+## spacequery reads this machine's checkouts
+
+When `gh` failed, the error in the `pull_requests` section was the whole GraphQL query, with no reason.
+Now the error is gh's own message, for example the HTTP 403 it got.
+[spacequery fcbd1e5](https://github.com/meganemura/spacequery/commit/fcbd1e5)
+
+## nukadoko runs each tool's main scenario
+
+Before these rounds, each tool's main use case became a Gherkin scenario that nukadoko runs in that repository's CI: stryker-agent-reporter, finderscope, firstlight, stow, polylinedb, spacequery, depug, solarsql, and archstrict.
+`nuka tend` counted an argument filled by `from` as one with no description; it now reads the description from the step that produced the value.
+[nukadoko 899c71d](https://github.com/meganemura/nukadoko/commit/899c71d)

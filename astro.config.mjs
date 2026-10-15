@@ -4,7 +4,7 @@ import { sectionOf, sections, tools } from "./tools.config.ts";
 
 // One sidebar group per home page section, in the same order, with the pages sorted by slug.
 // A section with no entries yet gets no group.
-const sidebar = sections.map((section) => ({
+const toolGroups = sections.map((section) => ({
   label: section.label.en,
   translations: { ja: section.label.ja },
   items: tools
@@ -13,6 +13,9 @@ const sidebar = sections.map((section) => ({
     .sort()
     .map((slug) => `tools/${slug}`),
 })).filter((group) => group.items.length > 0);
+
+// The cross-use log sits above the tool groups, since it is about all of them.
+const sidebar = ["dogfooding", ...toolGroups];
 
 export default defineConfig({
   site: "https://meganemura.github.io",
