@@ -65,7 +65,7 @@ Before these rounds, each tool's main use case became a Gherkin scenario that nu
 
 ## Second round: the repositories the graph showed alone
 
-The graph on the home page showed stow and runtag using few of the other tools, so the second round adopted them there.
+The graph on the home page showed stow, runtag, and portful using few of the other tools, so the second round adopted them there.
 The graph reads published dependencies, so these edges appear once each repository releases a new version.
 
 ### stow adopts archstrict
@@ -83,9 +83,17 @@ Its archstrict pin moved from 0.1.0 to 0.2.1 in the same change.
 `nuka check` named the one mistake in the new scenario exactly, so nukadoko needed no change.
 [runtag cd49ee4](https://github.com/meganemura/runtag/commit/cd49ee4d7efef2a6e0a618cbafe1a9295c21a03f)
 
+### portful adopts archstrict and nukadoko
+
+portful got its first CI.
+archstrict checks six layers, from leaf modules up to the entry point, and every module is strict.
+The nukadoko scenario is the reason portful exists: two worktrees served on their own ports, the proxy on its fixed port, and `portful use` moving the next request to the other worktree.
+It passed the first time it ran.
+[portful de92b1f](https://github.com/meganemura/portful/commit/de92b1f7e19d39ad70278eed37aed5693f417ad1)
+
 ### archstrict counts both directions of a pair
 
-Proposing a layer order for another repository, `archstrict recommend` printed "support 100%" beside "would add 3 violation(s)".
+Proposing a layer order for portful, `archstrict recommend` printed "support 100%" beside "would add 3 violation(s)".
 It had left out a pair of modules that import each other the same number of times in each direction.
 Now such a pair counts against support and is named, so the two numbers agree.
 [archstrict ba4498b](https://github.com/meganemura/archstrict/commit/ba4498b)

@@ -72,7 +72,7 @@ Node はこうしたスキーム付きの組み込みモジュールを `node:` 
 
 ## 2 回目: 図で孤立していたリポジトリ
 
-トップページの図では、stow と runtag が他のツールをほとんど使っていなかったので、2 回目はこれらのリポジトリにツールを導入しました。
+トップページの図では、stow、runtag、portful が他のツールをほとんど使っていなかったので、2 回目はこれらのリポジトリにツールを導入しました。
 図は公開済みの依存関係から作るので、ここで増えた矢印は、各リポジトリが新しいバージョンを公開したときに表示されます。
 
 ### stow に archstrict を導入する
@@ -92,9 +92,18 @@ runtag の README にあるエージェントの手順を、CI で nukadoko の�
 新しいシナリオにあった 1 つの間違いは `nuka check` が正確に指摘したので、nukadoko 側の変更は要りませんでした。
 [runtag cd49ee4](https://github.com/meganemura/runtag/commit/cd49ee4d7efef2a6e0a618cbafe1a9295c21a03f)
 
+### portful に archstrict と nukadoko を導入する
+
+portful に初めて CI を用意しました。
+archstrict は末端のモジュールから入口までの 6 つのレイヤーを検査し、すべてのモジュールを strict にしています。
+nukadoko のシナリオは、portful が存在する理由そのものです。
+2 つの worktree をそれぞれのポートで動かし、プロキシを固定のポートで待ち受け、`portful use` で次のリクエストをもう一方の worktree に向けます。
+このシナリオは最初の実行で通りました。
+[portful de92b1f](https://github.com/meganemura/portful/commit/de92b1f7e19d39ad70278eed37aed5693f417ad1)
+
 ### archstrict が双方向の組を数える
 
-別のリポジトリにレイヤーの順序を提案したとき、`archstrict recommend` は「support 100%」と「would add 3 violation(s)」を並べて出力していました。
+portful にレイヤーの順序を提案したとき、`archstrict recommend` は「support 100%」と「would add 3 violation(s)」を並べて出力していました。
 互いに同じ回数ずつ import し合っているモジュールの組を、計算から外していたためです。
 今はそうした組も support に数えて名前を挙げるので、2 つの数字が食い違いません。
 [archstrict ba4498b](https://github.com/meganemura/archstrict/commit/ba4498b)
