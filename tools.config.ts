@@ -89,6 +89,7 @@ export const tools: readonly ToolEntry[] = [
   npm("portful"),
   gem("bulldogger"),
   gem("archspec_diagram"),
+  gem("hegel-ruby", "hegeltest"),
   github("headsign", {
     section: "skills",
     skills: ["skills/create-project-skill/SKILL.md", "skills/improve-project-skill/SKILL.md"],

@@ -1,0 +1,40 @@
+---
+title: hegel-ruby
+description: An unofficial Ruby implementation of Hegel, the property-based testing framework, published as the hegeltest gem.
+---
+
+import ToolFacts from '../../../components/ToolFacts.astro';
+
+<ToolFacts slug="hegel-ruby" lang="en" />
+
+hegel-ruby brings Hegel, a property-based testing framework based on Hypothesis, to Ruby.
+Instead of tests with hand-picked inputs, a test states a property that must hold for every input; Hegel generates inputs, tries to falsify the property, and shrinks any failure to a minimal counterexample.
+The gem drives libhegel, the native engine behind the official implementations, in the same process, with no server and no Python.
+It is an unofficial, third-party implementation: Hegel and libhegel belong to Antithesis, LLC, and nobody there reviews or endorses this gem.
+
+## Features
+
+- **Properties in any test framework.** `Hegel.test { |tc| ... }` runs inside an RSpec example or a Minitest test, and re-raises the framework's own failure, so the framework reports it as its own.
+- **Shrunk, named counterexamples.** A failure reports the smallest input that still fails, names each drawn value by the line it was drawn on, such as `xs = [0, 0]`, and prints a `reproduce_failure:` blob for `Hegel.test`.
+- **Twenty-five generators.** `arrays`, `integers`, `text`, `from_regex`, `emails`, `uuids`, and the rest, each composing through `map` and `filter`. `include Hegel::Syntax::Methods` makes them available without a prefix.
+- **Stateful testing.** Rules and invariants on a `Hegel::StateMachine`, run with `Hegel::Stateful.run(machine, tc)`, and a failure shrinks to the shortest sequence of rules that still shows it.
+- **A shaped run.** `Hegel.test` takes `test_cases`, `seed`, `phases`, and other keywords, and `database_key:` turns on libhegel's example database, which replays a stored failing case first.
+- **Nothing to compile.** Each platform gem carries its own `libhegel` build, for Linux, macOS arm64, and Windows.
+
+## How an agent uses it
+
+1. Find a property of the code: a round trip, an invariant, or agreement with a simpler model.
+2. Write it as `Hegel.test do |tc| ... end`, drawing each input with `tc.draw`.
+3. Run the suite. When the property fails, read the shrunk counterexample, fix the code, and pass the printed blob as `reproduce_failure:` to replay that exact case.
+
+The repository also ships a `hegel-ruby` skill that tells an agent how to write these tests with RSpec, Minitest, or another runner.
+
+## Getting started
+
+```ruby
+# Gemfile
+gem "hegeltest"
+```
+
+A project that already has a `Gemfile.lock` adds each platform its CI uses, for example `bundle lock --add-platform x86_64-linux`.
+Then `require "hegel"` in `spec_helper.rb` or `test_helper.rb`, and include `Hegel::Syntax::Methods` in the test classes.

@@ -1,0 +1,56 @@
+---
+title: hegel-ruby
+description: プロパティベーステストのフレームワーク Hegel の非公式な Ruby 実装で、hegeltest gem として公開しています。
+---
+
+import ToolFacts from '../../../../components/ToolFacts.astro';
+
+<ToolFacts slug="hegel-ruby" lang="ja" />
+
+hegel-ruby は、Hypothesis を基にしたプロパティベーステストのフレームワーク Hegel を Ruby で使えるようにします。
+手で選んだ入力でテストする代わりに、すべての入力で成り立つべき性質を書きます。
+Hegel は入力を生成してその性質を破ろうとし、失敗が見つかれば最小の反例まで縮めます。
+この gem は、公式の実装と同じネイティブエンジン libhegel を同じプロセス内で動かすので、サーバーも Python も要りません。
+非公式のサードパーティ実装です。
+Hegel と libhegel は Antithesis, LLC のもので、この gem を同社がレビューしたり推奨したりしているわけではありません。
+
+## 特徴
+
+- **どのテストフレームワークでも性質を書ける。**
+  `Hegel.test { |tc| ... }` は RSpec の example の中でも Minitest のテストの中でも動きます。
+  失敗はフレームワーク自身の失敗として投げ直すので、フレームワークがそのまま報告します。
+- **縮めて名前を付けた反例。**
+  失敗すると、まだ失敗する最小の入力を報告し、`xs = [0, 0]` のように、値を取り出した行から各値に名前を付けます。
+  あわせて、`Hegel.test` に渡す `reproduce_failure:` の文字列も出力します。
+- **25 個のジェネレーター。**
+  `arrays`、`integers`、`text`、`from_regex`、`emails`、`uuids` などがあり、どれも `map` と `filter` で組み合わせられます。
+  `include Hegel::Syntax::Methods` で、接頭辞なしで使えるようになります。
+- **状態を持つテスト。**
+  `Hegel::StateMachine` にルールと不変条件を宣言し、`Hegel::Stateful.run(machine, tc)` で実行します。
+  失敗は、まだ失敗する最短のルールの並びまで縮めます。
+- **実行の調整。**
+  `Hegel.test` は `test_cases`、`seed`、`phases` などのキーワードを受け取ります。
+  `database_key:` を渡すと libhegel の example database が有効になり、保存した失敗例を次回の最初に再現します。
+- **コンパイル不要。**
+  プラットフォームごとの gem がそれぞれの `libhegel` のビルドを同梱しています。
+  対象は Linux、macOS の arm64、Windows です。
+
+## エージェントでの使い方
+
+1. コードの性質を見つけます。
+   往復変換、不変条件、より単純なモデルとの一致などです。
+2. その性質を `Hegel.test do |tc| ... end` として書き、各入力を `tc.draw` で取り出します。
+3. テストスイートを実行します。
+   性質が破れたら、縮められた反例を読んでコードを直し、出力された文字列を `reproduce_failure:` に渡してその入力をそのまま再現します。
+
+リポジトリには `hegel-ruby` スキルも含まれていて、RSpec や Minitest などでこうしたテストを書く方法をエージェントに伝えます。
+
+## はじめかた
+
+```ruby
+# Gemfile
+gem "hegeltest"
+```
+
+すでに `Gemfile.lock` があるプロジェクトでは、CI で使うプラットフォームを `bundle lock --add-platform x86_64-linux` のように追加します。
+そのうえで `spec_helper.rb` か `test_helper.rb` で `require "hegel"` し、テストのクラスに `Hegel::Syntax::Methods` を include します。

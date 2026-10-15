@@ -50,3 +50,17 @@
 .demo__meta { color: var(--sl-color-gray-3); margin-left: 0.5rem; }
 .demo pre { overflow-x: auto; }
 .tool-facts pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* The splash home pages carry a sidebar only for the mobile menu (src/route-data.ts).
+   On wide screens they keep the full-width splash layout. */
+html[data-has-hero] {
+  --sl-content-width: 67.5rem;
+}
+@media (min-width: 50rem) {
+  html[data-has-hero] {
+    --sl-content-inline-start: 0rem;
+  }
+  html[data-has-hero] .sidebar-pane {
+    display: none;
+  }
+}

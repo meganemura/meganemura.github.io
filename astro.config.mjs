@@ -32,6 +32,7 @@ export default defineConfig({
       customCss: ["./src/styles/site.css"],
       pagefind: false,
       components: { Header: "./src/components/Header.astro" },
+      routeMiddleware: "./src/route-data.ts",
     }),
   ],
 });

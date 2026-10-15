@@ -67,7 +67,9 @@
     "description": "Ruby execution evidence for coding agents: failure snapshots captured at the moment a test raises, written as files an agent can read and query.",
     "license": "MIT",
     "repo": "https://github.com/meganemura/bulldogger",
-    "uses": []
+    "uses": [
+      "hegel-ruby"
+    ]
   },
   {
     "source": "npm",
@@ -168,6 +170,16 @@
       "gh skill install meganemura/headsign --all --agent codex --scope user"
     ],
     "commit": "d4d2bea"
+  },
+  {
+    "source": "rubygems",
+    "slug": "hegel-ruby",
+    "name": "hegeltest",
+    "version": "0.3.1",
+    "description": "An unofficial Ruby implementation of the Hegel protocol. Hegel is a\nproperty-based testing framework based on Hypothesis. This gem drives\nlibhegel, the same native engine that backs the Rust, Go, TypeScript,\nJava, OCaml, and C++ implementations.\n",
+    "license": "MIT",
+    "repo": "https://github.com/meganemura/hegel-ruby",
+    "uses": []
   },
   {
     "source": "github",

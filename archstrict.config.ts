@@ -12,6 +12,7 @@ export default {
     { name: "tools-config", glob: "tools.config.ts", surface: "tools.config.ts" },
     { name: "lib", glob: "src/lib/**", surface: "data.ts" },
     { name: "content-config", glob: "src/content.config.ts", surface: "content.config.ts" },
+    { name: "route-data", glob: "src/route-data.ts", surface: "route-data.ts" },
   ],
   classify: [
     { glob: "scripts/facts/**", tags: ["layer:core"] },
@@ -32,6 +33,6 @@ export default {
       },
     ],
   },
-  strict: ["facts", "claims", "graph", "facts-cli", "claims-cli", "tools-config", "lib", "content-config"],
+  strict: ["facts", "claims", "graph", "facts-cli", "claims-cli", "tools-config", "lib", "content-config", "route-data"],
   because: "Pure cores (facts, claims, graph) sit under thin CLIs and the page data module, so the logic stays testable without files or processes.",
 } satisfies Config;
