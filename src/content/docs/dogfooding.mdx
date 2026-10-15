@@ -91,6 +91,18 @@ The nukadoko scenario is the reason portful exists: two worktrees served on thei
 It passed the first time it ran.
 [portful de92b1f](https://github.com/meganemura/portful/commit/de92b1f7e19d39ad70278eed37aed5693f417ad1)
 
+### archspec_diagram adopts hegel-ruby and bulldogger
+
+archspec_diagram's tests now include two hegel-ruby properties: label escaping round-trips, and the diagram has one node per component with every edge joining two nodes.
+A failing test also writes bulldogger evidence and a rerun line.
+[archspec_diagram 6f24344](https://github.com/meganemura/archspec_diagram/commit/6f24344)
+The rerun could miss the failing case, because a property with no `database_key` searches again from the start.
+Each property now has its own key, so a rerun replays the stored counterexample first.
+[archspec_diagram 172d100](https://github.com/meganemura/archspec_diagram/commit/172d100)
+Then hegel found a real bug in the test's own generator: a component named `then` called Ruby's `Kernel#then` instead of the component, and hegel shrank the case to the names `["0", "then"]`.
+[archspec_diagram 7c1f357](https://github.com/meganemura/archspec_diagram/commit/7c1f3572b60d61cdf518c644a52b41e2beaefbd6)
+These two gems are in archspec_diagram's Gemfile, not its gemspec, so the graph, which reads each gem's published dependencies, does not show them.
+
 ### archstrict counts both directions of a pair
 
 Proposing a layer order for portful, `archstrict recommend` printed "support 100%" beside "would add 3 violation(s)".
