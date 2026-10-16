@@ -1,6 +1,6 @@
 ---
 title: nukadoko
-description: Runs Gherkin scenarios under typed step contracts, checks them before they run, and records what each step did.
+description: Runs Gherkin scenarios under typed step contracts, checks them before they run, records what each step did, and writes a run summary for the pull request.
 ---
 
 import ToolFacts from '../../../components/ToolFacts.astro';
@@ -12,14 +12,15 @@ Implementations are generated now, and the criteria that check them have to stay
 The acceptance criteria stay in the language of the people who set them.
 Everything between those sentences and the system under test is typed, checked before execution, and reviewable in a diff.
 The tool measures each step record itself, so nobody has to trust an agent's account of the run.
+Every run ends in a Markdown run summary that CI posts on the pull request, and a person reviews the `.feature` in the diff beside it.
 
 ## Features
 
 - **Wrong before it runs.** `nuka check` reads every feature file and step file and reports problems such as an undefined step, a duplicate pattern, an ambiguous step, or a `from` binding in the wrong order. `nuka check --codes` lists every finding code.
 - **A vocabulary an agent can read.** `nuka steps --json` lists each step with its patterns, description, `mutates`, and `needs`. `nuka describe` shows a step's contract, with its schemas as JSON Schema.
-- **Step records.** `nuka do` runs one step by itself and prints a step record with the validated result and the network reads and writes the tool observed. `nuka run` runs scenarios and leaves the same records.
-- **Sign-off.** `nuka accept` freezes one green run as a Markdown record beside its feature. Its `Declared vs observed` section lists each step that declared `mutates: false` but was measured making a write.
-- **Reports with no wiring.** Every run writes Allure results and a cucumber-messages stream, with no configuration. Each step in Allure carries its validated result, its own trace, and a timeline of its waits and Playwright calls.
+- **Step records.** `nuka do` runs one step by itself and prints a step record with the validated result and the network reads and writes the tool observed. `nuka run` runs scenarios and leaves the same records. A step that calls the exported `runCommand` lists each process it started, with its command, working directory, and exit code, under `observed.processes`.
+- **A run summary for the reviewer.** Every `nuka run` writes `.nukadoko/records/runs/<run_id>/summary.md` with the commit, the environment, one table per feature, any step that declared `mutates: false` but was measured making a write, and a rerun command for each failed scenario. It is appended to `$GITHUB_STEP_SUMMARY` when that is set, and `--summary <path>` writes a copy a CI step can post as a pull request comment.
+- **A failure that says why.** When a step fails, `nuka run` prints the first line of its error and the path of its step record on stderr, and after the summary a `rerun  nuka run <feature>:<line>` line for each failed scenario. `--quiet` keeps these lines.
 - **A way in for an existing suite.** Switching one import from `@cucumber/cucumber` to `nukadoko/compat` keeps a cucumber-js suite running while nukadoko records its steps. Each step can then move to `defineStep` on its own.
 
 ## How an agent uses it
@@ -29,11 +30,13 @@ An agent can complete the whole loop without help.
 1. It discovers the vocabulary with `nuka steps --json`.
 2. It reads a contract with `nuka describe`.
 3. It runs one step with `nuka do`, reads the step record, and chooses the next call.
-4. When the vocabulary lacks an operation, it adds a step with `nuka scaffold <name>` and implements it. A person then reviews the pull request.
+4. When the vocabulary lacks an operation, it adds a step with `nuka scaffold <name> --pattern "<line>"` (`--then` for a Then step), implements it, and runs it alone with `nuka do`. A step that only asserts can leave out `returns`, and a step that needs a temporary directory uses the built-in `scratch` fixture, which removes its directories when the scenario ends.
+5. It writes the feature, runs `nuka check <feature>`, and runs `nuka run <feature>` until green, reading the failed step's record when it fails.
+6. It hands over the feature and its run summary. A person reads both on the pull request and approves it.
 
 `nuka check` is the static gate before every run.
 `nuka tend` runs from time to time and reports what is rotting rather than broken, such as a schema field with no description.
-The package ships two skills. `acceptance` takes a ticket's acceptance criteria to a committed record, and `migration` moves a cucumber-js suite across.
+The package ships two skills. `acceptance` takes a ticket's acceptance criteria to a pull request a person can approve, and `migration` moves a cucumber-js suite across.
 
 ## Getting started
 
@@ -43,7 +46,9 @@ nukadoko needs Node 20 or later.
 npm install -D nukadoko
 npx nuka init
 npx nuka steps
-npx nuka check
 ```
 
-`nuka init` writes `nukadoko.config.ts` and the `.gitignore` entries. `gh skill install meganemura/nukadoko --all` installs both skills.
+`nuka init` sets up a CLI or API project.
+It writes `nukadoko.config.ts` and `features/steps/`, adds `.nukadoko/` to `.gitignore`, and adds a `test:scenarios` script that runs `nuka check && nuka run features`, so `npm run test:scenarios` is the one command a person or CI runs.
+The Allure and cucumber-messages emitters are off until their config key is present; `nuka init --allure` turns on Allure.
+`gh skill install meganemura/nukadoko --all` installs both skills.
