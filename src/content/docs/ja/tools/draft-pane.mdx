@@ -8,7 +8,7 @@ import ToolFacts from '../../../../components/ToolFacts.astro';
 <ToolFacts slug="draft-pane" lang="ja" />
 
 draft-pane は、少ないターン数で、下書きにその場でフィードバックするための Claude Code のプラグイン (Claude Mod) です。
-Claude Code でしか動きません。
+Claude Code のターミナルセッションか、Claude Code Desktop の Code タブでしか動きません。
 プラグインのスキル `draft-pane:draft` は、頼まれた下書きを、`draft` というラベルのコードフェンスのブロックの中に Claude に書かせます。
 トランスクリプトの横のペインは、まだ開いている下書きのうち最新のものを表示します。
 範囲をドラッグしてコメントを入力するか、下書き全体にコメントするか、下書きを承認します。
@@ -30,8 +30,11 @@ Submit を 1 回押すと、すべてのコメントを、各範囲を引用し�
   番号が再利用されることはありません。
 - **ファイルの下書き。**
   見出しの次に `file: <path>` の行があると、既存のファイルを下書きとして表示し、フィードバックのプロンプトにはそのファイルの名前が入ります。
-- **トランスクリプトだけで読める。**
-  下書きはすべてアシスタントのメッセージの中のテキストで、フィードバックはすべて下書きを引用するプロンプトです。
+- **デスクトップでは表現の豊かなペイン。**
+  Claude Code Desktop の Code タブでは、各下書きが、番号、タイトル、行数、単語数、文字数を示すカードになります。
+  `Comment` のほかに、下書きを markdown として、またはコードのファイルをシンタックスカラー付きで表示する `Preview` のビューがあります。
+  改訂には、改訂元の下書きとの差分を示す `Changes from D<n>` のビューがあります。
+  バーが、下書きのどこにコメントがあるかを示します。
 
 ## エージェントでの使い方
 
@@ -48,5 +51,8 @@ draft-pane には、Claude Code 2.1.273 以降と `CLAUDE_CODE_ENABLE_FUNCTION_H
 claude plugin marketplace add meganemura/draft-pane
 claude plugin install draft-pane@draft-pane
 ```
+
+上のコマンドでユーザースコープにインストールしたプラグインは、Claude Code Desktop の Code タブでも読み込まれます。
+デスクトップアプリでは `/plugin` が動かないので、アプリからインストールするときは、プロンプト欄の横の + を押し、Plugins、Add marketplace の順に進んで `meganemura/draft-pane` を追加してから、Add plugin を押します。
 
 `/draft-pane` はペインの表示と非表示を切り替え、キーボードのフォーカスをペインに移します。

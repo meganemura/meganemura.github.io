@@ -22,11 +22,14 @@ archstrict が調べるのは、モジュールの間の境界です。
   `archstrict.config.ts` は 1 つの TypeScript の値です。
   `declaredModules` で各モジュールをディレクトリか単一のファイルとして指定し、`surface` でその公開用のファイルを指定します。
   どのモジュールにも `exclude` のパターンにも当てはまらないファイルは、`uncovered-module` の違反になります。
+  設定に未知のキーがあるとエラーになり、受け付けるキーが示されます。
 - **エージェントがそのまま対応できる報告。**
   `archstrict check` は、各違反を規則の ID、`path:line:col`、証拠、`because` の理由、`do:` のコマンドつきで表示します。
   `--json` は同じ内容を出力し、`--rule` と `--module` で絞り込めます。
 - **レイヤーとドメインの規則。**
   `classify` でファイルにタグを付け、`edges` が `allowDeny`、`order`、`point` の規則でタグ間の import を検査します。
+  `allowDeny` か `point` の規則に `guard: true` を付けると、まだどのファイルにもない import を禁止できます。
+  `archstrict diagram` は、設定を Mermaid のフローチャートとして描きます。
 - **減る一方の todo ファイル。**
   最初の `archstrict todo` は、現在の違反を `archstrict.todo.json` に凍結し、その後の実行はエントリを取り除くだけです。
   `strict` に挙げたモジュールは、エントリを 1 つも持てません。

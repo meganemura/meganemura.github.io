@@ -8,7 +8,7 @@ import ToolFacts from '../../../components/ToolFacts.astro';
 <ToolFacts slug="jira-ticket-pane" lang="en" />
 
 jira-ticket-pane is a Claude Code plugin, a Claude Mod.
-It works only in Claude Code, in a terminal session.
+It works only in Claude Code, in a terminal session or in the Code tab of Claude Code Desktop.
 `/jira DEMO-1` fetches one Jira issue from an MCP server already connected to the session and draws it in a pane beside the transcript.
 The fetch runs inside the plugin, never as part of a model turn, and a button attaches the issue text to the next prompt as context.
 
@@ -30,11 +30,14 @@ The fetch itself never runs as part of a model turn.
 ## Getting started
 
 jira-ticket-pane needs Claude Code with `CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1`, and an MCP server connected to the session with a tool that reads Jira issues.
-Its CI pins Claude Code 2.1.273.
+Its CI pins Claude Code 2.1.280.
 
 ```sh
 claude plugin marketplace add meganemura/jira-ticket-pane
 claude plugin install jira-ticket-pane@jira-ticket-pane
 ```
+
+In the Code tab of Claude Code Desktop, a plugin installed at the user scope with these commands loads too.
+`/plugin` does not run in the desktop app, so to install from the app, click + beside the prompt box, then Plugins, then Add marketplace with `meganemura/jira-ticket-pane`, then Add plugin.
 
 Then run `/jira <KEY>` in a session.

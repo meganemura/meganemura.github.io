@@ -15,10 +15,14 @@ spacequery は、プロバイダーと呼ぶそれらの情報源を観測し、
 
 ## 特徴
 
-- **1 つのリポジトリのレポート。**
+- **リポジトリと作業のレポート。**
   `spacequery here` は、そのリポジトリにいるほかのエージェント、git の状態、リンクされたワークツリー、ブランチのプルリクエスト、待ち受け中のポート、ローカルのプロセス、Docker のコンテナ、mise のツールなどのセクションを表示します。
+  `spacequery work` は、閉じていないプロジェクトの issue、herdr のエージェントとそのセッションのモデル、最近のローカルの Cursor のエージェントを 1 つのレポートにまとめます。
+  `spacequery watch work` は、このレポートを更新し続けます。
 - **ツールをまたぐ問い合わせ。**
   spacequery はリポジトリのルートで行を結合するので、`agents-in-dirty-repos`、`failing-checks-with-agents`、`idle-worktrees`、`servers-with-agents` はそれぞれ 1 つの名前付きクエリで済みます。
+  `heavy-processes` は、すべてのプロセスを CPU とメモリの使用量で順位づけし、そのプロセスを持つ herdr のペインを示します。
+  その場で書いた `--sql` が準備できないときは、近い列名や、見つからない列がどのテーブルにあるかなど、エラーが直し方を示します。
 - **作業前のゲート。**
   エージェントを一覧表示するクエリは、呼び出したエージェント自身を除きます。
   `spacequery here --expect-empty --strict` は、ほかのエージェントがリポジトリにいるときや、応答しなかったプロバイダーがあるときに失敗します。
@@ -29,9 +33,11 @@ spacequery は、プロバイダーと呼ぶそれらの情報源を観測し、
   `spacequery doctor` は、どの組み込みプロバイダーが応答するかを確認します。
 - **必要なプロバイダーだけを使う。**
   クエリは、読み取るテーブルのプロバイダーだけを読み込むので、`tools-in-dir` は GitHub を呼び出しません。
+  互いに依存しないプロバイダーは並行して読み込みます。
+  `brew`、`runtag`、`firstlight` などの任意のプロバイダーは、`~/.config/spacequery/config.json` で有効にするまで、`--help` の短い一覧に出てきません。
   呼び出しのたびに空のデータベースから始めるので、古くなるキャッシュはありません。
 - **ターミナル上のブラウザー。**
-  `spacequery ui` は、テーブルとクエリを列と SQL つきで表示し、`r` を押すと行を取得します。
+  `spacequery ui` は、テーブル、クエリ、レポートを列と SQL つきで表示し、`r` を押すと行を取得します。
   `--tsv` は、人が読むための簡潔な表を出力します。
 
 ## エージェントでの使い方
@@ -54,3 +60,12 @@ spacequery here
 spacequery doctor
 gh skill install meganemura/spacequery spacequery --scope user --agent claude-code
 ```
+
+## 組み合わせ
+
+- [runtag](/ja/tools/runtag/) がジョブファイルを書き、spacequery がそれを読みます。
+  `spacequery watch runs-in-dir --root <repo> --until status=exited` は、リポジトリのすべてのジョブが終了するまで待ちます。
+- spacequery は、[firstlight](/ja/tools/firstlight/) がチェックの実行ごとに書く状態を読みます。
+  `running-checks` は、生きているスーパーバイザーの下でまだ実行中のチェックを一覧にします。
+  `latest-check-runs` は、リポジトリごとに最新の結果を示します。
+- `polylinedb` プロバイダーは、[polylinedb](/ja/tools/polylinedb/) の閉じていないプロジェクトの issue を `pd` を通して読み、`issues`、`here`、`work` に使います。

@@ -15,12 +15,12 @@ It reads the sources and never changes them.
 
 ## Features
 
-- **A report for one repository.** `spacequery here` shows the other agents in the repository, the git state, linked worktrees, the branch's pull request, listening ports, local processes, Docker containers, and mise tools, among other sections.
-- **Questions across tools.** spacequery joins rows by repository root, so `agents-in-dirty-repos`, `failing-checks-with-agents`, `idle-worktrees`, and `servers-with-agents` are each one named query.
+- **Reports for a repository and for the work.** `spacequery here` shows the other agents in the repository, the git state, linked worktrees, the branch's pull request, listening ports, local processes, Docker containers, and mise tools, among other sections. `spacequery work` puts unclosed project issues, herdr agents with their session models, and recent local Cursor agents in one report, and `spacequery watch work` refreshes it.
+- **Questions across tools.** spacequery joins rows by repository root, so `agents-in-dirty-repos`, `failing-checks-with-agents`, `idle-worktrees`, and `servers-with-agents` are each one named query. `heavy-processes` ranks every process by CPU and memory and names the herdr pane that owns it. When ad hoc `--sql` does not prepare, the error names the fix, such as the close column or the table a missing column lives in.
 - **A gate before work.** Queries that list agents leave out the caller. `spacequery here --expect-empty --strict` fails when another agent is in the repository or a provider did not answer, and `spacequery watch in-dir --until empty` waits until the repository is free.
 - **Gaps that show.** The default output is JSON, and its `providers` field gives `source`, `ok`, `observed_at`, `ms`, and `error` for each provider that ran. A failed provider leaves its tables empty, so empty rows beside it mean unknown, not none. `spacequery doctor` checks which built-in providers answer.
-- **Only the providers a query needs.** A query loads the providers for the tables it reads, so `tools-in-dir` does not call GitHub. Every call starts from an empty database, so no cache can go stale.
-- **A terminal browser.** `spacequery ui` shows the tables and queries with their columns and SQL, and fetches rows when you press `r`. `--tsv` prints a compact table for a person.
+- **Only the providers a query needs.** A query loads the providers for the tables it reads, so `tools-in-dir` does not call GitHub, and independent providers load concurrently. Optional providers such as `brew`, `runtag`, and `firstlight` stay out of the short `--help` list until `~/.config/spacequery/config.json` enables them. Every call starts from an empty database, so no cache can go stale.
+- **A terminal browser.** `spacequery ui` shows the tables, queries, and reports with their columns and SQL, and fetches rows when you press `r`. `--tsv` prints a compact table for a person.
 
 ## How an agent uses it
 
@@ -40,3 +40,9 @@ spacequery here
 spacequery doctor
 gh skill install meganemura/spacequery spacequery --scope user --agent claude-code
 ```
+
+## Works with
+
+- [runtag](/tools/runtag/) writes job files, and spacequery reads them. `spacequery watch runs-in-dir --root <repo> --until status=exited` waits until every job in the repository has exited.
+- spacequery reads the state that [firstlight](/tools/firstlight/) writes for each check run. `running-checks` lists the checks still running under a live supervisor, and `latest-check-runs` gives each repository's latest result.
+- The `polylinedb` provider reads unclosed project issues from [polylinedb](/tools/polylinedb/) through `pd`, for `issues`, `here`, and `work`.

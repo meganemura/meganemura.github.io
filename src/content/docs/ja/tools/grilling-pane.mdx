@@ -1,6 +1,6 @@
 ---
 title: grilling-pane
-description: モデルが出すインタビューの質問をトランスクリプトの横のペインに表示し、選んだ答えをまとめて 1 つのプロンプトで送る Claude Code の mod です。
+description: モデルが出すインタビューの質問をトランスクリプトの横のペインに表示し、選んだ答えを回答のプロンプトとして Claude に送る Claude Code の mod です。
 ---
 
 import ToolFacts from '../../../../components/ToolFacts.astro';
@@ -8,10 +8,11 @@ import ToolFacts from '../../../../components/ToolFacts.astro';
 <ToolFacts slug="grilling-pane" lang="ja" />
 
 grilling-pane は、Claude が計画に取りかかる前に、その計画についてユーザーに質問する Claude Code のプラグイン (Claude Mod) です。
-Claude Code でしか動きません。
+Claude Code のターミナルセッションか、Claude Code Desktop の Code タブでしか動きません。
 プラグインのスキル `grilling-pane:grilling` は、質問の進め方として Matt Pocock の `grilling` スキルを呼び出し、各ラウンドの質問を `grilling` というラベルのコードフェンスのブロックに書きます。
 grilling-pane はそのラウンドをトランスクリプトの横のペインに表示します。
-Submit を 1 回押すと、そのラウンドのすべての回答を 1 ターンで送ります。
+ターミナルでは、Submit を 1 回押すと、そのラウンドのすべての回答を 1 ターンで送ります。
+デスクトップでは、押すたびに 1 つの回答をすぐに送ります。
 
 ## 特徴
 
@@ -22,12 +23,15 @@ Submit を 1 回押すと、そのラウンドのすべての回答を 1 ター�
   どの質問にも、最後にこの選択肢があります。
   押すと、空のままでもよい 1 行の入力欄が開き、`(discuss)` と、入力したテキストを送ります。
 - **回答は 1 つのプロンプトに。**
-  `Submit` は `Answers (grilling-pane):` に続けて質問ごとに 1 行を送り、何も選ばなかった質問には `(skipped)` を送ります。
+  ターミナルでは、`Submit` は `Answers (grilling-pane):` に続けて質問ごとに 1 行を送り、何も選ばなかった質問には `(skipped)` を送ります。
 - **シンプルな質問ブロック。**
   `Q<n>: <question>` の行から質問が始まり、その下の `- ` の行が選択肢です。
   推奨する選択肢は `(recommended: <reason>)` で終わります。
-- **トランスクリプトだけで読める。**
-  質問はすべてアシスタントのメッセージの中のテキストで、答えはすべて質問を繰り返すプロンプトなので、プラグインがなくてもトランスクリプトを読めます。
+  `Drop Q<n>: <reason>` は、回答によって不要になった質問を取り下げます。
+- **デスクトップでは 1 つずつ回答。**
+  Claude Code Desktop の Code タブには `Submit` がありません。
+  押すたびに 1 つの回答を、まだ答えていない質問を挙げる `Still open (grilling-pane):` の行と一緒に送ります。
+  ペインは会話のすべての質問を残し、Claude が取り下げた質問は理由とともにグレーで表示され、ボタンはありません。
 - **自動で開くペイン。**
   一度表示すると、それ以降は新しいラウンドが届くたびに、キーボードのフォーカスを奪わずにペインが開きます。
   `/grilling-pane` で隠せます。
@@ -38,6 +42,8 @@ Submit を 1 回押すと、そのラウンドのすべての回答を 1 ター�
 Claude は 1 ラウンド分の質問を `grilling` ブロックに書きます。
 質問の番号は、会話全体を通した連番です。
 Claude は回答のプロンプトを、そのラウンドへの答えとして読みます。
+デスクトップでは、Claude は回答ごとに短いターンで応じます。
+そのあと、まだ開いている質問、回答から生まれた追加の質問、回答によって不要になった質問ごとの `Drop` の行を、ブロックに書きます。
 ラウンドが開いている間にメッセージを入力しても、プラグインはそのメッセージに手を加えません。
 Claude は、メッセージで触れなかった質問を、スキップされたものではなく、まだ答えが出ていないものとして扱います。
 
@@ -50,6 +56,9 @@ gh skill install mattpocock/skills grilling --agent claude-code
 claude plugin marketplace add meganemura/grilling-pane
 claude plugin install grilling-pane@grilling-pane
 ```
+
+上のコマンドでユーザースコープにインストールしたプラグインは、Claude Code Desktop の Code タブでも読み込まれます。
+デスクトップアプリでは `/plugin` が動かないので、アプリからインストールするときは、プロンプト欄の横の + を押し、Plugins、Add marketplace の順に進んで `meganemura/grilling-pane` を追加してから、Add plugin を押します。
 
 すべてのセッションでこの変数を設定するには、`settings.json` の `env` に追加します。
 

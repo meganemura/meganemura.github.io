@@ -8,7 +8,7 @@ import ToolFacts from '../../../../components/ToolFacts.astro';
 <ToolFacts slug="pull-request-pane" lang="ja" />
 
 pull-request-pane は、現在のセッションに関わる GitHub のプルリクエストを、トランスクリプトの横のペインに表示する Claude Code のプラグイン (Claude Mod) です。
-Claude Code でしか動きません。
+Claude Code のターミナルセッションか、Claude Code Desktop の Code タブでしか動きません。
 プルリクエストがクローズする Issue と、トランスクリプトで言及された Issue も、項目として並びます。
 タイトルや説明の範囲をドラッグしてその範囲にコメントし、Submit でコメントを 1 つのプロンプトとして送ります。
 ペインが開いている間、各プルリクエストのチェック、レビューの判定、マージできるかどうかは 60 秒ごとに更新されます。
@@ -44,6 +44,9 @@ pull-request-pane には、Claude Code 2.1.273 以降と `CLAUDE_CODE_ENABLE_FUN
 claude plugin marketplace add meganemura/pull-request-pane
 claude plugin install pull-request-pane@pull-request-pane
 ```
+
+上のコマンドでユーザースコープにインストールしたプラグインは、Claude Code Desktop の Code タブでも読み込まれます。
+デスクトップアプリでは `/plugin` が動かないので、アプリからインストールするときは、プロンプト欄の横の + を押し、Plugins、Add marketplace の順に進んで `meganemura/pull-request-pane` を追加してから、Add plugin を押します。
 
 `/pull-request-pane` と入力すると、ペインの表示と非表示が切り替わります。
 function hooks の API は Claude Code のリリースごとに変わることがあるので、README はこのプラグインを早期アクセス版と位置付けています。

@@ -10,7 +10,8 @@ import ToolFacts from '../../../components/ToolFacts.astro';
 An idea for the next request often comes while the agent runs a long turn.
 Text in the prompt box is one Enter away from the agent, and Enter interrupts the turn or puts the text in the queue.
 buffer-pane is a Claude Code plugin, a Claude Mod, that opens a pane beside the transcript where you collect that text until you are ready.
-It works only in Claude Code, in a terminal session, because print mode (`-p`) has no pane.
+It works only in Claude Code, in a terminal session or in the Code tab of Claude Code Desktop.
+Print mode (`-p`) has no pane.
 
 ## Features
 
@@ -34,6 +35,9 @@ buffer-pane needs Claude Code 2.1.273 or later, with `CLAUDE_CODE_ENABLE_FUNCTIO
 claude plugin marketplace add meganemura/buffer-pane
 claude plugin install buffer-pane@buffer-pane
 ```
+
+In the Code tab of Claude Code Desktop, a plugin installed at the user scope with these commands loads too.
+`/plugin` does not run in the desktop app, so to install from the app, click + beside the prompt box, then Plugins, then Add marketplace with `meganemura/buffer-pane`, then Add plugin.
 
 Type `/buffer-pane` to show the pane, and type it again to hide it.
 The README marks the plugin as early access, because the function-hooks API can change between Claude Code releases.

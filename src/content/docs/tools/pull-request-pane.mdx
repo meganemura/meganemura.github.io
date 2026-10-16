@@ -8,7 +8,7 @@ import ToolFacts from '../../../components/ToolFacts.astro';
 <ToolFacts slug="pull-request-pane" lang="en" />
 
 pull-request-pane is a Claude Code plugin, a Claude Mod, that shows the GitHub pull requests related to the current session in a pane beside the transcript.
-It works only in Claude Code.
+It works only in Claude Code, in a terminal session or in the Code tab of Claude Code Desktop.
 Issues that a pull request closes, and issues the transcript mentions, appear as entries too.
 You drag over a title or a description to comment on that span, and Submit sends the comments as one prompt.
 While the pane is open, each pull request's checks, review decision, and mergeability refresh every 60 seconds.
@@ -34,6 +34,9 @@ pull-request-pane needs Claude Code 2.1.273 or later, with `CLAUDE_CODE_ENABLE_F
 claude plugin marketplace add meganemura/pull-request-pane
 claude plugin install pull-request-pane@pull-request-pane
 ```
+
+In the Code tab of Claude Code Desktop, a plugin installed at the user scope with these commands loads too.
+`/plugin` does not run in the desktop app, so to install from the app, click + beside the prompt box, then Plugins, then Add marketplace with `meganemura/pull-request-pane`, then Add plugin.
 
 Type `/pull-request-pane` to show or hide the pane.
 The README marks the plugin as early access, because the function-hooks API can change between Claude Code releases.

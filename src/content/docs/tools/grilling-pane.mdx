@@ -1,6 +1,6 @@
 ---
 title: grilling-pane
-description: A Claude Code mod that draws the model's interview questions in a pane beside the transcript and sends every pick as one prompt.
+description: A Claude Code mod that draws the model's interview questions in a pane beside the transcript and sends your picks to Claude as answer prompts.
 ---
 
 import ToolFacts from '../../../components/ToolFacts.astro';
@@ -8,17 +8,18 @@ import ToolFacts from '../../../components/ToolFacts.astro';
 <ToolFacts slug="grilling-pane" lang="en" />
 
 grilling-pane is a Claude Code plugin, a Claude Mod, that interviews you about a plan before Claude acts on it.
-It works only in Claude Code.
+It works only in Claude Code, in a terminal session or in the Code tab of Claude Code Desktop.
 Its skill, `grilling-pane:grilling`, invokes Matt Pocock's `grilling` skill for the method and writes each round of questions in a fenced `grilling` block.
-grilling-pane draws that round in a pane beside the transcript, and one Submit sends your answers to the whole round in one turn.
+grilling-pane draws that round in a pane beside the transcript, and on the terminal, one Submit sends your answers to the whole round in one turn.
+On the desktop, each press sends one answer at once.
 
 ## Features
 
 - **Options as buttons.** Press an option to pick it, and press it again to clear the pick. The arrow keys move between buttons, Enter presses one, and Esc returns focus to the prompt box.
 - **Talk about this one.** Every question ends with this option. It opens an optional one-line field and sends `(discuss)` with the text you typed.
-- **One answer prompt.** `Submit` sends `Answers (grilling-pane):` with one line per question, and `(skipped)` for a question with no pick.
-- **A plain question block.** A `Q<n>: <question>` line starts a question, and the `- ` lines under it are its options. A recommended option ends in `(recommended: <reason>)`.
-- **The transcript stays complete.** Every question is text in an assistant message, and every answer is a prompt that repeats the question, so the transcript reads without the plugin.
+- **One answer prompt.** On the terminal, `Submit` sends `Answers (grilling-pane):` with one line per question, and `(skipped)` for a question with no pick.
+- **A plain question block.** A `Q<n>: <question>` line starts a question, and the `- ` lines under it are its options. A recommended option ends in `(recommended: <reason>)`, and `Drop Q<n>: <reason>` drops a question that an answer made unnecessary.
+- **One answer at a time on the desktop.** In the Code tab of Claude Code Desktop, there is no `Submit`. Each press sends one answer with a `Still open (grilling-pane):` line that names the questions not answered yet. The pane keeps every question of the conversation, and a question that Claude dropped is grey, with its reason and no buttons.
 - **A pane that opens on its own.** After you show it once, the pane opens whenever a round arrives, without taking the keyboard. `/grilling-pane` hides it.
 
 ## How an agent uses it
@@ -26,6 +27,7 @@ grilling-pane draws that round in a pane beside the transcript, and one Submit s
 Start with `/grilling-pane:grilling <plan>`.
 Claude writes a round of questions in a `grilling` block, numbered in one sequence for the whole conversation.
 Claude reads the answer prompt as the answers to that round.
+On the desktop, Claude replies to each answer in a short turn, then writes a block with the questions still open, the follow-up questions the answer opens, and a `Drop` line for each question the answer made unnecessary.
 If you type a message while a round is open, the plugin does not change it, and Claude reads the questions you did not name as still open, not as skipped.
 
 ## Getting started
@@ -37,6 +39,9 @@ gh skill install mattpocock/skills grilling --agent claude-code
 claude plugin marketplace add meganemura/grilling-pane
 claude plugin install grilling-pane@grilling-pane
 ```
+
+In the Code tab of Claude Code Desktop, a plugin installed at the user scope with these commands loads too.
+`/plugin` does not run in the desktop app, so to install from the app, click + beside the prompt box, then Plugins, then Add marketplace with `meganemura/grilling-pane`, then Add plugin.
 
 To set the variable for each session, add it to the `env` of `settings.json`:
 

@@ -7,15 +7,15 @@ The graph on the home page shows which packages depend on which.
 This page records the other half: each tool was run on the other repositories, the way an agent would run it, and every place where it left the agent stuck was fixed in that tool before the next round.
 Each entry names the tool, where it ran, what got in the way, and the commit that fixed it.
 
-These fixes are on each repository's main branch.
-They are not released yet, so the versions on the tool pages do not include them.
+Each fix links its commit and names the release that carries it.
+A fix marked not released yet is on that repository's main branch, and the version on its tool page does not include it.
 
 ## firstlight runs every repository's checks
 
 depug's and nukadoko's `test` scripts chain commands with `&&`.
 firstlight found no diagnostics parser for such a script, so a failure showed only the cut tail of the log.
 Now a list joined only by `&&` is read through the parser of each command in it.
-[firstlight 5ab251f](https://github.com/meganemura/firstlight/commit/5ab251fc19ab9e5aed5860ed3fe14f3903abdb5f)
+[firstlight 5ab251f](https://github.com/meganemura/firstlight/commit/5ab251fc19ab9e5aed5860ed3fe14f3903abdb5f) (not released yet)
 
 ## depug follows a failing test in finderscope
 
@@ -23,18 +23,18 @@ Two finderscope tests failed because they assumed an empty `NODE_OPTIONS`, and t
 The tests were fixed in [finderscope 2bbab0d](https://github.com/meganemura/finderscope/commit/2bbab0d).
 On the way, `flt` on a function whose body is one expression said "no statements", and the agent had to search a frames index for the call to follow.
 Now `flt` lists the calls the function made, each as a full id for the next `flt`.
-[depug 7b073d8](https://github.com/meganemura/depug/commit/7b073d8)
+[depug 7b073d8](https://github.com/meganemura/depug/commit/7b073d8) (not released yet)
 
 ## finderscope profiles archstrict's start
 
 `archstrict --help` took 0.5 s, and 94.6% of it was module loading.
 finderscope's dead ends printed nothing: `top --area "module loading"` was empty, and `callers` on a loader frame gave an empty list.
 Now each empty report carries a note and a `do:` line that leads on.
-[finderscope b7477e0](https://github.com/meganemura/finderscope/commit/b7477e0)
+[finderscope b7477e0](https://github.com/meganemura/finderscope/commit/b7477e0) (released in finderscope 0.4.0)
 
 The finding itself was fixed in archstrict: it imported every verb up front, and now each verb loads when it runs.
 `--help` went from 0.5 s to about 40 ms.
-[archstrict 9ad2f25](https://github.com/meganemura/archstrict/commit/9ad2f25)
+[archstrict 9ad2f25](https://github.com/meganemura/archstrict/commit/9ad2f25) (released in archstrict 0.4.0)
 
 ## stryker-agent-reporter mutates depug
 
@@ -42,26 +42,26 @@ A run on one depug source file gave 45 mutants, 7 survivors, and 90 `testWithout
 86 of those lines were tests that never reached a mutant of the run, so they buried the few that mattered.
 Now each line carries `coveredMutants`.
 The re-run showed 4 tests that reached 28 to 45 mutants and killed none: they spawn a child process that never sees the active mutant.
-[stryker-agent-reporter 1fd564e](https://github.com/meganemura/stryker-agent-reporter/commit/1fd564e)
+[stryker-agent-reporter 1fd564e](https://github.com/meganemura/stryker-agent-reporter/commit/1fd564e) (released in stryker-agent-reporter 0.3.0)
 
 ## archstrict checks every repository with its latest source
 
 polylinedb, solarsql, and spacequery each reported 6 to 8 unresolved imports, all `node:sqlite`.
 Node lists such scheme-only builtins only with their `node:` prefix, and archstrict did not count them as builtins.
 Now `node:sqlite`, `node:test`, `node:sea`, and `node:test/reporters` are builtins, and the three repositories report none.
-[archstrict 2014f60](https://github.com/meganemura/archstrict/commit/2014f60), [archstrict f9b0176](https://github.com/meganemura/archstrict/commit/f9b0176)
+[archstrict 2014f60](https://github.com/meganemura/archstrict/commit/2014f60), [archstrict f9b0176](https://github.com/meganemura/archstrict/commit/f9b0176) (released in archstrict 0.4.0)
 
 ## spacequery reads this machine's checkouts
 
 When `gh` failed, the error in the `pull_requests` section was the whole GraphQL query, with no reason.
 Now the error is gh's own message, for example the HTTP 403 it got.
-[spacequery fcbd1e5](https://github.com/meganemura/spacequery/commit/fcbd1e5)
+[spacequery fcbd1e5](https://github.com/meganemura/spacequery/commit/fcbd1e5) (released in spacequery 0.4.0)
 
 ## nukadoko runs each tool's main scenario
 
 Before these rounds, each tool's main use case became a Gherkin scenario that nukadoko runs in that repository's CI: stryker-agent-reporter, finderscope, firstlight, stow, polylinedb, spacequery, depug, solarsql, and archstrict.
 `nuka tend` counted an argument filled by `from` as one with no description; it now reads the description from the step that produced the value.
-[nukadoko 899c71d](https://github.com/meganemura/nukadoko/commit/899c71d)
+[nukadoko 899c71d](https://github.com/meganemura/nukadoko/commit/899c71d) (released in nukadoko 0.15.0)
 
 ## Second round: the repositories the graph showed alone
 
@@ -71,17 +71,17 @@ The graph reads published dependencies, so these edges appear once each reposito
 ### stow adopts archstrict
 
 stow now checks a layer order in CI: `config.ts` at the bottom, `agent-instructions.ts` and `hosts.ts` above it, and `cli.ts` on top.
-[stow 8bb9913](https://github.com/meganemura/stow/commit/8bb9913)
+[stow 8bb9913](https://github.com/meganemura/stow/commit/8bb9913) (not released yet)
 On the way, `archstrict recommend` put two modules with no import edge into the proposed layer order, by name alone.
 Now it leaves such a module out and names it.
-[archstrict cb4a8e8](https://github.com/meganemura/archstrict/commit/cb4a8e8)
+[archstrict cb4a8e8](https://github.com/meganemura/archstrict/commit/cb4a8e8) (released in archstrict 0.4.0)
 
 ### runtag adopts nukadoko
 
 The agent flow in runtag's README now runs as a nukadoko scenario in CI: a detached run, its status until it exits with code 3, the list, the garbage collection, and the error with its `do:` line for the collected id.
 Its archstrict pin moved from 0.1.0 to 0.2.1 in the same change.
 `nuka check` named the one mistake in the new scenario exactly, so nukadoko needed no change.
-[runtag cd49ee4](https://github.com/meganemura/runtag/commit/cd49ee4d7efef2a6e0a618cbafe1a9295c21a03f)
+[runtag cd49ee4](https://github.com/meganemura/runtag/commit/cd49ee4d7efef2a6e0a618cbafe1a9295c21a03f) (not released yet)
 
 ### portful adopts archstrict and nukadoko
 
@@ -89,18 +89,18 @@ portful got its first CI.
 archstrict checks six layers, from leaf modules up to the entry point, and every module is strict.
 The nukadoko scenario is the reason portful exists: two worktrees served on their own ports, the proxy on its fixed port, and `portful use` moving the next request to the other worktree.
 It passed the first time it ran.
-[portful de92b1f](https://github.com/meganemura/portful/commit/de92b1f7e19d39ad70278eed37aed5693f417ad1)
+[portful de92b1f](https://github.com/meganemura/portful/commit/de92b1f7e19d39ad70278eed37aed5693f417ad1) (not released yet)
 
 ### archspec_diagram adopts hegel-ruby and bulldogger
 
 archspec_diagram's tests now include two hegel-ruby properties: label escaping round-trips, and the diagram has one node per component with every edge joining two nodes.
 A failing test also writes bulldogger evidence and a rerun line.
-[archspec_diagram 6f24344](https://github.com/meganemura/archspec_diagram/commit/6f24344)
+[archspec_diagram 6f24344](https://github.com/meganemura/archspec_diagram/commit/6f24344) (not released yet)
 The rerun could miss the failing case, because a property with no `database_key` searches again from the start.
 Each property now has its own key, so a rerun replays the stored counterexample first.
-[archspec_diagram 172d100](https://github.com/meganemura/archspec_diagram/commit/172d100)
+[archspec_diagram 172d100](https://github.com/meganemura/archspec_diagram/commit/172d100) (not released yet)
 Then hegel found a real bug in the test's own generator: a component named `then` called Ruby's `Kernel#then` instead of the component, and hegel shrank the case to the names `["0", "then"]`.
-[archspec_diagram 7c1f357](https://github.com/meganemura/archspec_diagram/commit/7c1f3572b60d61cdf518c644a52b41e2beaefbd6)
+[archspec_diagram 7c1f357](https://github.com/meganemura/archspec_diagram/commit/7c1f3572b60d61cdf518c644a52b41e2beaefbd6) (not released yet)
 These two gems are in archspec_diagram's Gemfile, not its gemspec, so the graph, which reads each gem's published dependencies, does not show them.
 
 ### archstrict counts both directions of a pair
@@ -108,4 +108,4 @@ These two gems are in archspec_diagram's Gemfile, not its gemspec, so the graph,
 Proposing a layer order for portful, `archstrict recommend` printed "support 100%" beside "would add 3 violation(s)".
 It had left out a pair of modules that import each other the same number of times in each direction.
 Now such a pair counts against support and is named, so the two numbers agree.
-[archstrict ba4498b](https://github.com/meganemura/archstrict/commit/ba4498b)
+[archstrict ba4498b](https://github.com/meganemura/archstrict/commit/ba4498b) (released in archstrict 0.4.0)

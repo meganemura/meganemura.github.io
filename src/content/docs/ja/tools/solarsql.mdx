@@ -35,6 +35,8 @@ SQL を変更した後にビルドしていないと、tsc がその SQL 文字�
 - **3 つの実行先で同じ API。**
   `d1(env.DB)`、`durable(ctx.storage)`、`node(db)` は、同じ `db.all`、`db.first`、`db.run`、`db.batch` を提供します。
   モジュールのテストは node:sqlite で動きます。
+  `node()` と CLI は、node:sqlite の SQLite が、固定した workerd の SQLite である 3.53.4 より古いランタイムを拒否します。
+  拒否のメッセージには、Bun などのランタイムの名前が入ります。
 
 既存の SQLite スキーマがあるプロジェクトは、スキーマだけのクエリ生成から始められます。
 このモードは、モジュールの規則を適用せずに DDL を受け付けます。

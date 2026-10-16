@@ -17,6 +17,8 @@ stryker-agent-reporter は、コーディングエージェントのための St
 
 - **ミュータントごとに 1 行。**
   `reports/mutation/agent.jsonl` は `run` の行で始まり、変異させたファイルごとの `scope` の行、対処すべきミュータントごとの行、どのミュータントも kill しなかったテストごとの `testWithoutKills` の行が続きます。
+  `testWithoutKills` の行の `coveredMutants` は、そのテストが到達した、この実行のミュータントの数です。
+  これで、ミュータントに対して実行されたのに 1 つも kill しなかったテストと、`--mutate` で絞った範囲のミュータントに一度も到達しなかったテストを区別できます。
   最後に `summary` の行が来るので、この行がないファイルは、実行が最後まで終わらなかったことを示します。
 - **修正のための材料。**
   `survivor` の行には、`git apply --unidiff-zero` でそのまま適用できる `patch` が付きます。

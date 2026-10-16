@@ -8,15 +8,15 @@ description: 各ツールを他のリポジトリで動かし、つまずいた�
 各ツールをエージェントと同じように他のリポジトリで動かし、エージェントが先へ進めなくなった箇所は、次のツールに移る前にそのツールの側で直しました。
 各項目には、動かしたツール、動かした場所、つまずいた点、直したコミットを書いています。
 
-これらの修正は各リポジトリの main ブランチにあります。
-まだリリースしていないので、ツールのページに載っているバージョンには含まれません。
+各修正には、そのコミットへのリンクと、修正を含むリリースを書いています。
+未リリースの修正は各リポジトリの main ブランチにあり、ツールのページに載っているバージョンには含まれません。
 
 ## firstlight で各リポジトリのチェックを動かす
 
 depug と nukadoko の `test` スクリプトは、コマンドを `&&` でつないでいます。
 firstlight はこの形のスクリプトに使う診断パーサーを見つけられず、失敗してもログの末尾の切れ端しか表示しませんでした。
 今は `&&` だけでつないだコマンド列なら、各コマンドのパーサーでログを読みます。
-[firstlight 5ab251f](https://github.com/meganemura/firstlight/commit/5ab251fc19ab9e5aed5860ed3fe14f3903abdb5f)
+[firstlight 5ab251f](https://github.com/meganemura/firstlight/commit/5ab251fc19ab9e5aed5860ed3fe14f3903abdb5f)（未リリース）
 
 ## depug で finderscope の失敗したテストを追う
 
@@ -24,7 +24,7 @@ finderscope のテストのうち 2 件は、`NODE_OPTIONS` が空であるこ�
 テストは [finderscope 2bbab0d](https://github.com/meganemura/finderscope/commit/2bbab0d) で直しました。
 その途中で、本体が式 1 つだけの関数に `flt` を使うと「文がない」とだけ表示され、次に追う呼び出しはエージェントがフレームの索引から探す必要がありました。
 今の `flt` は、その関数が行った呼び出しを、次の `flt` にそのまま渡せる完全な id で並べます。
-[depug 7b073d8](https://github.com/meganemura/depug/commit/7b073d8)
+[depug 7b073d8](https://github.com/meganemura/depug/commit/7b073d8)（未リリース）
 
 ## finderscope で archstrict の起動を測る
 
@@ -32,12 +32,12 @@ finderscope のテストのうち 2 件は、`NODE_OPTIONS` が空であるこ�
 このとき finderscope は行き止まりで何も表示しませんでした。
 `top --area "module loading"` は空で、読み込み処理のフレームに `callers` を使っても空の一覧が返りました。
 今は空になる報告すべてに、説明と、次に進むための `do:` 行が付きます。
-[finderscope b7477e0](https://github.com/meganemura/finderscope/commit/b7477e0)
+[finderscope b7477e0](https://github.com/meganemura/finderscope/commit/b7477e0)（finderscope 0.4.0 でリリース済み）
 
 見つかった遅さそのものは archstrict で直しました。
 archstrict はすべてのサブコマンドを起動時に読み込んでいましたが、今は実行するサブコマンドだけを読み込みます。
 `--help` は 0.5 秒から約 40 ミリ秒になりました。
-[archstrict 9ad2f25](https://github.com/meganemura/archstrict/commit/9ad2f25)
+[archstrict 9ad2f25](https://github.com/meganemura/archstrict/commit/9ad2f25)（archstrict 0.4.0 でリリース済み）
 
 ## stryker-agent-reporter で depug にミューテーションテストをかける
 
@@ -46,7 +46,7 @@ depug のソースファイル 1 つに対して実行すると、ミュータ�
 今は各行に `coveredMutants` が付きます。
 付けたうえで再実行すると、28 から 45 個のミュータントに到達しながら 1 つも倒していないテストが 4 件見つかりました。
 これらは子プロセスを起動するテストで、子プロセスからは有効なミュータントが見えません。
-[stryker-agent-reporter 1fd564e](https://github.com/meganemura/stryker-agent-reporter/commit/1fd564e)
+[stryker-agent-reporter 1fd564e](https://github.com/meganemura/stryker-agent-reporter/commit/1fd564e)（stryker-agent-reporter 0.3.0 でリリース済み）
 
 ## archstrict の最新のソースで全リポジトリを検査する
 
@@ -54,13 +54,13 @@ polylinedb、solarsql、spacequery で、解決できない import がそれぞ�
 すべて `node:sqlite` でした。
 Node はこうしたスキーム付きの組み込みモジュールを `node:` 付きの名前でしか列挙せず、archstrict はこれらを組み込みモジュールとして扱っていませんでした。
 今は `node:sqlite`、`node:test`、`node:sea`、`node:test/reporters` を組み込みモジュールとして扱い、3 つのリポジトリの報告は 0 件です。
-[archstrict 2014f60](https://github.com/meganemura/archstrict/commit/2014f60)、[archstrict f9b0176](https://github.com/meganemura/archstrict/commit/f9b0176)
+[archstrict 2014f60](https://github.com/meganemura/archstrict/commit/2014f60)、[archstrict f9b0176](https://github.com/meganemura/archstrict/commit/f9b0176)（archstrict 0.4.0 でリリース済み）
 
 ## spacequery でこのマシンのチェックアウトを調べる
 
 `gh` が失敗したとき、`pull_requests` の欄に出るエラーは GraphQL のクエリ全文で、失敗の理由はどこにもありませんでした。
 今は gh 自身のメッセージ、たとえば受け取った HTTP 403 を表示します。
-[spacequery fcbd1e5](https://github.com/meganemura/spacequery/commit/fcbd1e5)
+[spacequery fcbd1e5](https://github.com/meganemura/spacequery/commit/fcbd1e5)（spacequery 0.4.0 でリリース済み）
 
 ## nukadoko で各ツールのメインシナリオを動かす
 
@@ -68,7 +68,7 @@ Node はこうしたスキーム付きの組み込みモジュールを `node:` 
 対象は stryker-agent-reporter、finderscope、firstlight、stow、polylinedb、spacequery、depug、solarsql、archstrict です。
 その中で、`nuka tend` は `from` で値が埋まる引数を「説明がない」と数えていました。
 今はその値を作ったステップの説明を読みます。
-[nukadoko 899c71d](https://github.com/meganemura/nukadoko/commit/899c71d)
+[nukadoko 899c71d](https://github.com/meganemura/nukadoko/commit/899c71d)（nukadoko 0.15.0 でリリース済み）
 
 ## 2 回目: 図で孤立していたリポジトリ
 
@@ -79,10 +79,10 @@ Node はこうしたスキーム付きの組み込みモジュールを `node:` 
 
 stow は CI でレイヤーの順序を検査するようになりました。
 一番下が `config.ts`、その上が `agent-instructions.ts` と `hosts.ts`、一番上が `cli.ts` です。
-[stow 8bb9913](https://github.com/meganemura/stow/commit/8bb9913)
+[stow 8bb9913](https://github.com/meganemura/stow/commit/8bb9913)（未リリース）
 その途中で、`archstrict recommend` が、import の矢印が 1 本もないモジュール 2 つを、名前だけを根拠に提案するレイヤーの順序に入れていました。
 今はそうしたモジュールを順序から外し、名前を挙げて知らせます。
-[archstrict cb4a8e8](https://github.com/meganemura/archstrict/commit/cb4a8e8)
+[archstrict cb4a8e8](https://github.com/meganemura/archstrict/commit/cb4a8e8)（archstrict 0.4.0 でリリース済み）
 
 ### runtag に nukadoko を導入する
 
@@ -90,7 +90,7 @@ runtag の README にあるエージェントの手順を、CI で nukadoko の�
 切り離して実行し、終了コード 3 で終わるまで状態を確かめ、一覧を出し、後片付けをし、片付けた ID に対するエラーと `do:` 行を確かめます。
 同じ変更で、archstrict の固定バージョンを 0.1.0 から 0.2.1 に上げました。
 新しいシナリオにあった 1 つの間違いは `nuka check` が正確に指摘したので、nukadoko 側の変更は要りませんでした。
-[runtag cd49ee4](https://github.com/meganemura/runtag/commit/cd49ee4d7efef2a6e0a618cbafe1a9295c21a03f)
+[runtag cd49ee4](https://github.com/meganemura/runtag/commit/cd49ee4d7efef2a6e0a618cbafe1a9295c21a03f)（未リリース）
 
 ### portful に archstrict と nukadoko を導入する
 
@@ -99,21 +99,21 @@ archstrict は末端のモジュールから入口までの 6 つのレイヤー
 nukadoko のシナリオは、portful が存在する理由そのものです。
 2 つの worktree をそれぞれのポートで動かし、プロキシを固定のポートで待ち受け、`portful use` で次のリクエストをもう一方の worktree に向けます。
 このシナリオは最初の実行で通りました。
-[portful de92b1f](https://github.com/meganemura/portful/commit/de92b1f7e19d39ad70278eed37aed5693f417ad1)
+[portful de92b1f](https://github.com/meganemura/portful/commit/de92b1f7e19d39ad70278eed37aed5693f417ad1)（未リリース）
 
 ### archspec_diagram に hegel-ruby と bulldogger を導入する
 
 archspec_diagram のテストに、hegel-ruby のプロパティを 2 つ加えました。
 ラベルのエスケープが往復で元に戻ることと、図がコンポーネントごとに 1 つのノードを持ち、すべての矢印が 2 つのノードを結ぶことです。
 テストが失敗すると、bulldogger の証拠と再実行の行も出力されます。
-[archspec_diagram 6f24344](https://github.com/meganemura/archspec_diagram/commit/6f24344)
+[archspec_diagram 6f24344](https://github.com/meganemura/archspec_diagram/commit/6f24344)（未リリース）
 ただし、`database_key` のないプロパティは再実行のたびに最初から探し直すので、再実行で失敗した入力を再現できないことがありました。
 今は各プロパティに固有のキーを付け、再実行では保存した反例を最初に試します。
-[archspec_diagram 172d100](https://github.com/meganemura/archspec_diagram/commit/172d100)
+[archspec_diagram 172d100](https://github.com/meganemura/archspec_diagram/commit/172d100)（未リリース）
 その後、hegel はテスト自身の生成コードにある本物のバグを見つけました。
 `then` という名前のコンポーネントが、コンポーネントではなく Ruby の `Kernel#then` を呼んでいたのです。
 hegel はこの入力を `["0", "then"]` という名前の組まで縮めました。
-[archspec_diagram 7c1f357](https://github.com/meganemura/archspec_diagram/commit/7c1f3572b60d61cdf518c644a52b41e2beaefbd6)
+[archspec_diagram 7c1f357](https://github.com/meganemura/archspec_diagram/commit/7c1f3572b60d61cdf518c644a52b41e2beaefbd6)（未リリース）
 この 2 つの gem は archspec_diagram の gemspec ではなく Gemfile に書いてあるので、公開済みの依存関係を読む図には表示されません。
 
 ### archstrict が双方向の組を数える
@@ -121,4 +121,4 @@ hegel はこの入力を `["0", "then"]` という名前の組まで縮めまし
 portful にレイヤーの順序を提案したとき、`archstrict recommend` は「support 100%」と「would add 3 violation(s)」を並べて出力していました。
 互いに同じ回数ずつ import し合っているモジュールの組を、計算から外していたためです。
 今はそうした組も support に数えて名前を挙げるので、2 つの数字が食い違いません。
-[archstrict ba4498b](https://github.com/meganemura/archstrict/commit/ba4498b)
+[archstrict ba4498b](https://github.com/meganemura/archstrict/commit/ba4498b)（archstrict 0.4.0 でリリース済み）

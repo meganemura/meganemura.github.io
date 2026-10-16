@@ -8,7 +8,7 @@ import ToolFacts from '../../../../components/ToolFacts.astro';
 <ToolFacts slug="jira-ticket-pane" lang="ja" />
 
 jira-ticket-pane は、Claude Code のプラグイン (Claude Mod) です。
-Claude Code のターミナルセッションでしか動きません。
+Claude Code のターミナルセッションか、Claude Code Desktop の Code タブでしか動きません。
 `/jira DEMO-1` は、セッションに接続済みの MCP サーバーから Jira の課題を 1 つ取得し、トランスクリプトの横のペインに表示します。
 取得はプラグインの中で行い、モデルのターンの一部として実行されることはありません。
 ボタンを押すと、課題のテキストを次のプロンプトにコンテキストとして添えられます。
@@ -42,11 +42,14 @@ Claude Code のターミナルセッションでしか動きません。
 ## はじめかた
 
 jira-ticket-pane には、`CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1` を設定した Claude Code と、Jira の課題を読むツールを持ち、セッションに接続された MCP サーバーが必要です。
-CI では Claude Code を 2.1.273 に固定しています。
+CI では Claude Code を 2.1.280 に固定しています。
 
 ```sh
 claude plugin marketplace add meganemura/jira-ticket-pane
 claude plugin install jira-ticket-pane@jira-ticket-pane
 ```
+
+上のコマンドでユーザースコープにインストールしたプラグインは、Claude Code Desktop の Code タブでも読み込まれます。
+デスクトップアプリでは `/plugin` が動かないので、アプリからインストールするときは、プロンプト欄の横の + を押し、Plugins、Add marketplace の順に進んで `meganemura/jira-ticket-pane` を追加してから、Add plugin を押します。
 
 その後、セッションで `/jira <KEY>` を実行します。

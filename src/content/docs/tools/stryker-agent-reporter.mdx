@@ -15,7 +15,7 @@ Two more commands, `convert` and `gate`, work from that output alone.
 
 ## Features
 
-- **One line per mutant.** `reports/mutation/agent.jsonl` starts with a `run` line, then one `scope` line per mutated file, one line per actionable mutant, and one `testWithoutKills` line per test that killed no mutant. A `summary` line comes last, so a file without one is a run that did not finish.
+- **One line per mutant.** `reports/mutation/agent.jsonl` starts with a `run` line, then one `scope` line per mutated file, one line per actionable mutant, and one `testWithoutKills` line per test that killed no mutant. Its `coveredMutants` counts the mutants of this run that the test reached, which separates a test that ran against mutants and killed none from a test that a narrowed `--mutate` never reached. A `summary` line comes last, so a file without one is a run that did not finish.
 - **Material for a fix.** A `survivor` line carries `patch`, ready for `git apply --unidiff-zero`. It also carries `rerun` for its file and `rerunExact` for that one mutant.
 - **Stable keys.** Each mutant's `key` comes from its own source text, not its line number, so an edit elsewhere in the file keeps it. A `scope` line lists every key of its file, which tells a killed mutant apart from one that a narrower `mutate` range left out.
 - **Results during the run.** The reporter appends each finished mutant to `reports/mutation/agent.partial.jsonl`, so `tail -f` shows survivors while Stryker still runs.

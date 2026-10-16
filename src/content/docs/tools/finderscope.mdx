@@ -15,7 +15,7 @@ Each sample belongs to the deepest function in your own code, so time spent insi
 ## Features
 
 - **Profile a command.** `finderscope run -- <command>` profiles the command and keeps a scratch directory with the profile and the child's output. It writes the full report to `report.txt`, or `report.json` with `--json`.
-- **Your code first.** `own` means real source the agent can edit. Each row shows a function's self time and its three largest calls into other areas, such as a package.
+- **Your code first.** `own` means real source the agent can edit. Each row shows a function's self time and its three largest calls into other areas, such as a package. The first `import()` or `require()` of a JavaScript file counts as module loading, the same as a static import, and the summary adds a `note:` when module loading is at least half of a CPU profile.
 - **Commands to dig in.** `top`, `callers`, `callees`, and `lines` take a function key exactly as a report printed it, or a name that matches one function. A failed lookup prints up to three runnable commands for the closest keys.
 - **Time windows.** `timeline` splits a CPU profile into 20 equal buckets, and `--from` and `--to` limit any report to one window.
 - **Memory.** `run --heap` records a heap profile, and `run --heap-snapshot` writes a snapshot as `heapUsed` reaches higher peaks. `retainers <snapshot> <constructor-or-#id>` shows what retains an object.

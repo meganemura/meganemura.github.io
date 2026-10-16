@@ -11,8 +11,8 @@ import ToolFacts from '../../../../components/ToolFacts.astro';
 プロンプト欄のテキストは、Enter を 1 回押すだけでエージェントに届きます。
 そして Enter を押すと、ターンが中断されるか、テキストがキューに入ります。
 buffer-pane は、準備ができるまでそのテキストをためておくペインをトランスクリプトの横に開く、Claude Code のプラグイン (Claude Mod) です。
-Claude Code のターミナルセッションでしか動きません。
-プリントモード (`-p`) にはペインがないからです。
+Claude Code のターミナルセッションか、Claude Code Desktop の Code タブでしか動きません。
+プリントモード (`-p`) にはペインがありません。
 
 ## 特徴
 
@@ -47,6 +47,9 @@ buffer-pane には、Claude Code 2.1.273 以降と `CLAUDE_CODE_ENABLE_FUNCTION_
 claude plugin marketplace add meganemura/buffer-pane
 claude plugin install buffer-pane@buffer-pane
 ```
+
+上のコマンドでユーザースコープにインストールしたプラグインは、Claude Code Desktop の Code タブでも読み込まれます。
+デスクトップアプリでは `/plugin` が動かないので、アプリからインストールするときは、プロンプト欄の横の + を押し、Plugins、Add marketplace の順に進んで `meganemura/buffer-pane` を追加してから、Add plugin を押します。
 
 `/buffer-pane` と入力するとペインが表示され、もう一度入力すると隠れます。
 function hooks の API は Claude Code のリリースごとに変わることがあるので、README はこのプラグインを早期アクセス版と位置付けています。

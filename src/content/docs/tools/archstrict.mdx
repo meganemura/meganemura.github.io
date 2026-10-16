@@ -16,9 +16,9 @@ Each report carries a rule id, a location, the reason, and the command that fixe
 
 ## Features
 
-- **Declared modules.** `archstrict.config.ts` is one TypeScript value. `declaredModules` names each module as a directory or a single file, and `surface` names its public file. A file that matches no module and no `exclude` pattern is an `uncovered-module` violation.
+- **Declared modules.** `archstrict.config.ts` is one TypeScript value. `declaredModules` names each module as a directory or a single file, and `surface` names its public file. A file that matches no module and no `exclude` pattern is an `uncovered-module` violation. An unknown key in the config is an error that names the accepted keys.
 - **Reports an agent can act on.** `archstrict check` prints each violation with a rule id, `path:line:col`, the evidence, a `because` reason, and a `do:` command. `--json` gives the same data, and `--rule` and `--module` narrow it.
-- **Layer and domain rules.** `classify` puts tags on files, and `edges` checks the imports between tags with `allowDeny`, `order`, and `point` rules.
+- **Layer and domain rules.** `classify` puts tags on files, and `edges` checks the imports between tags with `allowDeny`, `order`, and `point` rules. `guard: true` on an `allowDeny` or `point` rule bans an import that no file has yet. `archstrict diagram` draws the config as a Mermaid flowchart.
 - **A todo file that only shrinks.** The first `archstrict todo` freezes the current violations into `archstrict.todo.json`, and later runs only remove entries. A module listed in `strict` can hold no entry at all.
 - **Questions before an edit.** `archstrict rules <path>` reports the module, tags, and constraints that govern a path, even one that does not exist yet. `archstrict simulate` previews a source or config change without writing it.
 - **Next steps for the map.** `archstrict recommend` proposes `edges` rules and surfaces from the real import graph. `archstrict hotspots` scores modules by commits and fan-in, and lists module pairs that change together.
