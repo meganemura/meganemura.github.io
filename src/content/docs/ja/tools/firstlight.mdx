@@ -22,6 +22,7 @@ firstlight は、検査するリポジトリには何も書き込みません。
   `"bundle exec rspec"` のように空白を含む引数は、シェルコマンドとして扱います。
 - **統一された形式の診断。**
   `tsc`、`vitest`、`node --test`、`archstrict` では、失敗したチェックが、ログの末尾 10 行の前に `file:line:col rule message` の形式の行を表示します。
+  `tsc --noEmit && vitest run` のように `&&` でつないだコマンドでは、それぞれのツールのパーサーを順に使います。
 - **成功の再利用。**
   同じ作業ツリーに対して同じコマンドで成功したチェックは、再実行しません。
   キーは、git のツリーのハッシュ、コマンド、`after` に指定したチェックのキーから作ります。
@@ -31,6 +32,7 @@ firstlight は、検査するリポジトリには何も書き込みません。
   そのため、既知の失敗を抱えたプロジェクトでも、変更の可否を判定できます。
 - **失敗したものだけ再実行。**
   `firstlight run --failed` は、最新の実行で成功しなかったチェックだけを実行します。
+  すべてのチェックが終わって失敗が 1 つでもあれば、`results` と `follow` が次のコマンドとしてこれを示します。
 - **残り時間。**
   実行中のチェックには、以前に成功したときの所要時間から見積もった、おおよその残り時間が表示されます。
   `firstlight follow` は状態が変わるたびにその変化を表示し、`--json` は JSON Lines を出力します。
@@ -41,15 +43,16 @@ firstlight は、検査するリポジトリには何も書き込みません。
    最初のチェックが失敗するかタイムアウトした時点で制御を返し、そのチェックの診断、ほかのすべてのチェックの状態、次のコマンドを示します。
 2. ほかのチェックが続く間に、失敗を直します。
 3. 残りは `firstlight results --wait` で読むか、`firstlight follow` で各チェックが終わるのを見届けます。
-4. もう一度実行します。
+4. `firstlight run --failed` で、成功しなかったものだけを実行します。
+   すべてのチェックが終わって失敗が 1 つでもあれば、これが次のコマンドとして示されます。
    新しい実行は、手順 1 から残っているものをキャンセルします。
-   `firstlight run --failed` は成功しなかったものだけを実行します。
 
 firstlight 自身が失敗したときは、次のコマンドを示す `do` フィールドを持つ JSON オブジェクトを 1 つ stderr に出力します。
 
 ## はじめかた
 
 firstlight には Node.js 24 以降が必要です。
+それより古い Node では、どのコマンドも何もせずに止まり、エラーを表示して終了コード 1 で終了します。
 
 ```sh
 npm i -D firstlight
@@ -58,6 +61,14 @@ npx firstlight run
 ```
 
 `firstlight.json` がなければ、`firstlight run` は `package.json` のスクリプト `lint`、`typecheck`、`test`、`archstrict` のうち、存在するものを実行します。
+`check:architecture` のように、チェックらしいほかのスクリプトは実行せず、`not run:` の行で名前を示します。
+チェックを選ぶには、`firstlight init` に `firstlight.json` を提案させ、内容を読んでから `--write` で書き込みます。
+
+```sh
+npx firstlight init typecheck test check:architecture
+npx firstlight init typecheck test check:architecture --write
+```
+
 `firstlight.json` では独自のチェックを定義でき、`after` で順序を、`timeoutSec` で制限時間を指定します。
 
 ## 組み合わせ

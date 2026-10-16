@@ -75,14 +75,17 @@
     "source": "npm",
     "slug": "depug",
     "name": "@meganemura/depug",
-    "version": "0.1.3",
+    "version": "0.2.0",
     "description": "Measure runtime values in TypeScript test runs instead of guessing them from source.",
     "bins": [
       "depug"
     ],
     "license": "MIT",
     "repo": "https://github.com/meganemura/depug",
-    "uses": []
+    "uses": [
+      "archstrict",
+      "nukadoko"
+    ]
   },
   {
     "source": "github",
@@ -123,7 +126,7 @@
     "source": "npm",
     "slug": "firstlight",
     "name": "firstlight",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "description": "Run lint, typecheck, and tests in parallel for a coding agent, and return at the first failure.",
     "bins": [
       "firstlight"
@@ -133,6 +136,7 @@
     "uses": [
       "archstrict",
       "depug",
+      "nukadoko",
       "stryker-agent-reporter"
     ]
   },
@@ -267,7 +271,7 @@
     "section": "skills",
     "slug": "pstack-portable",
     "name": "pstack-portable",
-    "version": "0.4.4",
+    "version": "0.4.5",
     "description": "Run unmodified upstream pstack in Claude Code, Codex, and Cursor through a thin execution wrapper.",
     "license": "MIT",
     "repo": "https://github.com/meganemura/pstack-portable",
@@ -279,7 +283,7 @@
       "claude plugin install pstack-portable@pstack-portable",
       "claude plugin install pstack@pstack-portable"
     ],
-    "commit": "dad0b50"
+    "commit": "0612215"
   },
   {
     "source": "github",

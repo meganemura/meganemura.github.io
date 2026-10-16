@@ -16,8 +16,8 @@ It works with vitest and with Node's own test runner.
 
 - **Evidence on failure.** With the reporter in place, a failed test prints a `depug evidence:` line with a JSON file and a `depug rerun:` line with the command that reruns that one test. A note says whether the code that produced the wrong value is still on the stack.
 - **`probe`.** It lists every call to one function with its arguments and return values. It also puts the observed shape beside the declared type, as in `mismatch: id was string, declared number (5 of 5 calls)`.
-- **`flt`.** It follows one call line by line and shows which local changed at which line.
-- **`frames` and `preflight`.** `frames` lists the functions a test called, and `--at <file:line>` turns a source line into a function id. `preflight` checks that call indexes stay the same between two runs.
+- **`flt`.** It follows one call line by line and shows which local changed at which line. For a call whose body is one expression, such as a function that returns `new Promise(...)`, it lists the calls that call made, each id ready for the next `flt`.
+- **`frames` and `preflight`.** `frames` lists the functions a test called, and `--at <file:line>` turns a source line into a function id. `preflight` checks that call indexes stay the same between two runs, and ends with how both runs ended, as in `depug result: fail (exit 1) in both runs`.
 - **`exec`.** It runs an expression at one line, in the function's own scope, and reports the run's outcome.
 - **`rerun`.** It runs a test command under a clock and stops it after 120 seconds by default, because a test that never returns blocks the worker that the runner's own timeout depends on.
 

@@ -16,7 +16,7 @@ description: 各ツールを他のリポジトリで動かし、つまずいた�
 depug と nukadoko の `test` スクリプトは、コマンドを `&&` でつないでいます。
 firstlight はこの形のスクリプトに使う診断パーサーを見つけられず、失敗してもログの末尾の切れ端しか表示しませんでした。
 今は `&&` だけでつないだコマンド列なら、各コマンドのパーサーでログを読みます。
-[firstlight 5ab251f](https://github.com/meganemura/firstlight/commit/5ab251fc19ab9e5aed5860ed3fe14f3903abdb5f)（未リリース）
+[firstlight 5ab251f](https://github.com/meganemura/firstlight/commit/5ab251fc19ab9e5aed5860ed3fe14f3903abdb5f)（firstlight 0.3.0 でリリース済み）
 
 ## depug で finderscope の失敗したテストを追う
 
@@ -24,7 +24,7 @@ finderscope のテストのうち 2 件は、`NODE_OPTIONS` が空であるこ�
 テストは [finderscope 2bbab0d](https://github.com/meganemura/finderscope/commit/2bbab0d) で直しました。
 その途中で、本体が式 1 つだけの関数に `flt` を使うと「文がない」とだけ表示され、次に追う呼び出しはエージェントがフレームの索引から探す必要がありました。
 今の `flt` は、その関数が行った呼び出しを、次の `flt` にそのまま渡せる完全な id で並べます。
-[depug 7b073d8](https://github.com/meganemura/depug/commit/7b073d8)（未リリース）
+[depug 7b073d8](https://github.com/meganemura/depug/commit/7b073d8)（depug 0.2.0 でリリース済み）
 
 ## finderscope で archstrict の起動を測る
 

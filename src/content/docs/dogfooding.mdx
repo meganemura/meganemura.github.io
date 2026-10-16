@@ -15,7 +15,7 @@ A fix marked not released yet is on that repository's main branch, and the versi
 depug's and nukadoko's `test` scripts chain commands with `&&`.
 firstlight found no diagnostics parser for such a script, so a failure showed only the cut tail of the log.
 Now a list joined only by `&&` is read through the parser of each command in it.
-[firstlight 5ab251f](https://github.com/meganemura/firstlight/commit/5ab251fc19ab9e5aed5860ed3fe14f3903abdb5f) (not released yet)
+[firstlight 5ab251f](https://github.com/meganemura/firstlight/commit/5ab251fc19ab9e5aed5860ed3fe14f3903abdb5f) (released in firstlight 0.3.0)
 
 ## depug follows a failing test in finderscope
 
@@ -23,7 +23,7 @@ Two finderscope tests failed because they assumed an empty `NODE_OPTIONS`, and t
 The tests were fixed in [finderscope 2bbab0d](https://github.com/meganemura/finderscope/commit/2bbab0d).
 On the way, `flt` on a function whose body is one expression said "no statements", and the agent had to search a frames index for the call to follow.
 Now `flt` lists the calls the function made, each as a full id for the next `flt`.
-[depug 7b073d8](https://github.com/meganemura/depug/commit/7b073d8) (not released yet)
+[depug 7b073d8](https://github.com/meganemura/depug/commit/7b073d8) (released in depug 0.2.0)
 
 ## finderscope profiles archstrict's start
 
