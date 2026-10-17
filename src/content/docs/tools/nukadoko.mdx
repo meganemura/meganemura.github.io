@@ -30,7 +30,7 @@ An agent can complete the whole loop without help.
 1. It discovers the vocabulary with `nuka steps --json`.
 2. It reads a contract with `nuka describe`.
 3. It runs one step with `nuka do`, reads the step record, and chooses the next call.
-4. When the vocabulary lacks an operation, it adds a step with `nuka scaffold <name> --pattern "<line>"`, implements it, and runs it alone with `nuka do`. `--then` writes a Then step, `--command <entry point>` writes a When step that runs a program in the built-in `scratch` directory, `--from <step>.<key>` writes the chain to a value from an earlier step, and `--description` writes the step's description. A step that only asserts can leave out `returns`.
+4. When the vocabulary lacks an operation, it adds a step with `nuka scaffold <name> --pattern "<line>"`, or, when the feature comes first, writes one stub for each undefined line with `nuka scaffold --feature <file>`. It implements the step, and runs it alone with `nuka do`. `--then` writes a Then step, `--command <entry point>` writes a When step that runs a program in the built-in `scratch` directory, `--from <step>.<key>` writes the chain to a value from an earlier step, and `--description` writes the step's description. A step that only asserts can leave out `returns`.
 5. It writes the feature, runs `nuka check` on the feature, several files, or a directory, and runs `nuka run <feature>` until green, reading the failed step's record when it fails.
 6. It hands over the feature and its run summary. A person reads both on the pull request and approves it.
 
@@ -40,7 +40,7 @@ The package ships two skills. `acceptance` takes a ticket's acceptance criteria 
 
 ## Getting started
 
-nukadoko needs Node 20 or later.
+nukadoko needs Node 22.18 or later on the 22 line, or 23.6 or later: the releases that run a `.ts` file without a flag. It loads the config and the step files with Node's own type stripping, so it installs no TypeScript loader of its own.
 
 ```sh
 npm install -D nukadoko

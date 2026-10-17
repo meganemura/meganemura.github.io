@@ -48,6 +48,7 @@ nukadoko は、型付きのステップ契約のもとで Gherkin のシナリ�
 2. `nuka describe` で契約を読みます。
 3. `nuka do` で 1 つのステップを実行し、ステップ記録を読んで、次の呼び出しを選びます。
 4. 語彙に操作が足りなければ、`nuka scaffold <name> --pattern "<line>"` でステップを追加して実装し、`nuka do` で単独で動かします。
+   フィーチャーを先に書いた場合は、`nuka scaffold --feature <file>` が未定義の行ごとにスタブを 1 つ書き出します。
    `--then` は Then のステップを書き出します。
    `--command <entry point>` は、組み込みの `scratch` のディレクトリでプログラムを実行する When のステップを書き出します。
    `--from <step>.<key>` は、前のステップの値を受け取るつながりを書き出し、`--description` はステップの説明を書き出します。
@@ -65,7 +66,9 @@ nukadoko は、型付きのステップ契約のもとで Gherkin のシナリ�
 
 ## はじめかた
 
-nukadoko には Node 20 以降が必要です。
+nukadoko には、22 系の Node 22.18 以降か、Node 23.6 以降が必要です。
+これらは、フラグなしで `.ts` のファイルを実行できるリリースです。
+nukadoko は設定とステップファイルを Node 自身の型の除去で読み込むので、独自の TypeScript ローダーをインストールしません。
 
 ```sh
 npm install -D nukadoko
