@@ -64,3 +64,58 @@ html[data-has-hero] {
     display: none;
   }
 }
+
+/* The loop page: numbered stage cards, one column on a phone, three per row on a wide screen. */
+.loop {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: 1fr;
+  counter-reset: stage;
+}
+@media (min-width: 50rem) {
+  .loop { grid-template-columns: repeat(3, 1fr); }
+}
+.loop__stage {
+  counter-increment: stage;
+  position: relative;
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.5rem;
+  background: var(--sl-color-gray-7, var(--sl-color-bg-nav));
+}
+.loop__stage--empty { border-style: dashed; background: transparent; }
+.loop__name { margin: 0 0 0.5rem; font-size: var(--sl-text-lg); }
+.loop__name::before {
+  content: counter(stage) ". ";
+  color: var(--sl-color-accent);
+}
+.loop__tools { list-style: none; padding: 0; margin: 0; font-size: var(--sl-text-sm); }
+.loop__tools li { margin: 0 0 0.4rem; }
+.loop__tools span { color: var(--sl-color-gray-2); }
+.loop__note { margin: 0; font-size: var(--sl-text-sm); color: var(--sl-color-gray-3); }
+.loop__stage:not(:last-child)::after {
+  content: "↓";
+  position: absolute;
+  left: 50%;
+  bottom: -1.45rem;
+  transform: translateX(-50%);
+  color: var(--sl-color-gray-3);
+}
+/* On a wide screen the six stages run as a loop: across the top row, down, back along the
+   bottom row, and up to the first stage again. */
+@media (min-width: 50rem) {
+  .loop__stage:nth-child(4) { grid-row: 2; grid-column: 3; }
+  .loop__stage:nth-child(5) { grid-row: 2; grid-column: 2; }
+  .loop__stage:nth-child(6) { grid-row: 2; grid-column: 1; }
+  .loop__stage:nth-child(1)::after, .loop__stage:nth-child(2)::after {
+    content: "→"; left: auto; right: -1.15rem; bottom: auto; top: 50%; transform: translateY(-50%);
+  }
+  .loop__stage:nth-child(4)::after, .loop__stage:nth-child(5)::after {
+    content: "←"; left: -1.15rem; bottom: auto; top: 50%; transform: translateY(-50%);
+  }
+  .loop__stage:last-child::after { content: "↑"; position: absolute; left: 50%; top: -1.45rem; transform: translateX(-50%); color: var(--sl-color-gray-3); }
+}
+.loop__back { font-size: var(--sl-text-sm); color: var(--sl-color-gray-3); }

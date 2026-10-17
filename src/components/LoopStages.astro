@@ -1,0 +1,31 @@
+---
+// Draws the development loop as numbered stages, each with the tools that serve it.
+// The page supplies the words in its own language; this component only checks that each
+// slug names a tool on the site, so a renamed or removed tool fails the build here.
+import { factFor, toolHref, type Lang } from "../lib/data.ts";
+
+interface Props {
+  lang: Lang;
+  stages: readonly { name: string; note?: string; tools: readonly { slug: string; role: string }[] }[];
+  back: string;
+}
+const { lang, stages, back } = Astro.props;
+for (const stage of stages) for (const tool of stage.tools) factFor(tool.slug);
+---
+
+<ol class="loop">
+  {stages.map((stage) => (
+    <li class:list={["loop__stage", { "loop__stage--empty": stage.tools.length === 0 }]}>
+      <h3 class="loop__name">{stage.name}</h3>
+      {stage.tools.length > 0 && (
+        <ul class="loop__tools">
+          {stage.tools.map((tool) => (
+            <li><a href={toolHref(tool.slug, lang)}>{tool.slug}</a> <span>{tool.role}</span></li>
+          ))}
+        </ul>
+      )}
+      {stage.note && <p class="loop__note">{stage.note}</p>}
+    </li>
+  ))}
+</ol>
+<p class="loop__back">{back}</p>

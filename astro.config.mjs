@@ -15,7 +15,7 @@ const toolGroups = sections.map((section) => ({
 })).filter((group) => group.items.length > 0);
 
 // The cross-use log sits above the tool groups, since it is about all of them.
-const sidebar = ["dogfooding", ...toolGroups];
+const sidebar = ["loop", "dogfooding", ...toolGroups];
 
 export default defineConfig({
   site: "https://meganemura.github.io",

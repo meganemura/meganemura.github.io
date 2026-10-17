@@ -1,0 +1,66 @@
+---
+title: Where the tools sit in the loop
+description: The development loop an agent runs, from refinement to production, with the tools on this site placed at the stage each one serves.
+---
+
+import LoopStages from '../../components/LoopStages.astro';
+
+These tools aim at one picture: a development loop that an agent runs from end to end, while a person decides what the software is for and answers the decisions that cannot be undone.
+This page draws that loop in six stages and places each tool at the stage it serves.
+A stage with a dashed border has no tool on this site yet.
+
+<LoopStages
+  lang="en"
+  back="After production, what was learned goes back into refinement, and the loop starts again."
+  stages={[
+    {
+      name: "Refinement",
+      tools: [
+        { slug: "nukadoko", role: "turns acceptance criteria into typed scenarios that run" },
+        { slug: "grilling-pane", role: "asks a person the open questions together, in one pane" },
+      ],
+    },
+    {
+      name: "Implementation",
+      tools: [
+        { slug: "polylinedb", role: "tracks tasks, who holds each one, and project memory" },
+        { slug: "spacequery", role: "shows which agents run where, and which worktrees sit idle" },
+      ],
+    },
+    {
+      name: "Verification",
+      tools: [
+        { slug: "firstlight", role: "runs lint, typecheck, and tests in parallel" },
+        { slug: "archstrict", role: "checks module boundaries and layers" },
+        { slug: "stryker-agent-reporter", role: "turns surviving mutants into a gate" },
+        { slug: "mutation-testing-skills", role: "walks an agent through mutation testing" },
+        { slug: "depug", role: "measures what a failing test received" },
+        { slug: "finderscope", role: "ranks where the time and memory went" },
+      ],
+    },
+    {
+      name: "Knowledge sharing",
+      tools: [],
+      note: "No public tool yet. The decisions and the reasons behind a change have to reach the next agent and the people who review.",
+    },
+    {
+      name: "Staging",
+      tools: [],
+      note: "No tool yet. The same scenarios should run here, and an agent should loop on what they show.",
+    },
+    {
+      name: "Production",
+      tools: [],
+      note: "No tool yet. A flag should roll a change out in steps, and turn it off by itself when the signals go bad.",
+    },
+  ]}
+/>
+
+## What the picture shows
+
+The tools so far sit in the first three stages, and most of them in verification.
+That is where an agent's mistakes are cheapest to catch, because a check there is a command it can run again in seconds.
+The right side of the loop is open: nothing here yet carries a change through staging and production, or tells an agent what happened there.
+That is where the next tools go.
+
+The tools also run on each other, and [how the tools fixed each other](/dogfooding/) records what that found.
