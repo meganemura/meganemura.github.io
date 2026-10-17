@@ -16,11 +16,11 @@ Every run ends in a Markdown run summary that CI posts on the pull request, and 
 
 ## Features
 
-- **Wrong before it runs.** `nuka check` reads every feature file and step file and reports problems such as an undefined step, a duplicate pattern, an ambiguous step, or a `from` binding in the wrong order. `nuka check --codes` lists every finding code.
+- **Wrong before it runs.** `nuka check` reads every feature file and step file and reports problems such as an undefined step, a duplicate pattern, an ambiguous step, a `from` binding in the wrong order, or a step that needs Playwright the project has not installed. `nuka check --codes` lists every finding code. `nuka run` performs the same check before it executes anything and stops on an error; `--no-check` skips it.
 - **A vocabulary an agent can read.** `nuka steps --json` lists each step with its patterns, description, `mutates`, and `needs`. `nuka describe` shows a step's contract, with its schemas as JSON Schema.
 - **Step records.** `nuka do` runs one step by itself and prints a step record with the validated result and the network reads and writes the tool observed. `nuka run` runs scenarios and leaves the same records. A step that calls the exported `runCommand` lists each process it started, with its command, working directory, and exit code, under `observed.processes`.
 - **A run summary for the reviewer.** Every `nuka run` writes `.nukadoko/records/runs/<run_id>/summary.md` with the commit, the environment, one table per feature, any step that declared `mutates: false` but was measured making a write, and a rerun command for each failed scenario. It is appended to `$GITHUB_STEP_SUMMARY` when that is set, and `--summary <path>` writes a copy a CI step can post as a pull request comment.
-- **A failure that says why.** When a step fails, `nuka run` prints the first line of its error and the path of its step record on stderr, and after the summary a `rerun  nuka run <feature>:<line>` line for each failed scenario. `--quiet` keeps these lines.
+- **A failure that says why.** When a step fails, `nuka run` prints the first line of its error and the path of its step record on stderr, and after the summary a `rerun  nuka run <feature>:<line>` line for each failed scenario. When the failed step read from a step whose program exited nonzero, a `used` line names that step, the exit code, and the first line of its stderr. `--quiet` keeps these lines.
 - **A way in for an existing suite.** Switching one import from `@cucumber/cucumber` to `nukadoko/compat` keeps a cucumber-js suite running while nukadoko records its steps. Each step can then move to `defineStep` on its own.
 
 ## How an agent uses it
@@ -30,12 +30,12 @@ An agent can complete the whole loop without help.
 1. It discovers the vocabulary with `nuka steps --json`.
 2. It reads a contract with `nuka describe`.
 3. It runs one step with `nuka do`, reads the step record, and chooses the next call.
-4. When the vocabulary lacks an operation, it adds a step with `nuka scaffold <name> --pattern "<line>"` (`--then` for a Then step), implements it, and runs it alone with `nuka do`. A step that only asserts can leave out `returns`, and a step that needs a temporary directory uses the built-in `scratch` fixture, which removes its directories when the scenario ends.
-5. It writes the feature, runs `nuka check <feature>`, and runs `nuka run <feature>` until green, reading the failed step's record when it fails.
+4. When the vocabulary lacks an operation, it adds a step with `nuka scaffold <name> --pattern "<line>"`, implements it, and runs it alone with `nuka do`. `--then` writes a Then step, `--command <entry point>` writes a When step that runs a program in the built-in `scratch` directory, `--from <step>.<key>` writes the chain to a value from an earlier step, and `--description` writes the step's description. A step that only asserts can leave out `returns`.
+5. It writes the feature, runs `nuka check` on the feature, several files, or a directory, and runs `nuka run <feature>` until green, reading the failed step's record when it fails.
 6. It hands over the feature and its run summary. A person reads both on the pull request and approves it.
 
 `nuka check` is the static gate before every run.
-`nuka tend` runs from time to time and reports what is rotting rather than broken, such as a schema field with no description.
+`nuka tend` runs from time to time, for example as a scheduled CI job, and reports what is rotting rather than broken, such as an unused declaration or a step no feature line binds. `nuka tend --all` adds the declaration notes, such as a schema field with no description.
 The package ships two skills. `acceptance` takes a ticket's acceptance criteria to a pull request a person can approve, and `migration` moves a cucumber-js suite across.
 
 ## Getting started
@@ -45,10 +45,12 @@ nukadoko needs Node 20 or later.
 ```sh
 npm install -D nukadoko
 npx nuka init
-npx nuka steps
+npx nuka scaffold run-greet --pattern "I run greet with {name:string}" --command src/cli.ts
 ```
 
 `nuka init` sets up a CLI or API project.
-It writes `nukadoko.config.ts` and `features/steps/`, adds `.nukadoko/` to `.gitignore`, and adds a `test:scenarios` script that runs `nuka check && nuka run features`, so `npm run test:scenarios` is the one command a person or CI runs.
+It writes `nukadoko.config.ts` and `features/steps/`, adds `.nukadoko/` to `.gitignore`, adds the steps and the config to the `include` of `tsconfig.json`, and adds a `test:scenarios` script that runs `nuka run`, so `npm run test:scenarios` is the one command a person or CI runs. With no target, `nuka run` checks `featuresDir` and then executes it.
+The scaffold line writes a When step that runs the program `src/cli.ts` and returns its `exitCode`, `stdout`, and `stderr`.
+nukadoko installs no browser: Playwright is an optional peer dependency, needed only by a step that uses `page` or `request`.
 The Allure and cucumber-messages emitters are off until their config key is present; `nuka init --allure` turns on Allure.
 `gh skill install meganemura/nukadoko --all` installs both skills.

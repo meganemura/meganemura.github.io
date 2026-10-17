@@ -17,8 +17,10 @@ nukadoko は、型付きのステップ契約のもとで Gherkin のシナリ�
 ## 特徴
 
 - **実行前にわかる誤り。**
-  `nuka check` は、すべてのフィーチャーファイルとステップファイルを読み、未定義のステップ、重複したパターン、あいまいなステップ、順序が誤っている `from` のバインディングなどを報告します。
+  `nuka check` は、すべてのフィーチャーファイルとステップファイルを読み、未定義のステップ、重複したパターン、あいまいなステップ、順序が誤っている `from` のバインディング、プロジェクトにインストールされていない Playwright を必要とするステップなどを報告します。
   `nuka check --codes` は、すべての指摘コードを一覧表示します。
+  `nuka run` も実行の前に同じ検査を行い、エラーがあれば止まります。
+  `--no-check` を付けると、この検査を省きます。
 - **エージェントが読める語彙。**
   `nuka steps --json` は、各ステップのパターン、説明、`mutates`、`needs` を一覧表示します。
   `nuka describe` は、ステップの契約を、スキーマを JSON Schema の形にして表示します。
@@ -32,6 +34,7 @@ nukadoko は、型付きのステップ契約のもとで Gherkin のシナリ�
   `$GITHUB_STEP_SUMMARY` が設定されていればそこに追記し、`--summary <path>` を渡すと、CI のステップがプルリクエストのコメントとして投稿できる写しを書き出します。
 - **理由がわかる失敗。**
   ステップが失敗すると、`nuka run` はそのエラーの 1 行目とステップ記録のパスを stderr に出力し、サマリーの後には失敗した各シナリオについて `rerun  nuka run <feature>:<line>` の行を出力します。
+  失敗したステップが値を読んだ先のステップで、プログラムが 0 以外のコードで終了していた場合は、`used` の行がそのステップ、終了コード、stderr の 1 行目を示します。
   `--quiet` を付けても、これらの行は残ります。
 - **既存のスイートの入口。**
   import を 1 つ `@cucumber/cucumber` から `nukadoko/compat` に替えると、cucumber-js のスイートは動き続け、nukadoko がそのステップを記録し始めます。
@@ -44,16 +47,19 @@ nukadoko は、型付きのステップ契約のもとで Gherkin のシナリ�
 1. `nuka steps --json` で語彙を調べます。
 2. `nuka describe` で契約を読みます。
 3. `nuka do` で 1 つのステップを実行し、ステップ記録を読んで、次の呼び出しを選びます。
-4. 語彙に操作が足りなければ、`nuka scaffold <name> --pattern "<line>"`(Then のステップには `--then`)でステップを追加して実装し、`nuka do` で単独で動かします。
+4. 語彙に操作が足りなければ、`nuka scaffold <name> --pattern "<line>"` でステップを追加して実装し、`nuka do` で単独で動かします。
+   `--then` は Then のステップを書き出します。
+   `--command <entry point>` は、組み込みの `scratch` のディレクトリでプログラムを実行する When のステップを書き出します。
+   `--from <step>.<key>` は、前のステップの値を受け取るつながりを書き出し、`--description` はステップの説明を書き出します。
    検証するだけのステップは `returns` を省けます。
-   一時ディレクトリが必要なステップは組み込みの `scratch` フィクスチャを使い、そのディレクトリはシナリオの終了時に削除されます。
-5. フィーチャーを書き、`nuka check <feature>` を通し、green になるまで `nuka run <feature>` を実行します。
+5. フィーチャーを書き、そのフィーチャー、複数のファイル、またはディレクトリを対象に `nuka check` を通し、green になるまで `nuka run <feature>` を実行します。
    失敗したときは、失敗したステップの記録を読みます。
 6. フィーチャーとその実行サマリーを渡します。
    人はプルリクエストで両方を読み、それを承認します。
 
 `nuka check` は、毎回の実行の前に通す静的なゲートです。
-`nuka tend` はときどき実行するもので、説明のないスキーマのフィールドのように、壊れてはいないが傷みつつあるものを報告します。
+`nuka tend` は、定期的な CI のジョブなどでときどき実行するもので、使われていない宣言や、どのフィーチャーの行にも結び付かないステップのように、壊れてはいないが傷みつつあるものを報告します。
+`nuka tend --all` を付けると、説明のないスキーマのフィールドのような宣言についての指摘も加わります。
 パッケージには 2 つのスキルが含まれています。
 `acceptance` はチケットの受け入れ基準から人が承認できるプルリクエストまでを進め、`migration` は cucumber-js のスイートを nukadoko に移行します。
 
@@ -64,11 +70,15 @@ nukadoko には Node 20 以降が必要です。
 ```sh
 npm install -D nukadoko
 npx nuka init
-npx nuka steps
+npx nuka scaffold run-greet --pattern "I run greet with {name:string}" --command src/cli.ts
 ```
 
 `nuka init` は、CLI や API のプロジェクトを前提に準備をします。
-`nukadoko.config.ts` と `features/steps/` を書き出し、`.gitignore` に `.nukadoko/` を追加し、`nuka check && nuka run features` を実行する `test:scenarios` スクリプトを追加します。
+`nukadoko.config.ts` と `features/steps/` を書き出し、`.gitignore` に `.nukadoko/` を追加し、`tsconfig.json` の `include` にステップと設定を加え、`nuka run` を実行する `test:scenarios` スクリプトを追加します。
 以後、人も CI も `npm run test:scenarios` の 1 つだけを実行すれば済みます。
+対象を指定しない `nuka run` は、`featuresDir` を検査してから実行します。
+scaffold の行は、プログラム `src/cli.ts` を実行してその `exitCode`、`stdout`、`stderr` を返す When のステップを書き出します。
+nukadoko はブラウザーをインストールしません。
+Playwright は省略可能な peer dependency で、`page` や `request` を使うステップだけが必要とします。
 Allure と cucumber-messages の出力は、設定にそのキーがあるときだけ有効になり、`nuka init --allure` で Allure を有効にできます。
 `gh skill install meganemura/nukadoko --all` で、2 つのスキルをインストールします。
