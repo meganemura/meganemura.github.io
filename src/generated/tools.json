@@ -57,7 +57,7 @@
       "claude plugin marketplace add meganemura/buffer-pane",
       "claude plugin install buffer-pane@buffer-pane"
     ],
-    "commit": "007c40c"
+    "commit": "db65738"
   },
   {
     "source": "rubygems",
@@ -103,7 +103,7 @@
       "claude plugin marketplace add meganemura/draft-pane",
       "claude plugin install draft-pane@draft-pane"
     ],
-    "commit": "74b8809"
+    "commit": "6c18b12"
   },
   {
     "source": "npm",
@@ -156,7 +156,7 @@
       "claude plugin marketplace add meganemura/grilling-pane",
       "claude plugin install grilling-pane@grilling-pane"
     ],
-    "commit": "77b65a9"
+    "commit": "a3336f8"
   },
   {
     "source": "github",
@@ -200,7 +200,7 @@
       "claude plugin marketplace add meganemura/jira-ticket-pane",
       "claude plugin install jira-ticket-pane@jira-ticket-pane"
     ],
-    "commit": "50edfbc"
+    "commit": "9c2db84"
   },
   {
     "source": "github",
@@ -224,7 +224,7 @@
     "source": "npm",
     "slug": "nukadoko",
     "name": "nukadoko",
-    "version": "0.15.0",
+    "version": "0.16.1",
     "description": "Typed step contracts for Gherkin, so a scenario can be told wrong before it runs. Every execution leaves a step record the tool measured rather than the agent reported, and every run a Markdown summary a pull request carries.",
     "bins": [
       "nuka"
@@ -299,7 +299,7 @@
       "claude plugin marketplace add meganemura/pull-request-pane",
       "claude plugin install pull-request-pane@pull-request-pane"
     ],
-    "commit": "5bc65c0"
+    "commit": "4a1306e"
   },
   {
     "source": "npm",

@@ -3,7 +3,7 @@
     "run": "archstrict rules src/billing/rounding.ts",
     "cwd": "fixtures/archstrict-bypass",
     "tool": "archstrict",
-    "version": "0.2.1",
+    "version": "0.3.0",
     "exit": 0,
     "stdout": "path: ./fixtures/archstrict-bypass/src/billing/rounding.ts\nexists: true\nexcluded: no\nmodule: billing\ntags: (none)\nsurface file: no\nmust-be-empty: ok\nimportable from: (none)\nfriend access: (none)\nallowDeny constraints: (none)\norder constraints: (none)\npoint constraints: (none)",
     "ok": true
@@ -12,7 +12,7 @@
     "run": "archstrict rules src/billing/rounding.ts",
     "cwd": "fixtures/archstrict-bypass",
     "tool": "archstrict",
-    "version": "0.2.1",
+    "version": "0.3.0",
     "exit": 0,
     "stdout": "path: ./fixtures/archstrict-bypass/src/billing/rounding.ts\nexists: true\nexcluded: no\nmodule: billing\ntags: (none)\nsurface file: no\nmust-be-empty: ok\nimportable from: (none)\nfriend access: (none)\nallowDeny constraints: (none)\norder constraints: (none)\npoint constraints: (none)",
     "ok": true
@@ -21,25 +21,25 @@
     "run": "archstrict check",
     "cwd": "fixtures/archstrict-bypass",
     "tool": "archstrict",
-    "version": "0.2.1",
+    "version": "0.3.0",
     "exit": 1,
-    "stdout": "[public-surface-bypass] ./fixtures/archstrict-bypass/src/app/main.ts:1:28\n  '../billing/rounding.ts' resolved to a file inside module 'billing' other than its index.ts, index.tsx, index.mts, index.cts\n  because: a module's public surface is its only public surface; everything else is private\n  config: ./fixtures/archstrict-bypass/archstrict.config.ts:33:5 declaredModules[1] (governs)\n  do: import from billing/index.ts, billing/index.tsx, billing/index.mts, billing/index.cts instead, or add the needed export there\nmodules: 2\nmodules without a public surface: 1\nedges: 1\nnot covered by any declared module: 0\nunresolved specifiers: 0\nunsupported syntax: 0\ntype leaks: 0\ntodo: 0\nsummary: this config freezes today's import graph, not a target architecture; no edges rule is configured yet\ndo: archstrict recommend\ndo: archstrict hotspots\ndo: read node_modules/archstrict/skills/archstrict/references/rearchitect.md\ndo: archstrict todo",
+    "stdout": "[public-surface-bypass] ./fixtures/archstrict-bypass/src/app/main.ts:1:28\n  '../billing/rounding.ts' resolved to a file inside module 'billing' other than its index.ts, index.tsx, index.mts, index.cts\n  because: a module's public surface is its only public surface; everything else is private\n  config: ./fixtures/archstrict-bypass/archstrict.config.ts:33:5 declaredModules[1] (governs)\n  do: import from src/billing/index.ts instead of src/billing/rounding.ts, adding the export there first if it is missing\nmodules: 2\nmodules without a public surface: 1\nedges: 1\nnot covered by any declared module: 0\nunresolved specifiers: 0\nunsupported syntax: 0\ntype leaks: 0\ntodo: 0\nsummary: this config freezes today's import graph, not a target architecture; no edges rule is configured yet\ndo: archstrict recommend\ndo: archstrict hotspots\ndo: read node_modules/archstrict/skills/archstrict/references/rearchitect.md\ndo: archstrict todo",
     "ok": true
   },
   "9d4fca8df91a": {
     "run": "archstrict check",
     "cwd": "fixtures/archstrict-bypass",
     "tool": "archstrict",
-    "version": "0.2.1",
+    "version": "0.3.0",
     "exit": 1,
-    "stdout": "[public-surface-bypass] ./fixtures/archstrict-bypass/src/app/main.ts:1:28\n  '../billing/rounding.ts' resolved to a file inside module 'billing' other than its index.ts, index.tsx, index.mts, index.cts\n  because: a module's public surface is its only public surface; everything else is private\n  config: ./fixtures/archstrict-bypass/archstrict.config.ts:33:5 declaredModules[1] (governs)\n  do: import from billing/index.ts, billing/index.tsx, billing/index.mts, billing/index.cts instead, or add the needed export there\nmodules: 2\nmodules without a public surface: 1\nedges: 1\nnot covered by any declared module: 0\nunresolved specifiers: 0\nunsupported syntax: 0\ntype leaks: 0\ntodo: 0\nsummary: this config freezes today's import graph, not a target architecture; no edges rule is configured yet\ndo: archstrict recommend\ndo: archstrict hotspots\ndo: read node_modules/archstrict/skills/archstrict/references/rearchitect.md\ndo: archstrict todo",
+    "stdout": "[public-surface-bypass] ./fixtures/archstrict-bypass/src/app/main.ts:1:28\n  '../billing/rounding.ts' resolved to a file inside module 'billing' other than its index.ts, index.tsx, index.mts, index.cts\n  because: a module's public surface is its only public surface; everything else is private\n  config: ./fixtures/archstrict-bypass/archstrict.config.ts:33:5 declaredModules[1] (governs)\n  do: import from src/billing/index.ts instead of src/billing/rounding.ts, adding the export there first if it is missing\nmodules: 2\nmodules without a public surface: 1\nedges: 1\nnot covered by any declared module: 0\nunresolved specifiers: 0\nunsupported syntax: 0\ntype leaks: 0\ntodo: 0\nsummary: this config freezes today's import graph, not a target architecture; no edges rule is configured yet\ndo: archstrict recommend\ndo: archstrict hotspots\ndo: read node_modules/archstrict/skills/archstrict/references/rearchitect.md\ndo: archstrict todo",
     "ok": true
   },
   "c65f25f1a8a3": {
     "run": "archstrict check",
     "cwd": "fixtures/archstrict-surface",
     "tool": "archstrict",
-    "version": "0.2.1",
+    "version": "0.3.0",
     "exit": 0,
     "stdout": "modules: 2\nmodules without a public surface: 1\nedges: 1\nnot covered by any declared module: 0\nunresolved specifiers: 0\nunsupported syntax: 0\ntype leaks: 0\ntodo: 0\nsummary: this config freezes today's import graph, not a target architecture; no edges rule is configured yet\ndo: archstrict recommend\ndo: archstrict hotspots\ndo: read node_modules/archstrict/skills/archstrict/references/rearchitect.md",
     "ok": true
