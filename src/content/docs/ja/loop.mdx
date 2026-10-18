@@ -6,7 +6,7 @@ description: エージェントが回す開発ループをリファインメン�
 import LoopStages from '../../../components/LoopStages.astro';
 
 これらのツールは、1 つの姿を目指しています。
-エージェントが開発ループを端から端まで回し、人はソフトウェアが何のためにあるかを決め、取り消せない判断にだけ答える姿です。
+エージェントが開発ループを端から端まで回し、人は意図を渡して、戻せない変更と全員に有効化する判断だけを持つ姿です。
 このページはそのループを 6 つの段階で描き、各ツールを受け持つ段階に置きます。
 枠が破線の段階には、このサイトのツールがまだありません。
 
@@ -17,8 +17,7 @@ import LoopStages from '../../../components/LoopStages.astro';
     {
       name: "リファインメント",
       tools: [
-        { slug: "nukadoko", role: "受け入れ条件を、実行できる型付きのシナリオにする" },
-        { slug: "grilling-pane", role: "未決の質問をまとめて 1 つのペインで人に聞く" },
+        { slug: "grilling-pane", role: "未決の質問をまとめて聞き、人から意図を引き出す" },
       ],
     },
     {
@@ -31,18 +30,19 @@ import LoopStages from '../../../components/LoopStages.astro';
     {
       name: "検証",
       tools: [
+        { slug: "nukadoko", role: "リファインメントで作った受け入れ条件を、型付きの実行できる検証にする" },
         { slug: "firstlight", role: "lint、型検査、テストを並列で実行する" },
         { slug: "archstrict", role: "モジュール境界とレイヤーを検査する" },
-        { slug: "stryker-agent-reporter", role: "生き残ったミュータントをゲートにする" },
+        { slug: "stryker-agent-reporter", role: "テストが本当に効いているか（生き残った変異）をゲートにする" },
         { slug: "mutation-testing-skills", role: "ミューテーションテストの手順をエージェントに示す" },
         { slug: "depug", role: "失敗したテストが受け取った値を計測する" },
         { slug: "finderscope", role: "時間とメモリをどこで使ったかを順位付けする" },
       ],
     },
     {
-      name: "知識共有",
+      name: "人間の判断",
       tools: [],
-      note: "公開しているツールはまだありません。変更の判断と理由を、次のエージェントとレビューする人に届ける必要があります。",
+      note: "公開しているツールはまだありません。人は差分ではなく、証拠と公開範囲を承認します。そのためには、振る舞いがどう変わったか、モデルのどこに触れるかという知識が要ります。",
     },
     {
       name: "ステージング",
@@ -52,7 +52,7 @@ import LoopStages from '../../../components/LoopStages.astro';
     {
       name: "本番",
       tools: [],
-      note: "ツールはまだありません。フラグで変更を段階的に公開し、兆候が悪ければ自動で止めるのが目標です。",
+      note: "ツールはまだありません。フラグで変更を段階公開し、止める条件に当たったら自動で無効化するのが目標です。",
     },
   ]}
 />
@@ -60,6 +60,8 @@ import LoopStages from '../../../components/LoopStages.astro';
 ## 図が示すこと
 
 今あるツールは最初の 3 つの段階にあり、その多くは検証にあります。
+nukadoko も検証に置いています。
+リファインメントで受け入れ条件を書き、nukadoko がそれを実行できる検証にするからです。
 検証はエージェントの誤りを最も安く見つけられる段階です。
 そこでの検査は、数秒で再実行できるコマンドだからです。
 ループの右側はまだ空いています。

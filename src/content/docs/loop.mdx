@@ -5,7 +5,7 @@ description: The development loop an agent runs, from refinement to production, 
 
 import LoopStages from '../../components/LoopStages.astro';
 
-These tools aim at one picture: a development loop that an agent runs from end to end, while a person decides what the software is for and answers the decisions that cannot be undone.
+These tools aim at one picture: a development loop that an agent runs from end to end, while a person hands over the intent and keeps only two decisions: a change that cannot be undone, and turning a change on for everyone.
 This page draws that loop in six stages and places each tool at the stage it serves.
 A stage with a dashed border has no tool on this site yet.
 
@@ -16,8 +16,7 @@ A stage with a dashed border has no tool on this site yet.
     {
       name: "Refinement",
       tools: [
-        { slug: "nukadoko", role: "turns acceptance criteria into typed scenarios that run" },
-        { slug: "grilling-pane", role: "asks a person the open questions together, in one pane" },
+        { slug: "grilling-pane", role: "draws the intent out of a person, with the open questions asked together" },
       ],
     },
     {
@@ -30,6 +29,7 @@ A stage with a dashed border has no tool on this site yet.
     {
       name: "Verification",
       tools: [
+        { slug: "nukadoko", role: "turns the acceptance criteria written in refinement into typed checks that run" },
         { slug: "firstlight", role: "runs lint, typecheck, and tests in parallel" },
         { slug: "archstrict", role: "checks module boundaries and layers" },
         { slug: "stryker-agent-reporter", role: "turns surviving mutants into a gate" },
@@ -39,9 +39,9 @@ A stage with a dashed border has no tool on this site yet.
       ],
     },
     {
-      name: "Knowledge sharing",
+      name: "Human judgment",
       tools: [],
-      note: "No public tool yet. The decisions and the reasons behind a change have to reach the next agent and the people who review.",
+      note: "No public tool yet. A person approves the evidence and the release scope rather than the diff, and needs the knowledge to judge them: how the behavior changed, and which parts of the model it touches.",
     },
     {
       name: "Staging",
@@ -51,7 +51,7 @@ A stage with a dashed border has no tool on this site yet.
     {
       name: "Production",
       tools: [],
-      note: "No tool yet. A flag should roll a change out in steps, and turn it off by itself when the signals go bad.",
+      note: "No tool yet. A flag should roll a change out in steps, and turn it off by itself when a declared stop condition is met.",
     },
   ]}
 />
@@ -59,6 +59,7 @@ A stage with a dashed border has no tool on this site yet.
 ## What the picture shows
 
 The tools so far sit in the first three stages, and most of them in verification.
+nukadoko sits there too: refinement writes the acceptance criteria, and nukadoko makes them a check that runs.
 That is where an agent's mistakes are cheapest to catch, because a check there is a command it can run again in seconds.
 The right side of the loop is open: nothing here yet carries a change through staging and production, or tells an agent what happened there.
 That is where the next tools go.
