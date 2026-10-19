@@ -224,8 +224,8 @@
     "source": "npm",
     "slug": "nukadoko",
     "name": "nukadoko",
-    "version": "0.17.0",
-    "description": "Typed step contracts for Gherkin, so a scenario can be told wrong before it runs. Every execution leaves a step record the tool measured rather than the agent reported, and every run a Markdown summary a pull request carries.",
+    "version": "0.18.0",
+    "description": "Typed step contracts for Gherkin, so a scenario can be told wrong before it runs. Every execution leaves a step record the tool measured rather than the agent reported, and every run a Markdown summary that is the run's evidence.",
     "bins": [
       "nuka"
     ],
