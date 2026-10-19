@@ -29,13 +29,16 @@ nukadoko は、型付きのステップ契約のもとで Gherkin のシナリ�
   `nuka run` はシナリオを実行し、同じ記録を残します。
   エクスポートされた `runCommand` を呼ぶステップは、起動した各プロセスのコマンド、作業ディレクトリ、終了コードを `observed.processes` に残します。
 - **レビューする人のための実行サマリー。**
-  どの `nuka run` も `.nukadoko/records/runs/<run_id>/summary.md` を書き出します。
-  そこには、コミット、環境、フィーチャーごとの表、`mutates: false` と宣言したのに書き込みが測定されたステップ、失敗した各シナリオを再実行するコマンドが並びます。
-  `$GITHUB_STEP_SUMMARY` が設定されていればそこに追記し、`--summary <path>` を渡すと、CI のステップがプルリクエストのコメントとして投稿できる写しを書き出します。
+  どの `nuka run` も `.nukadoko/runs/<run_id>/summary.md` を書き出します。
+  そこには、コミット、各環境、フィーチャーごとの表、`mutates: false` と宣言したのに書き込みが測定されたステップ、失敗した各シナリオを再実行するコマンドが並びます。
+  `$GITHUB_STEP_SUMMARY` が設定されていれば、そこに追記します。
+  `nuka run --since <git ref>` を付けると、人が承認した基点から変わった基準とステップファイルが加わります。
+  `nuka report --format markdown|allure|messages` は、終わった実行を、その実行ディレクトリだけから、実行サマリー、Allure の結果、cucumber-messages のストリームとして描画します。
+  `--out <path>` を渡すと、CI のステップがプルリクエストのコメントとして投稿するサマリーを書き出します。
 - **理由がわかる失敗。**
-  ステップが失敗すると、`nuka run` はそのエラーの 1 行目とステップ記録のパスを stderr に出力し、サマリーの後には失敗した各シナリオについて `rerun  nuka run <feature>:<line>` の行を出力します。
+  ステップが失敗すると、`nuka run` はそのエラーの 1 行目とステップ記録のパスを stderr に出力します。
+  サマリーの後には、失敗した各シナリオについて `scenario-failed` の指摘を出力し、その `do:` の行がシナリオを再実行する `nuka run <feature>:<line>` を示します。
   失敗したステップが値を読んだ先のステップで、プログラムが 0 以外のコードで終了していた場合は、`used` の行がそのステップ、終了コード、stderr の 1 行目を示します。
-  `--quiet` を付けても、これらの行は残ります。
 - **既存のスイートの入口。**
   import を 1 つ `@cucumber/cucumber` から `nukadoko/compat` に替えると、cucumber-js のスイートは動き続け、nukadoko がそのステップを記録し始めます。
   その後、各ステップを個別に `defineStep` へ移せます。
@@ -60,9 +63,10 @@ nukadoko は、型付きのステップ契約のもとで Gherkin のシナリ�
 
 `nuka check` は、毎回の実行の前に通す静的なゲートです。
 `nuka tend` は、定期的な CI のジョブなどでときどき実行するもので、使われていない宣言や、どのフィーチャーの行にも結び付かないステップのように、壊れてはいないが傷みつつあるものを報告します。
-`nuka tend --all` を付けると、説明のないスキーマのフィールドのような宣言についての指摘も加わります。
+説明のないスキーマのフィールドのような宣言についての指摘も、ここに含まれます。
+その指摘はどれも注記で、`--fail-on <code>` を付けると、指定したコードで終了コードを失敗にできます。
 パッケージには 2 つのスキルが含まれています。
-`acceptance` はチケットの受け入れ基準から人が承認できるプルリクエストまでを進め、`migration` は cucumber-js のスイートを nukadoko に移行します。
+`acceptance` は要求から、シナリオと、その証拠になる実行までを進めて人のレビューに渡し、`migration` は cucumber-js や Playwright Test のスイートを nukadoko に移行します。
 
 ## はじめかた
 
@@ -83,5 +87,6 @@ npx nuka scaffold run-greet --pattern "I run greet with {name:string}" --command
 scaffold の行は、プログラム `src/cli.ts` を実行してその `exitCode`、`stdout`、`stderr` を返す When のステップを書き出します。
 nukadoko はブラウザーをインストールしません。
 Playwright は省略可能な peer dependency で、`page` や `request` を使うステップだけが必要とします。
-Allure と cucumber-messages の出力は、設定にそのキーがあるときだけ有効になり、`nuka init --allure` で Allure を有効にできます。
+`nuka run` は Allure の結果も cucumber-messages のストリームも書き出しません。
+それらは `nuka report` が終わった実行から描画し、`nuka init --allure` は Allure のための `allurerc.mjs` を書き出します。
 `gh skill install meganemura/nukadoko --all` で、2 つのスキルをインストールします。
