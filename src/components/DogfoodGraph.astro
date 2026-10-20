@@ -7,8 +7,9 @@ interface Props {
 }
 const { lang } = Astro.props;
 const text = t(lang);
-// archstrict and nukadoko are the two most used tools, so both sit inside the ring.
-const layout = layoutGraph(packageFacts.map((fact) => fact.slug), graphEdges, ["archstrict", "nukadoko"]);
+// The owner picks the tools that sit inside the ring: the ones the other tools are built on or
+// run on themselves.
+const layout = layoutGraph(packageFacts.map((fact) => fact.slug), graphEdges, ["archstrict", "solarsql", "nukadoko", "polylinedb"]);
 ---
 
 <figure class="dogfood">

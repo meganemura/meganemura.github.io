@@ -1,9 +1,9 @@
 // Pure geometry for the dogfood graph. No DOM, no I/O.
 // The most used tool sits in the center and the rest on a ring around it, so its many
 // incoming edges become short spokes instead of chords that cross the whole circle.
-// A caller can name the center tools instead; two or more sit side by side inside the ring,
-// and each ring tool moves toward the side of the center tools it is joined to, so the
-// spokes stay short and cross less.
+// A caller can name the center tools instead; two or more sit on a small circle inside the
+// ring, and each ring tool moves toward the center tools it is joined to, so the spokes stay
+// short and cross less.
 // A -> B and B -> A merge into one two-way edge, which keeps mutual use visible.
 
 export interface GraphEdge {
@@ -60,40 +60,51 @@ export function layoutGraph(nodeIds: readonly string[], edges: readonly GraphEdg
   const rest = ordered.filter((id) => !isHub.has(id));
   const count = rest.length;
   const ring = count < 2 ? 0 : Math.max(BASE_RING, MIN_GAP / (2 * Math.sin(Math.PI / count)));
-  const inner = hubs.length < 2 ? 0 : Math.max(MIN_GAP / (2 * Math.sin(Math.PI / hubs.length)), ring * 0.3);
+  const inner = hubs.length < 2 ? 0 : Math.max(MIN_GAP / (2 * Math.sin(Math.PI / hubs.length)), ring * (hubs.length === 2 ? 0.3 : 0.4));
   const half = ring + NODE_RADIUS + LABEL_ROOM;
   const width = round(2 * half);
   const height = round(2 * (ring + NODE_RADIUS + 40));
   const cx = width / 2;
   const cy = height / 2;
 
-  // The center tools start on the left and go around, so two of them sit left and right.
-  const hubAngle = (i: number) => Math.PI + (2 * Math.PI * i) / hubs.length;
-  const hubX = new Map(hubs.map((id, i) => [id, Math.cos(hubAngle(i))]));
-  // Each ring tool records which sides of the center it is joined to. Tools joined to both
-  // sides take the top and the bottom, tools joined to one side take that side, and tools
-  // joined to neither fill the bottom, where no spoke has to pass them.
-  const sides = new Map(rest.map((id) => [id, { left: false, right: false }]));
+  // Two center tools sit left and right; three or more start at the top and go clockwise.
+  const hubAngle = (i: number) => (hubs.length === 2 ? Math.PI : -Math.PI / 2) + (2 * Math.PI * i) / hubs.length;
+  // Each ring tool points toward the center tools it is joined to: the sum of the directions
+  // to them. The ring keeps the tools in the order of those directions, turned so that each
+  // sits as close to its own direction as the even spacing allows. A tool joined to none, or
+  // pulled evenly from every side, has no direction and fills the widest gap between the rest.
+  const pull = new Map<string, { x: number; y: number }>(rest.map((id) => [id, { x: 0, y: 0 }]));
   if (hubs.length >= 2) {
     for (const edge of edges) {
       const [ringId, hubId] = isHub.has(edge.to) ? [edge.from, edge.to] : [edge.to, edge.from];
-      const side = sides.get(ringId);
-      if (side === undefined || !isHub.has(hubId)) continue;
-      if ((hubX.get(hubId) ?? 0) < 0) side.left = true;
-      else side.right = true;
+      const vector = pull.get(ringId);
+      const i = hubs.indexOf(hubId);
+      if (vector === undefined || i < 0) continue;
+      vector.x += Math.cos(hubAngle(i));
+      vector.y += Math.sin(hubAngle(i));
     }
   }
-  const pick = (left: boolean, right: boolean) => rest.filter((id) => sides.get(id)?.left === left && sides.get(id)?.right === right);
-  const both = pick(true, true);
-  const top = Math.ceil(both.length / 2);
-  // The ring runs clockwise from the top: top, right, bottom, left, and back to the top.
-  const rightOnly = pick(false, true);
-  const ringIds = hubs.length >= 2
-    ? [...both.slice(0, top), ...rightOnly, ...pick(false, false), ...pick(true, false), ...both.slice(top)]
-    : rest;
-  // With center tools side by side, the tools joined only to the right one are centered on
-  // the right of the ring; otherwise the ring starts at the top.
-  const start = hubs.length >= 2 ? -(2 * Math.PI * (top + (rightOnly.length - 1) / 2)) / count : -Math.PI / 2;
+  const towards = new Map<string, number>();
+  for (const [id, vector] of pull) if (Math.hypot(vector.x, vector.y) > 0.3) towards.set(id, Math.atan2(vector.y, vector.x));
+  const aimed = rest.filter((id) => towards.has(id)).sort((a, b) => (towards.get(a) ?? 0) - (towards.get(b) ?? 0));
+  const loose = rest.filter((id) => !towards.has(id));
+  let after = aimed.length - 1;
+  let widest = -1;
+  aimed.forEach((id, i) => {
+    const next = aimed[(i + 1) % aimed.length] as string;
+    const gap = ((towards.get(next) ?? 0) - (towards.get(id) ?? 0) + 2 * Math.PI) % (2 * Math.PI) || 2 * Math.PI;
+    if (gap > widest) [widest, after] = [gap, i];
+  });
+  const ringIds = hubs.length >= 2 ? [...aimed.slice(after + 1), ...aimed.slice(0, after + 1), ...loose] : rest;
+  let turnX = 0;
+  let turnY = 0;
+  ringIds.forEach((id, i) => {
+    const want = towards.get(id);
+    if (want === undefined) return;
+    turnX += Math.cos(want - (2 * Math.PI * i) / count);
+    turnY += Math.sin(want - (2 * Math.PI * i) / count);
+  });
+  const start = hubs.length >= 2 && aimed.length > 0 ? Math.atan2(turnY, turnX) : -Math.PI / 2;
 
   const nodes: PositionedNode[] = [];
   hubs.forEach((id, i) => {
