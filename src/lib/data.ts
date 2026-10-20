@@ -73,7 +73,7 @@ const TEXT = {
     exitCode: "exit",
     graphLabel: "Which tool uses which",
     graphCaption:
-      "An arrow points from a tool to a tool it depends on. The edges come from each package's runtime and development dependencies on npm and RubyGems, the most used tool sits in the center, and a two-headed colored line marks two tools that use each other.",
+      "An arrow points from a tool to a tool it depends on. The edges come from each package's runtime and development dependencies on npm and RubyGems, archstrict and nukadoko, the two most used tools, sit inside the ring, and a two-headed colored line marks two tools that use each other.",
   },
   ja: {
     install: "インストール",
@@ -88,7 +88,7 @@ const TEXT = {
     exitCode: "終了コード",
     graphLabel: "どのツールがどのツールを使っているか",
     graphCaption:
-      "矢印は、あるツールから、そのツールが依存するツールに向かいます。依存の情報は、npm と RubyGems にある各パッケージの実行時と開発時の依存関係から読み込んでいます。最も多く使われているツールを中央に置き、互いに使い合う 2 つのツールは両端に矢印の付いた色付きの線で結んでいます。",
+      "矢印は、あるツールから、そのツールが依存するツールに向かいます。依存の情報は、npm と RubyGems にある各パッケージの実行時と開発時の依存関係から読み込んでいます。最も多く使われている archstrict と nukadoko の 2 つを輪の内側に置き、互いに使い合う 2 つのツールは両端に矢印の付いた色付きの線で結んでいます。",
   },
 } as const;
 

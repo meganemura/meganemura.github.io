@@ -7,7 +7,8 @@ interface Props {
 }
 const { lang } = Astro.props;
 const text = t(lang);
-const layout = layoutGraph(packageFacts.map((fact) => fact.slug), graphEdges);
+// archstrict and nukadoko are the two most used tools, so both sit inside the ring.
+const layout = layoutGraph(packageFacts.map((fact) => fact.slug), graphEdges, ["archstrict", "nukadoko"]);
 ---
 
 <figure class="dogfood">

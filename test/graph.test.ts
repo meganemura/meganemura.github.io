@@ -81,3 +81,29 @@ test("an edge to an unknown node is a loud error", () => {
   expect(() => layoutGraph(["a"], [{ from: "a", to: "z" }])).toThrow("edge a -> z names an unknown node");
   expect(() => layoutGraph(["a"], [{ from: "a", to: "a" }])).toThrow("self loop");
 });
+
+test("named center tools sit side by side inside the ring, in the order given", () => {
+  const layout = layoutGraph(
+    ["a", "b", "c", "d"],
+    [
+      { from: "c", to: "a" },
+      { from: "d", to: "b" },
+    ],
+    ["a", "b"],
+  );
+  const [a, b] = layout.nodes;
+  expect([a?.id, b?.id]).toEqual(["a", "b"]);
+  expect(a?.y).toBe(layout.height / 2);
+  expect(b?.y).toBe(layout.height / 2);
+  expect(a!.x).toBeLessThan(layout.width / 2);
+  expect(b!.x).toBeGreaterThan(layout.width / 2);
+  const c = layout.nodes.find((n) => n.id === "c")!;
+  const d = layout.nodes.find((n) => n.id === "d")!;
+  expect(c.x).toBeLessThan(layout.width / 2);
+  expect(d.x).toBeGreaterThan(layout.width / 2);
+  expect(d.y).toBe(layout.height / 2);
+});
+
+test("a center that names an unknown node is a loud error", () => {
+  expect(() => layoutGraph(["a", "b"], [], ["x"])).toThrow("center x names an unknown node");
+});
