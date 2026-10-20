@@ -38,7 +38,7 @@ A sentence that states what a tool does can be tied to a command with `<Claim>`,
 
 ## Layout
 
-- `tools.config.ts` is the registry of tools: source, slug, package name or repository files, and the sections the site groups them in.
+- `tools.config.ts` is the registry of tools: source, slug, package name or repository files, and the sections the site groups them in. Its `archived` list names public archived repositories: they get no facts, no page, and no graph node, only a muted line under the home page's Archived heading.
 - `scripts/facts/`, `scripts/claims/`, `scripts/graph/` are pure cores. `scripts/facts.ts` and `scripts/claims.ts` are thin CLIs.
 - `src/lib/data.ts` reads the generated files for the pages. `src/components/` holds the Astro components. `src/route-data.ts` gives the splash home pages a sidebar so the mobile menu button appears there; `site.css` hides it on wide screens.
 - `src/content/docs/` holds the pages. `ja/` holds the Japanese pages. `dogfooding.mdx` records each time a tool, run on another repository, was fixed for what got in the way; each entry links the fixing commit and is written from that repository's history. `loop.mdx` places each public tool at the stage of the development loop it serves; `LoopStages.astro` fails the build when a slug there names no tool.

@@ -1,0 +1,21 @@
+---
+// The archived repositories on the home page: a name, the repository link, and one line, drawn
+// muted so they do not read as tools to install. They have no page and no facts to show.
+import { archived } from "../../tools.config.ts";
+import type { Lang } from "../lib/data.ts";
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const badge = lang === "en" ? "archived" : "アーカイブ済み";
+---
+
+<ul class="archived">
+  {archived.map((entry) => (
+    <li class="archived__item">
+      <p class="archived__name"><a href={entry.repo}>{entry.slug}</a> <span class="archived__badge">{badge}</span></p>
+      <p class="archived__line">{entry.line[lang]}</p>
+    </li>
+  ))}
+</ul>

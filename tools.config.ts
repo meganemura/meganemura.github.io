@@ -106,19 +106,29 @@ export const tools: readonly ToolEntry[] = [
     skills: ["skills/stryker/SKILL.md", "skills/mutineer-practice/SKILL.md"],
     install: ["npx skills add meganemura/mutation-testing-skills --skill stryker -g -a claude-code"],
   }),
-  github("pstack-portable", {
-    section: "skills",
-    manifest: ".claude-plugin/marketplace.json",
-    skills: ["skills/poteto-mode-portable/SKILL.md"],
-    install: [
-      "claude plugin marketplace add meganemura/pstack-portable",
-      "claude plugin install pstack-portable@pstack-portable",
-      "claude plugin install pstack@pstack-portable",
-    ],
-  }),
   mod("grilling-pane", ["plugin/skills/grilling/SKILL.md"]),
   mod("buffer-pane"),
   mod("draft-pane", ["plugin/skills/draft/SKILL.md"]),
   mod("jira-ticket-pane"),
   mod("pull-request-pane"),
+];
+
+// A public repository that is archived leaves the tools above: it gets no facts, no page, and no
+// node in the graph, because nothing about it changes any more. The home page still names it,
+// with one line in each language written from the archive notice at the top of its README.
+export interface ArchivedEntry {
+  readonly slug: string;
+  readonly repo: string;
+  readonly line: { readonly en: string; readonly ja: string };
+}
+
+export const archived: readonly ArchivedEntry[] = [
+  {
+    slug: "pstack-portable",
+    repo: repoOf("pstack-portable"),
+    line: {
+      en: "Ran upstream pstack in Claude Code and Codex. Upstream pstack now supports Claude Code, and the last release is v0.4.5.",
+      ja: "上流の pstack を Claude Code と Codex で動かすラッパーでした。上流が Claude Code に対応したため、最後のリリースは v0.4.5 です。",
+    },
+  },
 ];

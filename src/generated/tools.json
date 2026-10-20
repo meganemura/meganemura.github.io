@@ -126,10 +126,11 @@
     "source": "npm",
     "slug": "firstlight",
     "name": "firstlight",
-    "version": "0.3.0",
+    "version": "0.4.0",
     "description": "Run lint, typecheck, and tests in parallel for a coding agent, and return at the first failure.",
     "bins": [
-      "firstlight"
+      "firstlight",
+      "firstlight-node"
     ],
     "license": "MIT",
     "repo": "https://github.com/meganemura/firstlight",
@@ -180,7 +181,7 @@
     "source": "rubygems",
     "slug": "hegel-ruby",
     "name": "hegeltest",
-    "version": "0.3.1",
+    "version": "0.3.4",
     "description": "An unofficial Ruby implementation of the Hegel protocol. Hegel is a\nproperty-based testing framework based on Hypothesis. This gem drives\nlibhegel, the same native engine that backs the Rust, Go, TypeScript,\nJava, OCaml, and C++ implementations.\n",
     "license": "MIT",
     "repo": "https://github.com/meganemura/hegel-ruby",
@@ -265,25 +266,6 @@
     "license": "MIT",
     "repo": "https://github.com/meganemura/portful",
     "uses": []
-  },
-  {
-    "source": "github",
-    "section": "skills",
-    "slug": "pstack-portable",
-    "name": "pstack-portable",
-    "version": "0.4.5",
-    "description": "Run unmodified upstream pstack in Claude Code, Codex, and Cursor through a thin execution wrapper.",
-    "license": "MIT",
-    "repo": "https://github.com/meganemura/pstack-portable",
-    "skills": [
-      "poteto-mode-portable"
-    ],
-    "install": [
-      "claude plugin marketplace add meganemura/pstack-portable",
-      "claude plugin install pstack-portable@pstack-portable",
-      "claude plugin install pstack@pstack-portable"
-    ],
-    "commit": "0612215"
   },
   {
     "source": "github",

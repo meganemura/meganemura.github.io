@@ -119,3 +119,19 @@ html[data-has-hero] {
   .loop__stage:last-child::after { content: "↑"; position: absolute; left: 50%; top: -1.45rem; transform: translateX(-50%); color: var(--sl-color-gray-3); }
 }
 .loop__back { font-size: var(--sl-text-sm); color: var(--sl-color-gray-3); }
+
+/* Archived repositories: dashed, muted, and without install lines, so they read as history. */
+.archived { list-style: none; padding: 0; display: grid; gap: 0.75rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr)); }
+.archived__item { margin: 0; padding: 0.75rem 1rem; border: 1px dashed var(--sl-color-gray-5); border-radius: 0.5rem; color: var(--sl-color-gray-3); }
+.archived__item p { margin: 0; font-size: var(--sl-text-sm); }
+.archived__name a { color: var(--sl-color-gray-2); }
+.archived__line { margin-top: 0.25rem !important; }
+.archived__badge {
+  display: inline-block;
+  margin-left: 0.25rem;
+  padding: 0 0.4rem;
+  border: 1px solid var(--sl-color-gray-4);
+  border-radius: 999px;
+  font-size: var(--sl-text-xs);
+  color: var(--sl-color-gray-3);
+}
