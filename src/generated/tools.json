@@ -290,14 +290,17 @@
     "source": "npm",
     "slug": "runtag",
     "name": "runtag",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "description": "Record one child process under XDG so an agent can observe pid and exit later.",
     "bins": [
       "runtag"
     ],
     "license": "MIT",
     "repo": "https://github.com/meganemura/runtag",
-    "uses": []
+    "uses": [
+      "archstrict",
+      "nukadoko"
+    ]
   },
   {
     "source": "npm",
