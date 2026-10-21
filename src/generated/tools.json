@@ -13,7 +13,7 @@
     "source": "npm",
     "slug": "archstrict",
     "name": "archstrict",
-    "version": "0.4.0",
+    "version": "0.5.0",
     "description": "TypeScript module boundary checker: default-private module surfaces, layers, cycles, and a todo freeze that can only shrink.",
     "bins": [
       "archstrict"
@@ -225,7 +225,7 @@
     "source": "npm",
     "slug": "nukadoko",
     "name": "nukadoko",
-    "version": "0.18.0",
+    "version": "0.19.0",
     "description": "Typed step contracts for Gherkin, so a scenario can be told wrong before it runs. Every execution leaves a step record the tool measured rather than the agent reported, and every run a Markdown summary that is the run's evidence.",
     "bins": [
       "nuka"
@@ -258,14 +258,17 @@
     "source": "npm",
     "slug": "portful",
     "name": "portful",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "Keep one fixed port pointed at whichever git worktree is active, and switch it without restarting the client",
     "bins": [
       "portful"
     ],
     "license": "MIT",
     "repo": "https://github.com/meganemura/portful",
-    "uses": []
+    "uses": [
+      "archstrict",
+      "nukadoko"
+    ]
   },
   {
     "source": "github",
@@ -352,14 +355,17 @@
     "source": "npm",
     "slug": "stow",
     "name": "@meganemura/stow",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "description": "Personal skills for Git checkouts with local host links",
     "bins": [
       "stow"
     ],
     "license": null,
     "repo": "https://github.com/meganemura/stow",
-    "uses": []
+    "uses": [
+      "archstrict",
+      "nukadoko"
+    ]
   },
   {
     "source": "npm",
