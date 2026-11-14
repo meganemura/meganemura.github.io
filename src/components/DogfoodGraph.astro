@@ -1,5 +1,6 @@
 ---
-import { layoutGraph } from "../../scripts/graph/index.ts";
+import { layoutGraph, type GraphLayout, type LayoutOptions } from "../../scripts/graph/index.ts";
+import { shared } from "../../tools.config.ts";
 import { graphEdges, packageFacts, t, toolHref, type Lang } from "../lib/data.ts";
 
 interface Props {
@@ -7,31 +8,72 @@ interface Props {
 }
 const { lang } = Astro.props;
 const text = t(lang);
-// The owner picks the tools that sit inside the ring: the ones the other tools are built on or
-// run on themselves.
-const layout = layoutGraph(packageFacts.map((fact) => fact.slug), graphEdges, ["archstrict", "solarsql", "nukadoko", "polylinedb"]);
+
+// A package depends only on packages of its own registry, so the npm tools and the gems are two
+// graphs with no edge between them. What joins them is a library both sides use through a package
+// of their own, which the space between the graphs names.
+function graphOf(source: "npm" | "rubygems", center?: readonly string[], options?: LayoutOptions): GraphLayout {
+  const facts = packageFacts.filter((fact) => fact.source === source);
+  const ids = new Set(facts.map((fact) => fact.slug));
+  return layoutGraph([...ids], graphEdges.filter((edge) => ids.has(edge.from)), center, options);
+}
+
+// The owner picks the npm tools that sit inside the ring: the ones the other tools are built on or
+// run on themselves. The gems have one tool most of the others use, and it takes the center alone.
+const graphs = [
+  { source: "npm" as const, title: "npm", layout: graphOf("npm", ["archstrict", "solarsql", "nukadoko", "polylinedb"], { minRing: 220, labelRoom: 170 }) },
+  { source: "rubygems" as const, title: "RubyGems", layout: graphOf("rubygems", undefined, { labelRoom: 260 }) },
+];
+const sharesOf = new Map(packageFacts.map((fact) => [fact.slug, fact.shares]));
+const libraries = shared.map((library) => ({
+  ...library,
+  npmUsers: packageFacts.filter((fact) => fact.source === "npm" && fact.shares.includes(library.id)).length,
+  gemUsers: packageFacts.filter((fact) => fact.source === "rubygems" && fact.name !== library.gem && fact.shares.includes(library.id)).length,
+  // The package of the library itself, when this site lists it, as hegeltest is listed as hegel-ruby.
+  gemSlug: packageFacts.find((fact) => fact.source === "rubygems" && fact.name === library.gem)?.slug,
+}));
+const [npmGraph, gemGraph] = graphs;
 ---
 
 <figure class="dogfood">
-  <svg viewBox={`0 0 ${layout.width} ${layout.height}`} role="img" aria-label={text.graphLabel}>
-    <defs>
-      <marker id="dogfood-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
-        <path d="M0 0L10 5L0 10z" class="dogfood__arrowhead"></path>
-      </marker>
-    </defs>
-    {layout.edges.map((edge) => (
-      <path d={edge.path} class:list={["dogfood__edge", { "dogfood__edge--mutual": edge.mutual }]} marker-end="url(#dogfood-arrow)" marker-start={edge.mutual ? "url(#dogfood-arrow)" : undefined}><title>{`${edge.from} ${edge.mutual ? "↔" : "→"} ${edge.to}`}</title></path>
-    ))}
-    {layout.nodes.map((node) => (
-      <a href={toolHref(node.id, lang)}>
-        <circle cx={node.x} cy={node.y} r={node.r} class="dogfood__node"></circle>
-      </a>
-    ))}
-    {layout.nodes.map((node) => (
-      <a href={toolHref(node.id, lang)}>
-        <text x={node.labelX} y={node.labelY} text-anchor={node.anchor} class="dogfood__label">{node.id}</text>
-      </a>
-    ))}
-  </svg>
+  <div class="dogfood__graphs">
+    {[npmGraph, null, gemGraph].map((graph) =>
+      graph === null ? (
+        <div class="dogfood__bridge">
+          <p class="dogfood__bridge-title">{text.graphShared}</p>
+          {libraries.map((library) => (
+            <div class="dogfood__library">
+              <span class="dogfood__pill">{library.name}</span>
+              <p>{text.graphSharedLine(library.npm, library.npmUsers, library.gemSlug === undefined ? library.gem : `${library.gem} (${library.gemSlug})`, library.gemUsers)}</p>
+            </div>
+          ))}
+        </div>
+      ) : graph && (
+        <div class="dogfood__graph" style={`max-width: ${Math.round(graph.layout.width * 0.8)}px`}>
+          <p class="dogfood__title">{graph.title}</p>
+          <svg viewBox={`0 0 ${graph.layout.width} ${graph.layout.height}`} role="img" aria-label={`${text.graphLabel}: ${graph.title}`}>
+            <defs>
+              <marker id={`dogfood-arrow-${graph.source}`} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+                <path d="M0 0L10 5L0 10z" class="dogfood__arrowhead"></path>
+              </marker>
+            </defs>
+            {graph.layout.edges.map((edge) => (
+              <path d={edge.path} class:list={["dogfood__edge", { "dogfood__edge--mutual": edge.mutual }]} marker-end={`url(#dogfood-arrow-${graph.source})`} marker-start={edge.mutual ? `url(#dogfood-arrow-${graph.source})` : undefined}><title>{`${edge.from} ${edge.mutual ? "↔" : "→"} ${edge.to}`}</title></path>
+            ))}
+            {graph.layout.nodes.map((node) => (
+              <a href={toolHref(node.id, lang)}>
+                <circle cx={node.x} cy={node.y} r={node.r} class:list={["dogfood__node", { "dogfood__node--shared": (sharesOf.get(node.id) ?? []).length > 0 }]}></circle>
+              </a>
+            ))}
+            {graph.layout.nodes.map((node) => (
+              <a href={toolHref(node.id, lang)}>
+                <text x={node.labelX} y={node.labelY} text-anchor={node.anchor} class="dogfood__label">{node.id}</text>
+              </a>
+            ))}
+          </svg>
+        </div>
+      ),
+    )}
+  </div>
   <figcaption>{text.graphCaption}</figcaption>
 </figure>

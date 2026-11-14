@@ -2,7 +2,7 @@
 // into the facts the site renders, and compares two sets of facts.
 // Boundary: no file or process access here; the CLI in scripts/facts.ts does that I/O
 // and passes in how to resolve a repository's default branch.
-import type { ToolEntry } from "../../tools.config.ts";
+import type { SharedEntry, ToolEntry } from "../../tools.config.ts";
 import { fetchRepoFact } from "./github.ts";
 import { fetchNpmManifest, toNpmFact } from "./npm.ts";
 import { fetchGemPayload, toGemFact } from "./rubygems.ts";
@@ -25,8 +25,8 @@ export interface FactChange {
 // the default branch moves with every push, so comparing it would fail the daily check
 // on commits that change nothing the site shows. The commit is kept for display only.
 const COMPARED: { [S in ToolFact["source"]]: readonly (keyof Extract<ToolFact, { source: S }>)[] } = {
-  npm: ["name", "version", "description", "bins", "license", "repo", "uses"] satisfies (keyof NpmFact)[],
-  rubygems: ["name", "version", "description", "license", "repo", "uses"] satisfies (keyof GemFact)[],
+  npm: ["name", "version", "description", "bins", "license", "repo", "uses", "shares"] satisfies (keyof NpmFact)[],
+  rubygems: ["name", "version", "description", "license", "repo", "uses", "shares"] satisfies (keyof GemFact)[],
   github: ["name", "version", "description", "license", "repo", "section", "skills", "install"] satisfies (keyof RepoFact)[],
 };
 
@@ -75,17 +75,17 @@ export interface FactSources {
   resolveHead: (repo: string) => Promise<string>;
 }
 
-function fetchFact(entry: ToolEntry, registry: readonly ToolEntry[], io: FactSources): Promise<ToolFact> {
+function fetchFact(entry: ToolEntry, registry: readonly ToolEntry[], shared: readonly SharedEntry[], io: FactSources): Promise<ToolFact> {
   switch (entry.source) {
     case "npm":
-      return fetchNpmManifest(entry.npm, io.fetch).then((manifest) => toNpmFact(entry, manifest, registry));
+      return fetchNpmManifest(entry.npm, io.fetch).then((manifest) => toNpmFact(entry, manifest, registry, shared));
     case "rubygems":
-      return fetchGemPayload(entry.gem, io.fetch).then((payload) => toGemFact(entry, payload, registry));
+      return fetchGemPayload(entry.gem, io.fetch).then((payload) => toGemFact(entry, payload, registry, shared));
     case "github":
       return io.resolveHead(entry.repo).then((commit) => fetchRepoFact(entry, commit, io.fetch));
   }
 }
 
-export async function fetchFacts(registry: readonly ToolEntry[], io: FactSources): Promise<ToolFact[]> {
-  return sortFacts(await Promise.all(registry.map((entry) => fetchFact(entry, registry, io))));
+export async function fetchFacts(registry: readonly ToolEntry[], io: FactSources, shared: readonly SharedEntry[] = []): Promise<ToolFact[]> {
+  return sortFacts(await Promise.all(registry.map((entry) => fetchFact(entry, registry, shared, io))));
 }

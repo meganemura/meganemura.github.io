@@ -41,7 +41,14 @@ const BEND = 0.18;
 
 const round = (n: number) => Math.round(n * 100) / 100;
 
-export function layoutGraph(nodeIds: readonly string[], edges: readonly GraphEdge[], center?: readonly string[]): GraphLayout {
+// `minRing` widens the ring for a graph with many edges between its center tools, and `labelRoom`
+// leaves room for its longest label beside the ring.
+export interface LayoutOptions {
+  minRing?: number;
+  labelRoom?: number;
+}
+
+export function layoutGraph(nodeIds: readonly string[], edges: readonly GraphEdge[], center?: readonly string[], options: LayoutOptions = {}): GraphLayout {
   const known = new Set(nodeIds);
   if (known.size !== nodeIds.length) throw new Error("duplicate node id");
   for (const edge of edges) {
@@ -59,9 +66,9 @@ export function layoutGraph(nodeIds: readonly string[], edges: readonly GraphEdg
   const isHub = new Set(hubs);
   const rest = ordered.filter((id) => !isHub.has(id));
   const count = rest.length;
-  const ring = count < 2 ? 0 : Math.max(BASE_RING, MIN_GAP / (2 * Math.sin(Math.PI / count)));
+  const ring = count < 2 ? 0 : Math.max(options.minRing ?? BASE_RING, MIN_GAP / (2 * Math.sin(Math.PI / count)));
   const inner = hubs.length < 2 ? 0 : Math.max(MIN_GAP / (2 * Math.sin(Math.PI / hubs.length)), ring * (hubs.length === 2 ? 0.3 : 0.4));
-  const half = ring + NODE_RADIUS + LABEL_ROOM;
+  const half = ring + NODE_RADIUS + (options.labelRoom ?? LABEL_ROOM);
   const width = round(2 * half);
   const height = round(2 * (ring + NODE_RADIUS + 40));
   const cx = width / 2;

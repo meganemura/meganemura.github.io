@@ -17,6 +17,7 @@ Each entry in `tools.config.ts` names its source, and the facts come from that s
 - `github`: a plugin, skill, or mod repository has no registry. The facts resolve its default branch with `git ls-remote`, then read the plugin manifest, each listed `SKILL.md` frontmatter, the README, and `LICENSE` at that commit from `raw.githubusercontent.com`. The description comes from the manifest, or from the README's first paragraph when there is no manifest. Each `install` line in the config must appear in that README as written.
 
 The `uses` of a package lists the sibling packages of the same registry among its dependencies, and the dogfood graph shows only npm and RubyGems packages.
+The home page draws the npm packages and the gems as two graphs, because a package depends only on its own registry. `shared` in `tools.config.ts` names a library both registries use through a package of their own (Hegel: `@hegeldev/hegel` and `hegeltest`); the `shares` of a package lists the ones it depends on or is, and the graphs mark those packages.
 `facts --check` compares every field except a repository's commit, which moves with every push and is shown for reference only.
 
 The home pages group the entries in the order of `sections` in `tools.config.ts`: command-line tools on npm, Ruby gems, agent plugins and skills, and Claude Code mods. The sidebar uses the same groups. A `github` entry names its section, `skills` or `mods`. A mod is a Claude Code plugin that its README calls a Claude Mod, and its pages say that it works only in Claude Code.

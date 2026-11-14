@@ -11,6 +11,8 @@ export interface NpmFact {
   license: string | null;
   repo: string;
   uses: string[];
+  // Ids of the shared libraries in tools.config.ts this package depends on, or is.
+  shares: string[];
 }
 
 export interface GemFact {
@@ -22,6 +24,8 @@ export interface GemFact {
   license: string | null;
   repo: string;
   uses: string[];
+  // Ids of the shared libraries in tools.config.ts this package depends on, or is.
+  shares: string[];
 }
 
 export interface RepoFact {

@@ -1,5 +1,5 @@
 // Turns a RubyGems API payload into a GemFact.
-import type { GemEntry, ToolEntry } from "../../tools.config.ts";
+import type { GemEntry, SharedEntry, ToolEntry } from "../../tools.config.ts";
 import type { GemFact } from "./types.ts";
 
 export interface GemPayload {
@@ -13,7 +13,7 @@ export interface GemPayload {
   };
 }
 
-export function toGemFact(entry: GemEntry, payload: GemPayload, registry: readonly ToolEntry[]): GemFact {
+export function toGemFact(entry: GemEntry, payload: GemPayload, registry: readonly ToolEntry[], shared: readonly SharedEntry[] = []): GemFact {
   const dependencies = new Set(
     [...(payload.dependencies?.runtime ?? []), ...(payload.dependencies?.development ?? [])].map((dependency) => dependency.name),
   );
@@ -21,6 +21,8 @@ export function toGemFact(entry: GemEntry, payload: GemPayload, registry: readon
     .filter((other) => other.source === "rubygems" && other.slug !== entry.slug && dependencies.has(other.gem))
     .map((other) => other.slug)
     .sort();
+  // A gem that is the shared library itself shares it too, so the graph marks it.
+  const shares = shared.filter((library) => library.gem === payload.name || dependencies.has(library.gem)).map((library) => library.id);
   const licenses = payload.licenses ?? [];
   return {
     source: "rubygems",
@@ -31,6 +33,7 @@ export function toGemFact(entry: GemEntry, payload: GemPayload, registry: readon
     license: licenses.length > 0 ? licenses.join(" OR ") : null,
     repo: entry.repo,
     uses,
+    shares,
   };
 }
 
