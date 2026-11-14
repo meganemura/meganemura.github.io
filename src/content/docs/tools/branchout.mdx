@@ -1,0 +1,46 @@
+---
+title: branchout
+description: Runs a Ruby method on many inputs, shows the branch arms no input took, and writes RSpec or Minitest examples that pin what the method does now.
+---
+
+import ToolFacts from '../../../components/ToolFacts.astro';
+
+<ToolFacts slug="branchout" lang="en" />
+
+A coding agent that adds tests can see that a branch was missed and still not know which comparison failed, or which input came closest.
+branchout runs a Ruby method on many inputs under branch coverage and prints that frontier: each arm no input took, the condition that selects it, and the nearest input that reached it.
+The agent copies the nearest input, changes it as the line says, and runs again.
+branchout then writes examples that pin what the method returns now.
+
+## Features
+
+- **A frontier to close.** Each line under `FRONTIER` names an arm at its file, line, and column, such as ``app/models/loan.rb:8:4 makes `amount_cents > 10_000` true``, and `nearest` is the input to start from.
+- **What coverage cannot see.** `RETURNED` lists the value each input returned, `OPERATORS` names each `&&` and `||` whose sides coverage does not count, and `BOUNDARIES` lists each comparison to try at its edge.
+- **Inputs from three strategies.** `--strategy` runs your `inputs`, literal mutations of them (`mutate`), and `random` samples, in that order. The same inputs, flags, and CRuby give the same output.
+- **Tests that pin the current behavior.** `--emit-tests PATH` writes Minitest or RSpec examples (`--format rspec`) for every input. `--pin-keys` pins only the named keys of a returned Hash.
+- **Inside the test suite.** `Branchout.explore("Loan#approve", within: self, inputs: [...])` runs in a spec, so each input reaches the suite's factories and helpers. With Active Record, each input runs in a savepoint that is rolled back.
+- **Reports for a machine.** `--json` and `--json-out PATH` write the report as JSON, and `--md-out PATH` writes it as Markdown.
+
+## How an agent uses it
+
+1. Pick a method with a few `if`, `unless`, or `case` arms that returns a value.
+2. Run `branchout explore <file> <entry>` or `Branchout.explore` in a spec with one input.
+3. For each `FRONTIER` line, add an input like `nearest`, changed as the line says, and run again.
+4. Compare each `RETURNED` value with what the method should return, then write the examples with `--emit-tests`.
+
+The gem ships a `branchout` skill for the agent.
+
+## Getting started
+
+branchout needs Ruby 3.3 or newer. It uses Coverage, Prism, and json from the standard library.
+
+```sh
+gem install branchout rspec
+branchout explore shipping.rb Shipping.fee --emit-tests shipping_spec.rb
+```
+
+In a Rails app, add `gem "branchout", group: :test, require: false` to the Gemfile and call `Branchout.explore` from a spec.
+
+## Works with
+
+- The examples branchout writes can be candidates for [jitcatch](/tools/jitcatch/). Write them with `--require-by-name` on a checkout of the base revision, so each side loads its own code.

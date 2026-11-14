@@ -1,0 +1,48 @@
+---
+title: rubocop-dynamic_methods
+description: RuboCop cops that find methods Ruby metaprogramming defines, and rewrite them as plain defs only when the def is the same method.
+---
+
+import ToolFacts from '../../../components/ToolFacts.astro';
+
+<ToolFacts slug="rubocop-dynamic_methods" lang="en" />
+
+A reader, a coding agent first and a person second, searches for `def paid?` and finds nothing when `paid?` comes from `define_method` or a string eval.
+rubocop-dynamic_methods is a RuboCop plugin whose cops find those methods and write them as plain `def`s.
+The autocorrection writes a def only when Ruby would define the same method.
+Otherwise the offense says why, so whoever writes the def next knows what to write.
+
+## Features
+
+- **`DynamicMethods/DefineMethod`.** Finds `define_method` and `define_singleton_method`, and autocorrects them to `def name` and `def self.name`.
+- **`DynamicMethods/StringEval`.** Finds `class_eval`, `module_eval`, `instance_eval`, and `eval` with a string, and autocorrects them to the defs the string holds.
+- **`DynamicMethods/MethodMissing` and `DynamicMethods/Delegation`.** Report `def method_missing`, and `delegate`, `delegate_missing_to`, `def_delegator`, and `def_delegators`. Neither autocorrects, and `Delegation` is disabled by default.
+- **Exact or not at all.** A rewrite keeps the same names, parameters, bodies, and visibility. An `each` over a literal Array or Hash, or over a constant the same body sets once to one before the loop, becomes one def per value.
+- **A reason to act on.** When the cop cannot be sure, the offense names the cause, such as ``Not autocorrected: `ELEMENTS` is not frozen``, and the code stays as it is.
+
+## How an agent uses it
+
+1. Run `rubocop -A --only DynamicMethods` on the code.
+2. Read each `[Corrected]` line, and check the defs it wrote.
+3. For each offense that was not corrected, read the reason and write the def by hand.
+
+The autocorrection is unsafe in RuboCop's sense, because it trusts that `define_method`, `class_eval`, and `Array#each` are Ruby's own. Run it with `rubocop -A`.
+
+## Getting started
+
+The plugin needs RuboCop 1.72 or later and Ruby 3.2 or later.
+
+```ruby
+# Gemfile
+gem "rubocop-dynamic_methods", require: false
+```
+
+```yaml
+# .rubocop.yml
+plugins:
+  - rubocop-dynamic_methods
+```
+
+```sh
+rubocop -A --only DynamicMethods order.rb
+```

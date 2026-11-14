@@ -1,0 +1,63 @@
+---
+title: jitcatch
+description: 変更の親では通り、変更後に落ちる Ruby のテストだけを残し、それぞれが届く変更されたメソッドを示します。
+---
+
+import ToolFacts from '../../../../components/ToolFacts.astro';
+
+<ToolFacts slug="jitcatch" lang="ja" />
+
+変更をレビューするコーディングエージェントは、その差分のためにテストを書きます。
+新しい振る舞いを書いただけのテストは親でも落ちるので、リグレッションの証拠になりません。
+jitcatch は候補の Minitest や RSpec のファイルを 2 つのリビジョンで実行し、フレーキーなテストなどの意味のない結果を取り除きます。
+残すのは、親では通り、変更後に落ちるテストです。
+残ったテストは、古いコードが満たしていて新しいコードが満たさない主張を、そのテストが届く変更されたメソッドと一緒に示します。
+
+## 特徴
+
+- **2 つのリビジョンで 1 つの報告。**
+  `jitcatch run BASE HEAD TESTS_DIR` は、候補のファイルをそれぞれの側のチェックアウトで実行します。
+  各テストは `no_signal`、`fail_on_base`、`flaky`、`discarded`、`reported` のどれかに分かれ、判断が要るのは `reported` の行だけです。
+- **フレーキーなテストを除く。**
+  base で通り head で落ちたテストは、`--reruns N` の回数(既定は 2)だけ head でもう一度実行します。
+  同じように落ちなかったテストは `flaky` として除かれます。
+- **変更されたメソッドの名前。**
+  各行には `m01` のようなメソッドの ID と、`touches:changed_method` のようなタグが付きます。
+  `jitcatch context BASE HEAD` は、変更された各メソッドの古いソースと新しいソースを表示します。
+- **再実行の 1 行。**
+  報告された各行には、期待した値と実際の値、そのテストだけをもう一度実行する `rerun:` のコマンドが付きます。
+- **Rails アプリ。**
+  `config/application.rb` があるアプリでは、タイムアウトは 60 秒で、各チェックアウトがアプリを起動します。
+  base と head が 1 つのテスト用データベースを共有してしまうときは、`run` は 1 プロセスずつ実行し、`config/database.yml` で変える行を `warning:` で示します。
+- **機械が読む JSON。**
+  `--json` は `context`、`run`、`assess` で同じ内容を JSON で出力し、`jitcatch assess RUN.json` は保存した実行をもう一度表示します。
+
+## エージェントでの使い方
+
+1. コミットを選び、その前にコードが何をしていたかを書いたテストを、`tmp/jitcatch` のような作業用のディレクトリに数本書きます。
+2. `bundle exec jitcatch run <commit>~1 <commit> tmp/jitcatch` を実行します。
+3. `reported` の各行をコミットメッセージと照らします。メッセージが求める変更なら意図どおりで、それ以外はリグレッションの疑いが強いものです。
+4. `rerun:` の行で失敗をもう一度見て、`jitcatch context` で古いソースと新しいソースを読みます。
+
+終了コード 0 は、候補が見つかったときも含めて、コマンドが最後まで動いたことを示します。
+終了コード 3 は、どちらの側でも候補のファイルが読み込めなかったときなど、`run` が何もテストできなかったことを示します。
+gem にはエージェント向けの `jitcatch` スキルが入っています。
+
+## はじめかた
+
+jitcatch には Ruby 3.3 以降と git が必要で、実行時の依存はありません。
+
+```ruby
+group :development, :test do
+  gem "jitcatch", require: false
+end
+```
+
+```sh
+bundle install
+bundle exec jitcatch run c3ef899~1 c3ef899 tmp/jitcatch
+```
+
+## 組み合わせ
+
+- [branchout](/ja/tools/branchout/) が書く特性テストは、Minitest のファイルや RSpec のスペックとして jitcatch の候補にできます。

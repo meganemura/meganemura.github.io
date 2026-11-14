@@ -1,0 +1,67 @@
+---
+title: quint_driver
+description: Ruby のコードを Quint の仕様と照らし、同じコマンドを両方で実行して、1 ステップごとに比べます。
+---
+
+import ToolFacts from '../../../../components/ToolFacts.astro';
+
+<ToolFacts slug="quint_driver" lang="ja" />
+
+quint_driver は、Ruby のコードを [Quint](https://github.com/quint-co/quint) の仕様と照らします。
+仕様は各コマンドがすべきことを書き、quint_driver は同じコマンドをコードでも実行して、1 ステップごとに両方を比べます。
+書くのはドライバーです。
+ドライバーは仕様の各アクションをコードで実行し、仕様の変数をふつうの値として読み戻します。
+違いが出ると、ステップ、変数、両方の値、`init` からのすべてのステップが示されるので、同じ失敗を手でもう一度起こせます。
+
+## 特徴
+
+- **トレースの再生。**
+  `QuintDriver::Quint.simulate` で Quint にトレースを書かせ、`QuintDriver::Trace.replay` で各トレースを 1 ステップずつドライバーで実行します。
+  ステップは Quint が選ぶので、トレースは深い状態にすぐ届きます。
+- **ステップを Hegel が選ぶ。**
+  `QuintDriver.machine` は仕様から `Hegel::StateMachine` を作ります。
+  Hegel はその時点で仕様が許すアクションから各ステップを選び、失敗を短いコマンドの並びまで縮めます。
+- **仕様を Ruby のプロセスの中で評価する。**
+  quint_driver は Quint の JSON IR を読んで Ruby で評価するので、Hegel の 1 ステップで別のプロセスを起動しません。
+  `Trace.replay(path, spec.model)` で、そのモデル自体を Quint のトレースと照らせます。
+- **名前の付いた失敗。**
+  食い違いは `QuintDriver::Mismatch`、ステップの中のエラーは `QuintDriver::StepRaised` になります。
+  コードは仕様と合っているのに期待が破れたときは `QuintDriver::Violated` になります。
+- **バグを探す。**
+  期待を `violate:` として `Quint.simulate` に渡すと、Quint はそれを破るトレースを探します。
+  `bundle exec quint_driver targets` は、アプリのどのファイルを探すと効果があるかを順位付けします。
+- **Minitest でも RSpec でも。**
+  トレースの再生は、Minitest のテストでも RSpec の example でも同じように動きます。
+
+## エージェントでの使い方
+
+1. `Loan#approve` のように、状態のカラムとそれを変えるメソッドを持つモデルを選びます。
+2. その状態の小さな Quint の仕様と、各アクションをモデルで実行するドライバーと、ロールバックするトランザクションの中でトレースを再生する例を 1 つ書きます。
+3. 例を実行します。`Mismatch` は、コードと仕様が最初に食い違ったステップを示します。
+4. バグを探すときは、仕様に期待を書き、Quint にそれぞれを狙ったトレースを作らせます。
+
+gem には `quint_driver` スキルが入っています。
+仕様の形、ドライバー、トレースの再生、モデルの検査、Hegel までをエージェントに順に示します。
+
+## はじめかた
+
+quint_driver には Ruby 3.3 以降が必要です。
+`QUINT` が指す `quint` コマンドを呼び、`QUINT` がなければ `npx --yes @informalsystems/quint@0.33.0` を実行します。
+
+```ruby
+# Gemfile
+group :test do
+  gem "quint_driver", require: false
+end
+```
+
+```sh
+bundle install
+npm install --global @informalsystems/quint@0.33.0
+QUINT=quint bundle exec rspec spec/quint/loan_state_spec.rb
+```
+
+## 組み合わせ
+
+- Hegel のアダプター `require "quint_driver/hegel"` は [hegel-ruby](/ja/tools/hegel-ruby/)(hegeltest gem)の上で動き、Ruby 3.4 以降が必要です。
+  quint_driver は hegeltest に依存しないので、自分の Gemfile に足します。

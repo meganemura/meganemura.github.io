@@ -1,0 +1,52 @@
+---
+title: quint_driver
+description: Holds Ruby code to a Quint spec, runs the same commands on both, and compares them after every step.
+---
+
+import ToolFacts from '../../../components/ToolFacts.astro';
+
+<ToolFacts slug="quint_driver" lang="en" />
+
+quint_driver holds your Ruby code to a [Quint](https://github.com/quint-co/quint) spec.
+The spec says what each command must do, and quint_driver runs the same commands on your code and compares the two after every step.
+You write a driver that runs each action of the spec on your code and reads the spec's variables back as plain values.
+A difference names the step, the variable, both values, and every step from `init`, so the failure can be run again by hand.
+
+## Features
+
+- **Trace replay.** `QuintDriver::Quint.simulate` has Quint write traces, and `QuintDriver::Trace.replay` runs each one on the driver step by step. Quint picks the steps, so a trace reaches deep states quickly.
+- **Hegel picks the steps.** `QuintDriver.machine` builds a `Hegel::StateMachine` from the spec, so Hegel picks each step from the actions the spec allows now, and shrinks a failure to a short sequence of commands.
+- **The spec runs in the Ruby process.** quint_driver reads Quint's JSON IR and evaluates it in Ruby, so a Hegel step does not start another process. `Trace.replay(path, spec.model)` holds that model to Quint's own traces.
+- **Failures with a name.** A disagreement raises `QuintDriver::Mismatch`, an error inside a step raises `QuintDriver::StepRaised`, and an expectation that breaks while the code still agrees with the spec raises `QuintDriver::Violated`.
+- **Hunting for bugs.** Pass an expectation as `violate:` to `Quint.simulate`, and Quint searches for traces that break it. `bundle exec quint_driver targets` ranks the files of an app where a hunt pays.
+- **Minitest or RSpec.** Trace replay works the same in a Minitest test and in an RSpec example.
+
+## How an agent uses it
+
+1. Pick a model with a status column and a method that changes it, such as `Loan#approve`.
+2. Write a small Quint spec of its states, a driver that runs each action on the model, and one example that replays traces inside a rolled-back transaction.
+3. Run the example. A `Mismatch` names the first step where the code and the spec differ.
+4. To hunt for bugs, write expectations in the spec and let Quint aim traces at each one.
+
+The gem ships a `quint_driver` skill that takes an agent through the spec shape, the driver, trace replay, the model check, and Hegel.
+
+## Getting started
+
+quint_driver needs Ruby 3.3 or later. It calls the `quint` command that `QUINT` names, or runs `npx --yes @informalsystems/quint@0.33.0` without it.
+
+```ruby
+# Gemfile
+group :test do
+  gem "quint_driver", require: false
+end
+```
+
+```sh
+bundle install
+npm install --global @informalsystems/quint@0.33.0
+QUINT=quint bundle exec rspec spec/quint/loan_state_spec.rb
+```
+
+## Works with
+
+- The Hegel adapter, `require "quint_driver/hegel"`, runs on [hegel-ruby](/tools/hegel-ruby/) (the hegeltest gem), which needs Ruby 3.4 or later. quint_driver does not depend on it, so add hegeltest to your own Gemfile.

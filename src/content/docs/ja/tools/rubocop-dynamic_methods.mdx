@@ -1,0 +1,56 @@
+---
+title: rubocop-dynamic_methods
+description: Ruby のメタプログラミングが定義するメソッドを見つけ、同じメソッドになるときだけふつうの def に書き直す RuboCop の cop です。
+---
+
+import ToolFacts from '../../../../components/ToolFacts.astro';
+
+<ToolFacts slug="rubocop-dynamic_methods" lang="ja" />
+
+コードを読む人、まずコーディングエージェント、次に人が `def paid?` を検索しても、`paid?` が `define_method` や文字列の eval から作られていると何も見つかりません。
+rubocop-dynamic_methods は RuboCop のプラグインで、その cop がそうしたメソッドを見つけ、ふつうの `def` として書きます。
+自動修正が def を書くのは、Ruby が同じメソッドを定義すると言えるときだけです。
+言えないときは、違反の理由を書くので、次に def を書く人が何を書けばよいか分かります。
+
+## 特徴
+
+- **`DynamicMethods/DefineMethod`。**
+  `define_method` と `define_singleton_method` を見つけ、`def name` と `def self.name` に自動修正します。
+- **`DynamicMethods/StringEval`。**
+  文字列を渡した `class_eval`、`module_eval`、`instance_eval`、`eval` を見つけ、その文字列にある def に自動修正します。
+- **`DynamicMethods/MethodMissing` と `DynamicMethods/Delegation`。**
+  `def method_missing` と、`delegate`、`delegate_missing_to`、`def_delegator`、`def_delegators` を報告します。
+  どちらも自動修正はせず、`Delegation` は既定で無効です。
+- **同じになるか、何もしないか。**
+  書き直しでは、名前、引数、本体、可視性が同じままです。
+  リテラルの配列やハッシュに対する `each` と、ループの前に同じ本体でリテラルの配列やハッシュを一度だけ代入した定数に対する `each` は、値ごとに 1 つの def になります。
+- **次の手が分かる理由。**
+  確かでないとき、違反は ``Not autocorrected: `ELEMENTS` is not frozen`` のように理由を示し、コードはそのまま残ります。
+
+## エージェントでの使い方
+
+1. コードに `rubocop -A --only DynamicMethods` を実行します。
+2. `[Corrected]` の各行を読み、書かれた def を確かめます。
+3. 自動修正されなかった違反は、理由を読んで def を手で書きます。
+
+自動修正は、`define_method`、`class_eval`、`Array#each` が Ruby 本来のものだと信じるので、RuboCop の意味で unsafe です。
+`rubocop -A` で実行します。
+
+## はじめかた
+
+このプラグインには RuboCop 1.72 以降と Ruby 3.2 以降が必要です。
+
+```ruby
+# Gemfile
+gem "rubocop-dynamic_methods", require: false
+```
+
+```yaml
+# .rubocop.yml
+plugins:
+  - rubocop-dynamic_methods
+```
+
+```sh
+rubocop -A --only DynamicMethods order.rb
+```

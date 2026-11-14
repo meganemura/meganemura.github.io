@@ -1,0 +1,60 @@
+---
+title: branchout
+description: Ruby のメソッドをたくさんの入力で実行し、どの入力も通らなかった分岐を示し、いまの振る舞いを固定する RSpec か Minitest の例を書きます。
+---
+
+import ToolFacts from '../../../../components/ToolFacts.astro';
+
+<ToolFacts slug="branchout" lang="ja" />
+
+テストを足すコーディングエージェントは、分岐を通っていないことには気づけても、どの比較で外れたのか、どの入力がいちばん近かったのかまでは分かりません。
+branchout は Ruby のメソッドを分岐カバレッジの下でたくさんの入力で実行し、その境目を表示します。
+どの入力も通らなかった分岐ごとに、それを選ぶ条件と、そこまで届いたいちばん近い入力が出ます。
+エージェントはいちばん近い入力をコピーし、行が言うとおりに変えて、もう一度実行します。
+そのあと branchout は、メソッドがいま返す値を固定する例を書きます。
+
+## 特徴
+
+- **埋めるべき境目。**
+  `FRONTIER` の下の各行は、``app/models/loan.rb:8:4 makes `amount_cents > 10_000` true`` のように、分岐をファイル、行、列で示します。
+  `nearest` は、出発点にする入力です。
+- **カバレッジでは見えないもの。**
+  `RETURNED` は各入力が返した値を並べます。
+  `OPERATORS` はカバレッジが両側を数えない `&&` と `||` を示し、`BOUNDARIES` は境目の値で試すべき比較を並べます。
+- **3 つのやり方で入力を作る。**
+  `--strategy` は、与えた入力(`inputs`)、そのリテラルを変えた入力(`mutate`)、ランダムな入力(`random`)をこの順に実行します。
+  同じ入力、同じフラグ、同じ CRuby なら、出力も同じです。
+- **いまの振る舞いを固定するテスト。**
+  `--emit-tests PATH` は、すべての入力について Minitest か RSpec(`--format rspec`)の例を書きます。
+  `--pin-keys` は、返ったハッシュのうち指定したキーだけを固定します。
+- **テストスイートの中で。**
+  `Branchout.explore("Loan#approve", within: self, inputs: [...])` はスペックの中で動くので、各入力からスイートのファクトリーやヘルパーが使えます。
+  Active Record があれば、各入力はセーブポイントの中で実行され、あとでロールバックされます。
+- **機械が読む報告。**
+  `--json` と `--json-out PATH` は報告を JSON で、`--md-out PATH` は Markdown で書き出します。
+
+## エージェントでの使い方
+
+1. `if`、`unless`、`case` の分岐をいくつか持ち、値を返すメソッドを選びます。
+2. 入力を 1 つ与えて、`branchout explore <file> <entry>` か、スペックの中の `Branchout.explore` を実行します。
+3. `FRONTIER` の各行について、`nearest` のような入力を行が言うとおりに変えて足し、もう一度実行します。
+4. `RETURNED` の各値を、メソッドが返すべき値と比べてから、`--emit-tests` で例を書きます。
+
+gem にはエージェント向けの `branchout` スキルが入っています。
+
+## はじめかた
+
+branchout には Ruby 3.3 以降が必要です。
+標準ライブラリの Coverage、Prism、json を使います。
+
+```sh
+gem install branchout rspec
+branchout explore shipping.rb Shipping.fee --emit-tests shipping_spec.rb
+```
+
+Rails アプリでは、Gemfile に `gem "branchout", group: :test, require: false` を足し、スペックから `Branchout.explore` を呼びます。
+
+## 組み合わせ
+
+- branchout が書いた例は、[jitcatch](/ja/tools/jitcatch/) の候補にできます。
+  base のリビジョンのチェックアウトで `--require-by-name` を付けて書くと、それぞれの側が自分のコードを読み込みます。

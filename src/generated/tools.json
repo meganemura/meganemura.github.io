@@ -13,7 +13,7 @@
     "source": "npm",
     "slug": "archstrict",
     "name": "archstrict",
-    "version": "0.6.0",
+    "version": "0.7.0",
     "description": "TypeScript module boundary checker: default-private module surfaces, layers, cycles, and a todo freeze that can only shrink.",
     "bins": [
       "archstrict"
@@ -42,6 +42,16 @@
       "finderscope",
       "stryker-agent-reporter"
     ]
+  },
+  {
+    "source": "rubygems",
+    "slug": "branchout",
+    "name": "branchout",
+    "version": "0.2.0",
+    "description": "Runs a Ruby method on concrete inputs and reports branch arms that are still\nuncovered. An agent reads that frontier and proposes the next inputs.\nBranchout does not collect or solve symbolic path constraints.\n",
+    "license": "MIT",
+    "repo": "https://github.com/meganemura/branchout",
+    "uses": []
   },
   {
     "source": "github",
@@ -181,11 +191,25 @@
     "source": "rubygems",
     "slug": "hegel-ruby",
     "name": "hegeltest",
-    "version": "0.4.0",
+    "version": "0.5.2",
     "description": "An unofficial Ruby implementation of the Hegel protocol. Hegel is a\nproperty-based testing framework based on Hypothesis. This gem drives\nlibhegel, the same native engine that backs the Rust, Go, TypeScript,\nJava, OCaml, and C++ implementations.\n",
     "license": "MIT",
     "repo": "https://github.com/meganemura/hegel-ruby",
     "uses": []
+  },
+  {
+    "source": "rubygems",
+    "slug": "holdfast",
+    "name": "holdfast",
+    "version": "0.2.0",
+    "description": "holdfast turns each suspicion an agent writes about a Rails app (a bug, a race, an effect on another area) into a spec built with the app's factories, runs it on base and head, and answers confirmed, refuted, or could_not_run. It also checks a change against its base and hunts with random sequences of the app's entry points when nothing changed.",
+    "license": "MIT",
+    "repo": "https://github.com/meganemura/holdfast",
+    "uses": [
+      "branchout",
+      "hegel-ruby",
+      "jitcatch"
+    ]
   },
   {
     "source": "github",
@@ -204,6 +228,16 @@
     "commit": "d041af0"
   },
   {
+    "source": "rubygems",
+    "slug": "jitcatch",
+    "name": "jitcatch",
+    "version": "0.2.1",
+    "description": "jitcatch runs candidate Minitest or RSpec files on two git revisions, drops flakes and other non-signals, and prints the tests that pass on the parent and fail on the change, with the changed methods each one reaches.",
+    "license": "MIT",
+    "repo": "https://github.com/meganemura/jitcatch",
+    "uses": []
+  },
+  {
     "source": "github",
     "section": "skills",
     "slug": "mutation-testing-skills",
@@ -219,13 +253,13 @@
     "install": [
       "npx skills add meganemura/mutation-testing-skills --skill stryker -g -a claude-code"
     ],
-    "commit": "910fa5f"
+    "commit": "2496344"
   },
   {
     "source": "npm",
     "slug": "nukadoko",
     "name": "nukadoko",
-    "version": "0.23.0",
+    "version": "0.25.0",
     "description": "Typed step contracts for Gherkin, so a scenario can be told wrong before it runs. Every execution leaves a step record the tool measured rather than the agent reported, and every run a Markdown summary that is the run's evidence.",
     "bins": [
       "nuka"
@@ -288,6 +322,26 @@
     "commit": "4a98dc7"
   },
   {
+    "source": "rubygems",
+    "slug": "quint_driver",
+    "name": "quint_driver",
+    "version": "0.2.0",
+    "description": "Run a Ruby system the way a Quint spec says, and compare the two after every step.",
+    "license": "MIT",
+    "repo": "https://github.com/meganemura/quint_driver",
+    "uses": []
+  },
+  {
+    "source": "rubygems",
+    "slug": "rubocop-dynamic_methods",
+    "name": "rubocop-dynamic_methods",
+    "version": "0.1.0",
+    "description": "RuboCop cops that rewrite dynamically defined methods as plain defs you can search for.",
+    "license": "MIT",
+    "repo": "https://github.com/meganemura/rubocop-dynamic_methods",
+    "uses": []
+  },
+  {
     "source": "npm",
     "slug": "runtag",
     "name": "runtag",
@@ -307,7 +361,7 @@
     "source": "npm",
     "slug": "solarsql",
     "name": "solarsql",
-    "version": "0.8.0",
+    "version": "0.9.0",
     "description": "Typed SQL for SQLite on Cloudflare D1 and Durable Objects: types from the real engine at build time, a command as one transaction, failures as values.",
     "bins": [
       "solarsql"

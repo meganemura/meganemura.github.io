@@ -1,0 +1,54 @@
+---
+title: holdfast
+description: Runs what an agent suspects about a Rails app, on base and head, and answers confirmed with a failing spec to keep, refuted, or could_not_run.
+---
+
+import ToolFacts from '../../../components/ToolFacts.astro';
+
+<ToolFacts slug="holdfast" lang="en" />
+
+A coding agent that reads code and has to say what it found often leaves a suspicion read but not run.
+holdfast runs it.
+The agent writes each suspicion (a bug, a race between two actions, an effect on another area) as a few lines of YAML.
+`holdfast check` builds the world with the app's own factories, runs the action on base and head, and answers `confirmed` with a failing spec to keep, `refuted` with what it observed, or `could_not_run` with the exact error.
+
+## Features
+
+- **Suspicions in YAML.** `given` makes one record per key from the factory of that name, `do` is Ruby, and `expect` is what must be true afterwards. `--suspect YAML` passes one suspicion on the command line.
+- **Races.** `race:` holds the first action at a pause point while the second runs, then the reverse, and also runs both serial orders. A race is confirmed only when the held order ends in a state that no serial order reaches.
+- **A spec to keep.** Each confirmed row names a spec under `spec/holdfast/<branch>/` that fails until the code is fixed, and a `repro:` command that runs it.
+- **Checking a change.** On a branch, each suspicion runs on the base and on the working tree, and the row says whether the change brought it in or removed it. `holdfast run` checks a change with no suspicions: each changed method gets a row such as `unintended_change` or `intended_change`.
+- **Hunting when nothing changed.** `holdfast run` drafts one sequence definition per write area of the app (routes, Grape endpoints, jobs) and runs random orders of their actions under invariants. A failure is shrunk, and the log holds an `it` block that replays it.
+- **Test databases of its own.** Base and head, and two apps on one server, get their own database names through `DATABASE_URL`. On SQLite each side gets its own file under `.holdfast/db/`.
+
+## How an agent uses it
+
+1. Read the code, and write down each thing that looks wrong as a suspicion.
+2. Run `bundle exec holdfast check suspicions.yml`.
+3. For a `confirmed` row, keep the spec it names, fix the code, and run the spec until it passes. For a `refuted` row, read what was observed.
+4. When there is no suspicion yet, run `holdfast run` and turn each suspected bug it prints into a suspicion to confirm with `holdfast check`.
+
+Exit status 2 means a row was confirmed, 1 a usage error, and 0 that nothing was confirmed.
+The gem ships a `holdfast` skill with the loop an agent follows and every form a suspicion can take.
+
+## Getting started
+
+holdfast needs Ruby 3.4 or newer, git, and an app whose specs run with RSpec and FactoryBot against a test database on PostgreSQL or SQLite.
+
+```ruby
+group :test do
+  gem "holdfast", require: false
+end
+```
+
+```sh
+bundle install
+bundle exec holdfast check suspicions.yml
+```
+
+Add `.holdfast/` to the app's `.gitignore`, and commit the specs you keep.
+
+## Works with
+
+- The part of `holdfast run` that checks a change runs on [jitcatch](/tools/jitcatch/) and [branchout](/tools/branchout/), which come with holdfast.
+- The hunt uses [hegel-ruby](/tools/hegel-ruby/) (the hegeltest gem), which holdfast depends on.

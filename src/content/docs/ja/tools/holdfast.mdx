@@ -1,0 +1,67 @@
+---
+title: holdfast
+description: エージェントが Rails アプリに抱いた疑いを base と head で実行し、残すべき失敗するスペック付きの confirmed、refuted、could_not_run のどれかで答えます。
+---
+
+import ToolFacts from '../../../../components/ToolFacts.astro';
+
+<ToolFacts slug="holdfast" lang="ja" />
+
+コードを読んで見つけたことを伝えるコーディングエージェントは、疑いを読んだだけで実行しないまま終えがちです。
+holdfast はその疑いを実行します。
+エージェントは、バグ、2 つの操作の競合、別の領域への影響といった疑いを、それぞれ数行の YAML で書きます。
+`holdfast check` はアプリ自身のファクトリーで状態を作り、操作を base と head で実行します。
+答えは 3 つです。
+`confirmed` には残すべき失敗するスペックが付き、`refuted` には観察した内容が付き、`could_not_run` には正確なエラーが付きます。
+
+## 特徴
+
+- **YAML で書く疑い。**
+  `given` はキーごとに同じ名前のファクトリーからレコードを 1 つ作り、`do` は Ruby で、`expect` は実行後に成り立つべきことです。
+  `--suspect YAML` で、疑いを 1 つコマンドラインから渡せます。
+- **競合。**
+  `race:` は、1 つめの操作を一時停止点で止めて 2 つめを実行し、次にその逆を行い、さらに 2 つの順番どおりの実行も行います。
+  止めた順番が、どの順番どおりの実行でも届かない状態で終わったときだけ、競合は confirmed になります。
+- **残すスペック。**
+  confirmed の各行は、コードを直すまで失敗する `spec/holdfast/<branch>/` の下のスペックと、それを実行する `repro:` のコマンドを示します。
+- **変更を確かめる。**
+  ブランチの上では、各疑いを base と作業ツリーで実行し、その変更が疑いを持ち込んだのか取り除いたのかを行に書きます。
+  `holdfast run` は疑いなしで変更を確かめ、変更された各メソッドに `unintended_change` や `intended_change` などの行を付けます。
+- **何も変わっていないときは探す。**
+  `holdfast run` は、アプリの書き込みの領域(ルート、Grape のエンドポイント、ジョブ)ごとに一連の操作の定義を下書きし、不変条件の下でその操作をランダムな順番で実行します。
+  失敗は縮められ、ログにはそれを再現する `it` ブロックが残ります。
+- **自分専用のテスト用データベース。**
+  base と head、また 1 つのサーバー上の 2 つのアプリは、`DATABASE_URL` でそれぞれ別のデータベース名を使います。
+  SQLite では、それぞれの側が `.holdfast/db/` の下に自分のファイルを持ちます。
+
+## エージェントでの使い方
+
+1. コードを読み、おかしく見えることを 1 つずつ疑いとして書きます。
+2. `bundle exec holdfast check suspicions.yml` を実行します。
+3. `confirmed` の行は、示されたスペックを残し、コードを直して、そのスペックが通るまで実行します。`refuted` の行は、観察した内容を読みます。
+4. まだ疑いがないときは `holdfast run` を実行し、表示された疑わしいバグを疑いとして書いて、`holdfast check` で確かめます。
+
+終了コードは、confirmed の行があれば 2、使い方の誤りなら 1、何も confirmed でなければ 0 です。
+gem には `holdfast` スキルが入っていて、エージェントが回す手順と、疑いの書き方をすべて示します。
+
+## はじめかた
+
+holdfast には Ruby 3.4 以降と git、そして PostgreSQL か SQLite のテスト用データベースに対して RSpec と FactoryBot でスペックが動くアプリが必要です。
+
+```ruby
+group :test do
+  gem "holdfast", require: false
+end
+```
+
+```sh
+bundle install
+bundle exec holdfast check suspicions.yml
+```
+
+アプリの `.gitignore` に `.holdfast/` を足し、残すスペックはコミットします。
+
+## 組み合わせ
+
+- `holdfast run` のうち変更を確かめる部分は、holdfast と一緒に入る [jitcatch](/ja/tools/jitcatch/) と [branchout](/ja/tools/branchout/) の上で動きます。
+- 探索には、holdfast が依存する [hegel-ruby](/ja/tools/hegel-ruby/)(hegeltest gem)を使います。

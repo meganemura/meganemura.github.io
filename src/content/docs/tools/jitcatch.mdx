@@ -1,0 +1,51 @@
+---
+title: jitcatch
+description: Keeps the Ruby tests that pass on the parent of a change and fail on the change, and names the changed method each one reaches.
+---
+
+import ToolFacts from '../../../components/ToolFacts.astro';
+
+<ToolFacts slug="jitcatch" lang="en" />
+
+A coding agent that reviews a change writes tests for that diff.
+A test that only describes the new behavior fails on the parent too, so it is not evidence of a regression.
+jitcatch runs the candidate Minitest or RSpec files on both revisions, drops flakes and other non-signals, and keeps the tests that the parent passes and the change fails.
+Each kept test shows a claim the old code met and the new code does not, with the changed method it reaches.
+
+## Features
+
+- **Two revisions, one report.** `jitcatch run BASE HEAD TESTS_DIR` runs each candidate file in a checkout of each side and sorts every test into `no_signal`, `fail_on_base`, `flaky`, `discarded`, or `reported`. Only `reported` rows are left to judge.
+- **Flakes dropped.** After a pass on base and a fail on head, `--reruns N` runs the test again on head (2 by default). A test that does not fail the same way again is `flaky` and is dropped.
+- **The changed method named.** Each row carries a method id such as `m01` and a tag such as `touches:changed_method`. `jitcatch context BASE HEAD` prints the old and new source of each changed method.
+- **A line to rerun.** Each reported row shows the expected and actual values and a `rerun:` command that runs that one test again.
+- **Rails apps.** In an app with `config/application.rb`, the timeout is 60 seconds, and each checkout boots the app. When base and head would share one test database, `run` runs one process at a time and prints a `warning:` that names the line to change in `config/database.yml`.
+- **JSON for a machine.** `--json` prints the same document for `context`, `run`, and `assess`, and `jitcatch assess RUN.json` prints a saved run again.
+
+## How an agent uses it
+
+1. Pick a commit, and write a few tests in a scratch directory, such as `tmp/jitcatch`, that state what the code did before it.
+2. Run `bundle exec jitcatch run <commit>~1 <commit> tmp/jitcatch`.
+3. Read each `reported` row against the commit message: a change the message asks for is intended, and anything else is a likely regression.
+4. Run the `rerun:` line to see the failure again, and `jitcatch context` to read the old and new source.
+
+Exit status 0 means the command finished, even when it found candidates. Exit status 3 means `run` tested nothing, for example when no candidate file loaded on either side.
+The gem ships a `jitcatch` skill for the agent.
+
+## Getting started
+
+jitcatch needs Ruby 3.3 or newer and git, and has no runtime dependency.
+
+```ruby
+group :development, :test do
+  gem "jitcatch", require: false
+end
+```
+
+```sh
+bundle install
+bundle exec jitcatch run c3ef899~1 c3ef899 tmp/jitcatch
+```
+
+## Works with
+
+- Characterization tests that [branchout](/tools/branchout/) writes can be jitcatch candidates, as Minitest files or RSpec specs.

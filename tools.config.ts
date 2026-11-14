@@ -90,6 +90,11 @@ export const tools: readonly ToolEntry[] = [
   gem("bulldogger"),
   gem("archspec_diagram"),
   gem("hegel-ruby", "hegeltest"),
+  gem("jitcatch"),
+  gem("branchout"),
+  gem("quint_driver"),
+  gem("holdfast"),
+  gem("rubocop-dynamic_methods"),
   github("headsign", {
     section: "skills",
     skills: ["skills/create-project-skill/SKILL.md", "skills/improve-project-skill/SKILL.md"],

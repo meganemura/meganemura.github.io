@@ -25,6 +25,7 @@ import LoopStages from '../../../components/LoopStages.astro';
       tools: [
         { slug: "polylinedb", role: "タスク、その担当、プロジェクトのメモリを管理する" },
         { slug: "spacequery", role: "どのエージェントがどこで動き、どのワークツリーが空いているかを示す" },
+        { slug: "rubocop-dynamic_methods", role: "メタプログラミングで定義したメソッドを、検索で見つかるふつうの def に書き出す" },
       ],
     },
     {
@@ -33,6 +34,10 @@ import LoopStages from '../../../components/LoopStages.astro';
         { slug: "nukadoko", role: "リファインメントで作った受け入れ条件を、型付きの実行できる検証にする" },
         { slug: "firstlight", role: "lint、型検査、テストを並列で実行する" },
         { slug: "archstrict", role: "モジュール境界とレイヤーを検査する" },
+        { slug: "jitcatch", role: "変更の前に通り、変更の後に落ちるテストだけを残す" },
+        { slug: "branchout", role: "どの入力も通らなかった分岐を示し、メソッドがいま返す値を固定する" },
+        { slug: "quint_driver", role: "Ruby のコードを Quint の仕様と 1 ステップごとに比べる" },
+        { slug: "holdfast", role: "エージェントが Rails アプリに抱いた疑いを実行し、失敗するスペックを残す" },
         { slug: "stryker-agent-reporter", role: "テストが本当に効いているか（生き残った変異）をゲートにする" },
         { slug: "mutation-testing-skills", role: "ミューテーションテストの手順をエージェントに示す" },
         { slug: "depug", role: "失敗したテストが受け取った値を計測する" },
