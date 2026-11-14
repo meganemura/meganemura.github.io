@@ -26,9 +26,16 @@ jobs:
       - run: npm ci
       - run: npm run check
       - run: npm run build
-      - uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3.0.1
+      # upload-pages-artifact calls actions/upload-artifact by tag, which the repository's
+      # rule that every action is pinned to a commit SHA refuses, so its two steps are inlined.
+      - name: Archive dist
+        run: tar --dereference --hard-dereference --directory dist -cvf "$RUNNER_TEMP/artifact.tar" --exclude=.git --exclude=.github .
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          path: dist
+          name: github-pages
+          path: ${{ runner.temp }}/artifact.tar
+          retention-days: 1
+          if-no-files-found: error
 
   deploy:
     needs: build
