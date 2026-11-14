@@ -1,5 +1,5 @@
 // Turns an npm registry manifest into an NpmFact.
-import type { NpmEntry, SharedEntry, ToolEntry } from "../../tools.config.ts";
+import type { NpmEntry, ToolEntry } from "../../tools.config.ts";
 import type { NpmFact } from "./types.ts";
 
 export interface RegistryManifest {
@@ -20,14 +20,12 @@ function binNames(manifest: RegistryManifest): string[] {
   return Object.keys(bin).sort();
 }
 
-export function toNpmFact(entry: NpmEntry, manifest: RegistryManifest, registry: readonly ToolEntry[], shared: readonly SharedEntry[] = []): NpmFact {
+export function toNpmFact(entry: NpmEntry, manifest: RegistryManifest, registry: readonly ToolEntry[]): NpmFact {
   const dependencies = { ...manifest.dependencies, ...manifest.devDependencies };
   const uses = registry
     .filter((other) => other.source === "npm" && other.slug !== entry.slug && other.npm in dependencies)
     .map((other) => other.slug)
     .sort();
-  // A package that is the shared library itself shares it too, so the graph marks it.
-  const shares = shared.filter((library) => library.npm === manifest.name || library.npm in dependencies).map((library) => library.id);
   return {
     source: "npm",
     slug: entry.slug,
@@ -38,7 +36,6 @@ export function toNpmFact(entry: NpmEntry, manifest: RegistryManifest, registry:
     license: manifest.license ?? null,
     repo: entry.repo,
     uses,
-    shares,
   };
 }
 

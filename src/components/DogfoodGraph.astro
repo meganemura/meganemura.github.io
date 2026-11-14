@@ -1,6 +1,5 @@
 ---
-import { layoutGraph, type GraphLayout, type LayoutOptions } from "../../scripts/graph/index.ts";
-import { shared } from "../../tools.config.ts";
+import { drawGlobe, layoutGlobe } from "../../scripts/graph/index.ts";
 import { graphEdges, packageFacts, t, toolHref, type Lang } from "../lib/data.ts";
 
 interface Props {
@@ -9,71 +8,144 @@ interface Props {
 const { lang } = Astro.props;
 const text = t(lang);
 
-// A package depends only on packages of its own registry, so the npm tools and the gems are two
-// graphs with no edge between them. What joins them is a library both sides use through a package
-// of their own, which the space between the graphs names.
-function graphOf(source: "npm" | "rubygems", center?: readonly string[], options?: LayoutOptions): GraphLayout {
-  const facts = packageFacts.filter((fact) => fact.source === source);
-  const ids = new Set(facts.map((fact) => fact.slug));
-  return layoutGraph([...ids], graphEdges.filter((edge) => ids.has(edge.from)), center, options);
-}
-
-// The owner picks the npm tools that sit inside the ring: the ones the other tools are built on or
-// run on themselves. The gems have one tool most of the others use, and it takes the center alone.
-const graphs = [
-  { source: "npm" as const, title: "npm", layout: graphOf("npm", ["archstrict", "solarsql", "nukadoko", "polylinedb"], { minRing: 220, labelRoom: 170 }) },
-  { source: "rubygems" as const, title: "RubyGems", layout: graphOf("rubygems", undefined, { labelRoom: 260 }) },
-];
-const sharesOf = new Map(packageFacts.map((fact) => [fact.slug, fact.shares]));
-const libraries = shared.map((library) => ({
-  ...library,
-  npmUsers: packageFacts.filter((fact) => fact.source === "npm" && fact.shares.includes(library.id)).length,
-  gemUsers: packageFacts.filter((fact) => fact.source === "rubygems" && fact.name !== library.gem && fact.shares.includes(library.id)).length,
-  // The package of the library itself, when this site lists it, as hegeltest is listed as hegel-ruby.
-  gemSlug: packageFacts.find((fact) => fact.source === "rubygems" && fact.name === library.gem)?.slug,
-}));
-const [npmGraph, gemGraph] = graphs;
+// The server draws the globe at its starting turn, so the page shows every tool and edge without
+// JavaScript; the script below turns that same drawing.
+const START = { yaw: -1.15, pitch: 0.3 };
+const VIEW = { cx: 450, cy: 330, radius: 270 };
+const globe = layoutGlobe(packageFacts.map((fact) => ({ id: fact.slug, group: fact.source })), graphEdges);
+const drawing = drawGlobe(globe, START.yaw, START.pitch, VIEW);
+const users = new Set(graphEdges.map((edge) => edge.from));
+const used = new Set(graphEdges.map((edge) => edge.to));
+const opacity = (depth: number) => Math.round((0.18 + 0.82 * ((depth + 1) / 2)) * 100) / 100;
+const hrefs = Object.fromEntries(globe.nodes.map((node) => [node.id, toolHref(node.id, lang)]));
 ---
 
-<figure class="dogfood">
-  <div class="dogfood__graphs">
-    {[npmGraph, null, gemGraph].map((graph) =>
-      graph === null ? (
-        <div class="dogfood__bridge">
-          <p class="dogfood__bridge-title">{text.graphShared}</p>
-          {libraries.map((library) => (
-            <div class="dogfood__library">
-              <span class="dogfood__pill">{library.name}</span>
-              <p>{text.graphSharedLine(library.npm, library.npmUsers, library.gemSlug === undefined ? library.gem : `${library.gem} (${library.gemSlug})`, library.gemUsers)}</p>
-            </div>
-          ))}
-        </div>
-      ) : graph && (
-        <div class="dogfood__graph" style={`max-width: ${Math.round(graph.layout.width * 0.8)}px`}>
-          <p class="dogfood__title">{graph.title}</p>
-          <svg viewBox={`0 0 ${graph.layout.width} ${graph.layout.height}`} role="img" aria-label={`${text.graphLabel}: ${graph.title}`}>
-            <defs>
-              <marker id={`dogfood-arrow-${graph.source}`} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
-                <path d="M0 0L10 5L0 10z" class="dogfood__arrowhead"></path>
-              </marker>
-            </defs>
-            {graph.layout.edges.map((edge) => (
-              <path d={edge.path} class:list={["dogfood__edge", { "dogfood__edge--mutual": edge.mutual }]} marker-end={`url(#dogfood-arrow-${graph.source})`} marker-start={edge.mutual ? `url(#dogfood-arrow-${graph.source})` : undefined}><title>{`${edge.from} ${edge.mutual ? "↔" : "→"} ${edge.to}`}</title></path>
-            ))}
-            {graph.layout.nodes.map((node) => (
-              <a href={toolHref(node.id, lang)}>
-                <circle cx={node.x} cy={node.y} r={node.r} class:list={["dogfood__node", { "dogfood__node--shared": (sharesOf.get(node.id) ?? []).length > 0 }]}></circle>
-              </a>
-            ))}
-            {graph.layout.nodes.map((node) => (
-              <a href={toolHref(node.id, lang)}>
-                <text x={node.labelX} y={node.labelY} text-anchor={node.anchor} class="dogfood__label">{node.id}</text>
-              </a>
-            ))}
-          </svg>
-        </div>
-      ),
-    )}
-  </div>
+<figure class="dogfood" data-globe={JSON.stringify({ globe, start: START, view: VIEW })}>
+  <p class="dogfood__stats">{text.graphStats(packageFacts.length, users.size, used.size, graphEdges.length)}</p>
+  <svg viewBox="0 0 900 660" role="img" aria-label={text.graphLabel}>
+    <defs>
+      <marker id="dogfood-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+        <path d="M0 0L10 5L0 10z" class="dogfood__arrowhead"></path>
+      </marker>
+      <radialGradient id="dogfood-shade" cx="40%" cy="35%" r="70%">
+        <stop offset="0%" class="dogfood__shade-light"></stop>
+        <stop offset="100%" class="dogfood__shade-dark"></stop>
+      </radialGradient>
+    </defs>
+    <circle cx={VIEW.cx} cy={VIEW.cy} r={VIEW.radius} class="dogfood__sphere" fill="url(#dogfood-shade)"></circle>
+    <g class="dogfood__edges">
+      {drawing.edges.map((edge) => (
+        <path d={edge.path} data-from={edge.from} data-to={edge.to} opacity={opacity(edge.depth)} class:list={["dogfood__edge", { "dogfood__edge--mutual": edge.mutual }]} marker-end="url(#dogfood-arrow)" marker-start={edge.mutual ? "url(#dogfood-arrow)" : undefined}><title>{`${edge.from} ${edge.mutual ? "↔" : "→"} ${edge.to}`}</title></path>
+      ))}
+    </g>
+    <g class="dogfood__nodes">
+      {drawing.nodes.map((node) => (
+        <a href={hrefs[node.id]} data-id={node.id} opacity={opacity(node.depth)} class:list={["dogfood__tool", `dogfood__tool--${node.group}`]}>
+          <circle cx={node.x} cy={node.y} r={node.r} class="dogfood__node"></circle>
+          <text x={node.x + node.r + 5} y={node.y + 5} class="dogfood__label">{node.id}</text>
+        </a>
+      ))}
+    </g>
+  </svg>
+  <p class="dogfood__legend">
+    <span class="dogfood__key dogfood__key--npm">npm</span>
+    <span class="dogfood__key dogfood__key--rubygems">RubyGems</span>
+    <span class="dogfood__hint">{text.graphHint}</span>
+  </p>
   <figcaption>{text.graphCaption}</figcaption>
 </figure>
+
+<script>
+  import { drawGlobe, type Globe, type View } from "../../scripts/graph/index.ts";
+
+  // Turns the globe the server drew: slowly by itself, and by dragging. Pointing at a tool lights
+  // the tools it uses and the tools that use it. Motion stops for a reader who asked for less.
+  for (const figure of document.querySelectorAll<HTMLElement>(".dogfood[data-globe]")) {
+    const { globe, start, view } = JSON.parse(figure.dataset.globe ?? "{}") as { globe: Globe; start: { yaw: number; pitch: number }; view: View };
+    const svg = figure.querySelector("svg") as SVGSVGElement;
+    const layer = figure.querySelector(".dogfood__nodes") as SVGGElement;
+    const tools = new Map([...figure.querySelectorAll<SVGAElement>(".dogfood__tool")].map((a) => [a.dataset.id ?? "", a]));
+    const edges = [...figure.querySelectorAll<SVGPathElement>(".dogfood__edge")];
+    const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let { yaw, pitch } = start;
+    let dragging: { x: number; y: number; moved: boolean } | null = null;
+    let pointing = false;
+    let visible = true;
+    let last = performance.now();
+    const opacity = (depth: number) => String(Math.round((0.18 + 0.82 * ((depth + 1) / 2)) * 100) / 100);
+
+    const draw = () => {
+      const drawing = drawGlobe(globe, yaw, pitch, view);
+      drawing.edges.forEach((edge, i) => {
+        const path = edges[i] as SVGPathElement;
+        path.setAttribute("d", edge.path);
+        path.setAttribute("opacity", opacity(edge.depth));
+      });
+      for (const node of drawing.nodes) {
+        const a = tools.get(node.id) as SVGAElement;
+        const circle = a.querySelector("circle") as SVGCircleElement;
+        const label = a.querySelector("text") as SVGTextElement;
+        circle.setAttribute("cx", String(node.x));
+        circle.setAttribute("cy", String(node.y));
+        label.setAttribute("x", String(node.x + node.r + 5));
+        label.setAttribute("y", String(node.y + 5));
+        a.setAttribute("opacity", opacity(node.depth));
+        layer.appendChild(a);
+      }
+    };
+
+    const frame = (now: number) => {
+      const seconds = Math.min(0.1, (now - last) / 1000);
+      last = now;
+      if (!dragging && !pointing && visible && !still) {
+        yaw += seconds * 0.18;
+        draw();
+      }
+      requestAnimationFrame(frame);
+    };
+    requestAnimationFrame(frame);
+
+    new IntersectionObserver(([entry]) => {
+      visible = entry?.isIntersecting ?? true;
+    }).observe(svg);
+
+    svg.addEventListener("pointerdown", (event) => {
+      dragging = { x: event.clientX, y: event.clientY, moved: false };
+    });
+    window.addEventListener("pointermove", (event) => {
+      if (!dragging) return;
+      const scale = 900 / svg.getBoundingClientRect().width;
+      const dx = (event.clientX - dragging.x) * scale;
+      const dy = (event.clientY - dragging.y) * scale;
+      if (!dragging.moved && Math.hypot(dx, dy) < 6) return;
+      dragging = { x: event.clientX, y: event.clientY, moved: true };
+      yaw += dx / view.radius;
+      pitch = Math.max(-1.3, Math.min(1.3, pitch + dy / view.radius));
+      draw();
+    });
+    window.addEventListener("pointerup", () => {
+      // A drag can end on a tool's link; the click that follows must not open it.
+      if (dragging?.moved) svg.addEventListener("click", (event) => event.preventDefault(), { capture: true, once: true });
+      dragging = null;
+    });
+
+    const light = (id: string | null) => {
+      figure.classList.toggle("is-pointing", id !== null);
+      for (const path of edges) path.classList.toggle("is-lit", id !== null && (path.dataset.from === id || path.dataset.to === id));
+      const near = new Set(edges.filter((path) => path.classList.contains("is-lit")).flatMap((path) => [path.dataset.from, path.dataset.to]));
+      for (const [tool, a] of tools) a.classList.toggle("is-lit", id !== null && (tool === id || near.has(tool)));
+    };
+    for (const [id, a] of tools) {
+      a.addEventListener("pointerenter", () => {
+        pointing = true;
+        light(id);
+      });
+      a.addEventListener("pointerleave", () => {
+        pointing = false;
+        light(null);
+      });
+      a.addEventListener("focus", () => light(id));
+      a.addEventListener("blur", () => light(null));
+    }
+  }
+</script>

@@ -31,25 +31,30 @@
 .tool-facts__head { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: baseline; }
 .tool-facts__label { margin-bottom: 0; color: var(--sl-color-gray-3); font-size: var(--sl-text-sm); }
 .tool-facts__links { padding-left: 1.2rem; }
-.dogfood { margin: 1.5rem 0; --dogfood-shared: var(--sl-color-orange, #d97706); }
-.dogfood svg { width: 100%; height: auto; display: block; }
-.dogfood__graphs { display: grid; gap: 1.25rem; justify-items: center; }
-.dogfood__graph { width: 100%; }
-.dogfood__bridge { max-width: 36rem; }
-.dogfood__title { margin: 0; font-weight: 600; font-size: var(--sl-text-lg); text-align: center; }
-.dogfood__bridge { border: 1px dashed var(--dogfood-shared); border-radius: 0.75rem; padding: 0.75rem 1rem; text-align: center; }
-.dogfood__bridge-title { margin: 0; color: var(--sl-color-gray-3); font-size: var(--sl-text-sm); }
-.dogfood__library { margin-top: 0.5rem; }
-.dogfood__library p { margin: 0.4rem 0 0; font-size: var(--sl-text-sm); }
-.dogfood__pill { display: inline-block; padding: 0.15rem 0.9rem; border: 3px solid var(--dogfood-shared); border-radius: 999px; font-weight: 600; }
-.dogfood figcaption { color: var(--sl-color-gray-3); font-size: var(--sl-text-sm); margin-top: 0.5rem; }
-.dogfood__node { fill: var(--sl-color-accent); stroke: var(--sl-color-bg); stroke-width: 2; }
-.dogfood__node--shared { stroke: var(--dogfood-shared); stroke-width: 4; }
-.dogfood__label { fill: var(--sl-color-text); font-size: 20px; paint-order: stroke; stroke: var(--sl-color-bg); stroke-width: 5px; stroke-linejoin: round; }
+.dogfood { margin: 1.5rem 0; --dogfood-npm: var(--sl-color-accent); --dogfood-gem: var(--sl-color-red, #e5484d); }
+.dogfood svg { width: 100%; max-width: 56rem; height: auto; display: block; margin: 0 auto; touch-action: pan-y; cursor: grab; user-select: none; }
+.dogfood svg:active { cursor: grabbing; }
+.dogfood__stats { font-size: var(--sl-text-base); font-weight: 600; text-align: center; }
+@media (min-width: 50rem) { .dogfood__stats { font-size: var(--sl-text-lg); } }
+.dogfood__sphere { stroke: var(--sl-color-gray-5); stroke-width: 1; }
+.dogfood__shade-light { stop-color: var(--sl-color-bg); }
+.dogfood__shade-dark { stop-color: var(--sl-color-gray-6); }
+.dogfood__node { stroke: var(--sl-color-bg); stroke-width: 2; }
+.dogfood__tool--npm .dogfood__node { fill: var(--dogfood-npm); }
+.dogfood__tool--rubygems .dogfood__node { fill: var(--dogfood-gem); }
+.dogfood__label { fill: var(--sl-color-text); font-size: 17px; paint-order: stroke; stroke: var(--sl-color-bg); stroke-width: 4px; stroke-linejoin: round; }
 .dogfood__edge { fill: none; stroke: var(--sl-color-gray-3); stroke-width: 1.5; }
-.dogfood__edge--mutual { stroke: var(--sl-color-accent); stroke-width: 2.25; }
+.dogfood__edge--mutual { stroke: var(--sl-color-accent); stroke-width: 2.5; }
 .dogfood__arrowhead { fill: var(--sl-color-gray-3); }
-.dogfood a:hover .dogfood__label { text-decoration: underline; }
+.dogfood a:hover .dogfood__label, .dogfood a:focus .dogfood__label { text-decoration: underline; }
+.dogfood.is-pointing .dogfood__edge:not(.is-lit) { stroke-opacity: 0.12; }
+.dogfood.is-pointing .dogfood__edge.is-lit { stroke: var(--sl-color-accent); stroke-width: 2.5; }
+.dogfood.is-pointing .dogfood__tool:not(.is-lit) { filter: opacity(0.3); }
+.dogfood__legend { display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; justify-content: center; align-items: center; font-size: var(--sl-text-sm); color: var(--sl-color-gray-3); }
+.dogfood__key::before { content: ""; display: inline-block; width: 0.7em; height: 0.7em; border-radius: 50%; margin-right: 0.35em; vertical-align: -0.05em; }
+.dogfood__key--npm::before { background: var(--dogfood-npm); }
+.dogfood__key--rubygems::before { background: var(--dogfood-gem); }
+.dogfood figcaption { color: var(--sl-color-gray-3); font-size: var(--sl-text-sm); margin-top: 0.5rem; }
 .claim__mark {
   color: var(--sl-color-green-high, var(--sl-color-gray-2));
   font-size: var(--sl-text-xs);
@@ -145,3 +150,4 @@ html[data-has-hero] {
   font-size: var(--sl-text-xs);
   color: var(--sl-color-gray-3);
 }
+.dogfood.is-pointing .dogfood__edge.is-lit, .dogfood.is-pointing .dogfood__tool.is-lit { opacity: 1; }

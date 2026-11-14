@@ -1,9 +1,8 @@
-// Pure geometry for the dogfood graph. No DOM, no I/O.
-// The most used tool sits in the center and the rest on a ring around it, so its many
-// incoming edges become short spokes instead of chords that cross the whole circle.
-// A caller can name the center tools instead; two or more sit on a small circle inside the
-// ring, and each ring tool moves toward the center tools it is joined to, so the spokes stay
-// short and cross less.
+// Pure geometry for the dogfood globe. No DOM, no I/O, no clock.
+// The tools sit on a unit sphere: a tool and the tools it uses pull together, every two tools
+// push apart, and each registry drifts toward a pole of its own, so the npm tools and the gems
+// fill two sides of one globe. The page turns the globe; this module only places the tools and
+// projects a turned point, so the server-drawn picture and the turning one use the same math.
 // A -> B and B -> A merge into one two-way edge, which keeps mutual use visible.
 
 export interface GraphEdge {
@@ -11,156 +10,189 @@ export interface GraphEdge {
   to: string;
 }
 
-export interface PositionedNode {
+export interface GlobeInput {
   id: string;
-  x: number;
-  y: number;
-  r: number;
-  labelX: number;
-  labelY: number;
-  anchor: "start" | "middle" | "end";
+  group: string;
 }
 
-export interface PositionedEdge extends GraphEdge {
-  path: string;
+export interface Vec3 {
+  x: number;
+  y: number;
+  z: number;
+}
+
+export interface GlobeNode extends Vec3 {
+  id: string;
+  group: string;
+  // How many tools here use this one; the page draws a more used tool larger.
+  usedBy: number;
+}
+
+export interface GlobeEdge extends GraphEdge {
   mutual: boolean;
 }
 
-export interface GraphLayout {
-  width: number;
-  height: number;
-  nodes: PositionedNode[];
-  edges: PositionedEdge[];
+export interface Globe {
+  nodes: GlobeNode[];
+  edges: GlobeEdge[];
 }
 
-const NODE_RADIUS = 9;
-const MIN_GAP = 2 * NODE_RADIUS + 44;
-const BASE_RING = 170;
-const LABEL_ROOM = 200;
-const BEND = 0.18;
+const STEPS = 400;
+const PUSH = 0.04;
+const PULL = 0.015;
+const DRIFT = 0.008;
 
-const round = (n: number) => Math.round(n * 100) / 100;
+const sub = (a: Vec3, b: Vec3): Vec3 => ({ x: a.x - b.x, y: a.y - b.y, z: a.z - b.z });
+const length = (a: Vec3) => Math.hypot(a.x, a.y, a.z);
+const unit = (a: Vec3): Vec3 => {
+  const l = length(a);
+  return l === 0 ? { x: 0, y: 0, z: 1 } : { x: a.x / l, y: a.y / l, z: a.z / l };
+};
 
-// `minRing` widens the ring for a graph with many edges between its center tools, and `labelRoom`
-// leaves room for its longest label beside the ring.
-export interface LayoutOptions {
-  minRing?: number;
-  labelRoom?: number;
-}
-
-export function layoutGraph(nodeIds: readonly string[], edges: readonly GraphEdge[], center?: readonly string[], options: LayoutOptions = {}): GraphLayout {
-  const known = new Set(nodeIds);
-  if (known.size !== nodeIds.length) throw new Error("duplicate node id");
+export function layoutGlobe(inputs: readonly GlobeInput[], edges: readonly GraphEdge[]): Globe {
+  const known = new Set(inputs.map((input) => input.id));
+  if (known.size !== inputs.length) throw new Error("duplicate node id");
   for (const edge of edges) {
     if (!known.has(edge.from) || !known.has(edge.to)) throw new Error(`edge ${edge.from} -> ${edge.to} names an unknown node`);
     if (edge.from === edge.to) throw new Error(`edge ${edge.from} -> ${edge.to} is a self loop`);
   }
-  for (const id of center ?? []) if (!known.has(id)) throw new Error(`center ${id} names an unknown node`);
-  if (center !== undefined && new Set(center).size !== center.length) throw new Error("duplicate center id");
 
-  const inDegree = new Map(nodeIds.map((id) => [id, 0]));
-  for (const edge of edges) inDegree.set(edge.to, (inDegree.get(edge.to) ?? 0) + 1);
-  const ordered = [...nodeIds].sort((a, b) => (inDegree.get(b) ?? 0) - (inDegree.get(a) ?? 0) || (a < b ? -1 : a > b ? 1 : 0));
+  // Sorting first makes the result independent of the order the caller listed the tools in.
+  const ordered = [...inputs].sort((a, b) => (a.group + "\u0000" + a.id < b.group + "\u0000" + b.id ? -1 : 1));
+  const index = new Map(ordered.map((input, i) => [input.id, i]));
+  const groups = [...new Set(ordered.map((input) => input.group))];
+  // Each registry gets a pole on the equator, evenly spaced; one registry gets none.
+  const poles = groups.map((_, g): Vec3 => ({ x: Math.cos((2 * Math.PI * g) / groups.length), y: 0, z: Math.sin((2 * Math.PI * g) / groups.length) }));
+  const pole = ordered.map((input) => (groups.length > 1 ? poles[groups.indexOf(input.group)] : undefined));
+  const links = [...new Set(edges.map((edge) => [edge.from, edge.to].sort().join("\u0000")))].map((key) => key.split("\u0000").map((id) => index.get(id) as number));
 
-  const hubs = center ?? (ordered.length >= 3 && (inDegree.get(ordered[0] as string) ?? 0) > 0 ? [ordered[0] as string] : []);
-  const isHub = new Set(hubs);
-  const rest = ordered.filter((id) => !isHub.has(id));
-  const count = rest.length;
-  const ring = count < 2 ? 0 : Math.max(options.minRing ?? BASE_RING, MIN_GAP / (2 * Math.sin(Math.PI / count)));
-  const inner = hubs.length < 2 ? 0 : Math.max(MIN_GAP / (2 * Math.sin(Math.PI / hubs.length)), ring * (hubs.length === 2 ? 0.3 : 0.4));
-  const half = ring + NODE_RADIUS + (options.labelRoom ?? LABEL_ROOM);
-  const width = round(2 * half);
-  const height = round(2 * (ring + NODE_RADIUS + 40));
-  const cx = width / 2;
-  const cy = height / 2;
-
-  // Two center tools sit left and right; three or more start at the top and go clockwise.
-  const hubAngle = (i: number) => (hubs.length === 2 ? Math.PI : -Math.PI / 2) + (2 * Math.PI * i) / hubs.length;
-  // Each ring tool points toward the center tools it is joined to: the sum of the directions
-  // to them. The ring keeps the tools in the order of those directions, turned so that each
-  // sits as close to its own direction as the even spacing allows. A tool joined to none, or
-  // pulled evenly from every side, has no direction and fills the widest gap between the rest.
-  const pull = new Map<string, { x: number; y: number }>(rest.map((id) => [id, { x: 0, y: 0 }]));
-  if (hubs.length >= 2) {
-    for (const edge of edges) {
-      const [ringId, hubId] = isHub.has(edge.to) ? [edge.from, edge.to] : [edge.to, edge.from];
-      const vector = pull.get(ringId);
-      const i = hubs.indexOf(hubId);
-      if (vector === undefined || i < 0) continue;
-      vector.x += Math.cos(hubAngle(i));
-      vector.y += Math.sin(hubAngle(i));
+  // Start on a Fibonacci spiral, which spreads any number of points evenly.
+  const n = ordered.length;
+  let points: Vec3[] = ordered.map((_, i) => {
+    const y = n === 1 ? 0 : 1 - (2 * i) / (n - 1);
+    const r = Math.sqrt(Math.max(0, 1 - y * y));
+    const turn = Math.PI * (3 - Math.sqrt(5)) * i;
+    return { x: r * Math.cos(turn), y, z: r * Math.sin(turn) };
+  });
+  for (let step = 0; step < STEPS; step += 1) {
+    const force = points.map((): Vec3 => ({ x: 0, y: 0, z: 0 }));
+    for (let i = 0; i < n; i += 1) {
+      for (let j = i + 1; j < n; j += 1) {
+        const d = sub(points[i] as Vec3, points[j] as Vec3);
+        const scale = PUSH / (d.x * d.x + d.y * d.y + d.z * d.z + 0.01);
+        const fi = force[i] as Vec3;
+        const fj = force[j] as Vec3;
+        fi.x += d.x * scale; fi.y += d.y * scale; fi.z += d.z * scale;
+        fj.x -= d.x * scale; fj.y -= d.y * scale; fj.z -= d.z * scale;
+      }
     }
-  }
-  const towards = new Map<string, number>();
-  for (const [id, vector] of pull) if (Math.hypot(vector.x, vector.y) > 0.3) towards.set(id, Math.atan2(vector.y, vector.x));
-  const aimed = rest.filter((id) => towards.has(id)).sort((a, b) => (towards.get(a) ?? 0) - (towards.get(b) ?? 0));
-  const loose = rest.filter((id) => !towards.has(id));
-  let after = aimed.length - 1;
-  let widest = -1;
-  aimed.forEach((id, i) => {
-    const next = aimed[(i + 1) % aimed.length] as string;
-    const gap = ((towards.get(next) ?? 0) - (towards.get(id) ?? 0) + 2 * Math.PI) % (2 * Math.PI) || 2 * Math.PI;
-    if (gap > widest) [widest, after] = [gap, i];
-  });
-  const ringIds = hubs.length >= 2 ? [...aimed.slice(after + 1), ...aimed.slice(0, after + 1), ...loose] : rest;
-  let turnX = 0;
-  let turnY = 0;
-  ringIds.forEach((id, i) => {
-    const want = towards.get(id);
-    if (want === undefined) return;
-    turnX += Math.cos(want - (2 * Math.PI * i) / count);
-    turnY += Math.sin(want - (2 * Math.PI * i) / count);
-  });
-  const start = hubs.length >= 2 && aimed.length > 0 ? Math.atan2(turnY, turnX) : -Math.PI / 2;
-
-  const nodes: PositionedNode[] = [];
-  hubs.forEach((id, i) => {
-    const r = NODE_RADIUS * 1.6;
-    const x = cx + inner * Math.cos(hubAngle(i));
-    const y = cy + inner * Math.sin(hubAngle(i));
-    nodes.push({ id, x: round(x), y: round(y), r, labelX: round(x), labelY: round(y + r + 18), anchor: "middle" });
-  });
-  ringIds.forEach((id, i) => {
-    const angle = start + (2 * Math.PI * i) / count;
-    const cos = Math.cos(angle);
-    const sin = Math.sin(angle);
-    const side = Math.abs(cos) < 0.2 ? 0 : Math.sign(cos);
-    const reach = NODE_RADIUS + 8;
-    nodes.push({
-      id,
-      x: round(cx + ring * cos),
-      y: round(cy + ring * sin),
-      r: NODE_RADIUS,
-      labelX: round(cx + ring * cos + side * reach),
-      labelY: round(cy + ring * sin + (side === 0 ? Math.sign(sin) * (reach + 6) : 5)),
-      anchor: side === 0 ? "middle" : side > 0 ? "start" : "end",
+    for (const [i, j] of links as [number, number][]) {
+      const d = sub(points[j] as Vec3, points[i] as Vec3);
+      const fi = force[i] as Vec3;
+      const fj = force[j] as Vec3;
+      fi.x += d.x * PULL; fi.y += d.y * PULL; fi.z += d.z * PULL;
+      fj.x -= d.x * PULL; fj.y -= d.y * PULL; fj.z -= d.z * PULL;
+    }
+    points = points.map((p, i) => {
+      const f = force[i] as Vec3;
+      const toward = pole[i];
+      const drift = toward === undefined ? { x: 0, y: 0, z: 0 } : { x: toward.x * DRIFT, y: toward.y * DRIFT, z: toward.z * DRIFT };
+      return unit({ x: p.x + f.x + drift.x, y: p.y + f.y + drift.y, z: p.z + f.z + drift.z });
     });
-  });
+  }
 
-  const byId = new Map(nodes.map((node) => [node.id, node]));
-  const seen = new Set<string>();
+  const usedBy = new Map<string, Set<string>>();
+  for (const edge of edges) usedBy.set(edge.to, (usedBy.get(edge.to) ?? new Set()).add(edge.from));
+  const nodes = ordered.map((input, i) => ({ id: input.id, group: input.group, ...(points[i] as Vec3), usedBy: usedBy.get(input.id)?.size ?? 0 }));
+
   const directed = new Set(edges.map((edge) => `${edge.from}\u0000${edge.to}`));
-  const paths: PositionedEdge[] = [];
+  const seen = new Set<string>();
+  const merged: GlobeEdge[] = [];
   for (const edge of edges) {
     const key = `${edge.from}\u0000${edge.to}`;
     const reverse = `${edge.to}\u0000${edge.from}`;
     if (seen.has(key) || seen.has(reverse)) continue;
     seen.add(key);
-    const mutual = directed.has(reverse);
-    const a = byId.get(edge.from) as PositionedNode;
-    const b = byId.get(edge.to) as PositionedNode;
-    const dx = b.x - a.x;
-    const dy = b.y - a.y;
-    const length = Math.hypot(dx, dy);
-    const ux = dx / length;
-    const uy = dy / length;
-    const start = { x: a.x + ux * (a.r + (mutual ? 5 : 2)), y: a.y + uy * (a.r + (mutual ? 5 : 2)) };
-    const end = { x: b.x - ux * (b.r + 5), y: b.y - uy * (b.r + 5) };
-    const spoke = isHub.has(edge.from) || isHub.has(edge.to);
-    const bend = spoke ? 0 : BEND;
-    const control = { x: (a.x + b.x) / 2 - uy * length * bend, y: (a.y + b.y) / 2 + ux * length * bend };
-    paths.push({ ...edge, mutual, path: `M${round(start.x)} ${round(start.y)} Q${round(control.x)} ${round(control.y)} ${round(end.x)} ${round(end.y)}` });
+    merged.push({ from: edge.from, to: edge.to, mutual: directed.has(reverse) });
   }
+  return { nodes, edges: merged };
+}
 
-  return { width, height, nodes, edges: paths };
+// Turns a point by `yaw` around the vertical axis, then by `pitch` around the horizontal one.
+export function turn(p: Vec3, yaw: number, pitch: number): Vec3 {
+  const x = p.x * Math.cos(yaw) + p.z * Math.sin(yaw);
+  const z1 = -p.x * Math.sin(yaw) + p.z * Math.cos(yaw);
+  const y = p.y * Math.cos(pitch) - z1 * Math.sin(pitch);
+  const z = p.y * Math.sin(pitch) + z1 * Math.cos(pitch);
+  return { x, y, z };
+}
+
+// The points of the shorter great-circle arc from a to b, both ends included, so an edge bends
+// around the globe instead of cutting through it.
+export function arc(a: Vec3, b: Vec3, segments: number): Vec3[] {
+  const ua = unit(a);
+  const ub = unit(b);
+  const dot = Math.min(1, Math.max(-1, ua.x * ub.x + ua.y * ub.y + ua.z * ub.z));
+  const angle = Math.acos(dot);
+  const points: Vec3[] = [];
+  for (let k = 0; k <= segments; k += 1) {
+    const t = k / segments;
+    if (angle < 1e-6) {
+      points.push(ua);
+      continue;
+    }
+    const wa = Math.sin((1 - t) * angle) / Math.sin(angle);
+    const wb = Math.sin(t * angle) / Math.sin(angle);
+    points.push(unit({ x: ua.x * wa + ub.x * wb, y: ua.y * wa + ub.y * wb, z: ua.z * wa + ub.z * wb }));
+  }
+  return points;
+}
+
+export interface View {
+  cx: number;
+  cy: number;
+  radius: number;
+}
+
+export interface DrawnNode {
+  id: string;
+  group: string;
+  x: number;
+  y: number;
+  r: number;
+  // 1 faces the reader, -1 faces away.
+  depth: number;
+}
+
+export interface DrawnEdge extends GlobeEdge {
+  path: string;
+  depth: number;
+}
+
+export interface Drawing {
+  nodes: DrawnNode[];
+  edges: DrawnEdge[];
+}
+
+const ARC_SEGMENTS = 18;
+const round = (n: number) => Math.round(n * 100) / 100;
+
+// Projects the turned globe onto the page, nodes back to front so a near tool covers a far one.
+// An edge stops one segment short of the tool it points at, so its arrowhead stays visible.
+export function drawGlobe(globe: Globe, yaw: number, pitch: number, view: View): Drawing {
+  const turned = new Map(globe.nodes.map((node) => [node.id, turn(node, yaw, pitch)]));
+  const nodes = globe.nodes
+    .map((node) => {
+      const p = turned.get(node.id) as Vec3;
+      return { id: node.id, group: node.group, x: round(view.cx + p.x * view.radius), y: round(view.cy - p.y * view.radius), r: round(6 + 2.5 * Math.sqrt(node.usedBy)), depth: round(p.z) };
+    })
+    .sort((a, b) => a.depth - b.depth || (a.id < b.id ? -1 : 1));
+  const edges = globe.edges.map((edge) => {
+    const points = arc(turned.get(edge.from) as Vec3, turned.get(edge.to) as Vec3, ARC_SEGMENTS);
+    const kept = points.slice(edge.mutual ? 1 : 0, ARC_SEGMENTS);
+    const path = kept.map((p, k) => `${k === 0 ? "M" : "L"}${round(view.cx + p.x * view.radius)} ${round(view.cy - p.y * view.radius)}`).join("");
+    const depth = round(points.reduce((sum, p) => sum + p.z, 0) / points.length);
+    return { ...edge, path, depth };
+  });
+  return { nodes, edges };
 }

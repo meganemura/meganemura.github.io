@@ -72,11 +72,11 @@ const TEXT = {
     ran: "ran in",
     exitCode: "exit",
     graphLabel: "Which tool uses which",
-    graphShared: "Used on both sides",
-    graphSharedLine: (npm: string, npmUsers: number, gem: string, gemUsers: number) =>
-      `${npmUsers} npm tools use it as ${npm}, and ${gemUsers} gems as ${gem}. An outer ring marks each of them.`,
+    graphStats: (packages: number, users: number, used: number, edges: number) =>
+      `${users} of the ${packages} packages here are built or tested with another tool here, and ${used} are used by another: ${edges} dependencies between tools of one author.`,
+    graphHint: "Drag to turn the globe. Point at a tool to light what it uses and what uses it.",
     graphCaption:
-      "An arrow points from a tool to a tool it depends on. The edges come from each package's runtime and development dependencies, and a package depends only on packages of its own registry, so npm and RubyGems are two graphs. archstrict, nukadoko, solarsql, and polylinedb sit inside the npm ring, hegel-ruby sits in the middle of the gems, and a two-headed colored line marks two tools that use each other.",
+      "An arrow points from a tool to a tool it depends on, read from each package's runtime and development dependencies on npm and RubyGems. A larger dot is used by more tools, and a two-headed colored line marks two tools that use each other.",
   },
   ja: {
     install: "インストール",
@@ -90,11 +90,11 @@ const TEXT = {
     ran: "実行ディレクトリ",
     exitCode: "終了コード",
     graphLabel: "どのツールがどのツールを使っているか",
-    graphShared: "両方で使っているもの",
-    graphSharedLine: (npm: string, npmUsers: number, gem: string, gemUsers: number) =>
-      `npm の ${npmUsers} 個のツールが ${npm} として、${gemUsers} 個の gem が ${gem} として使っています。使っているものは、点の外側の輪で示しています。`,
+    graphStats: (packages: number, users: number, used: number, edges: number) =>
+      `ここにある ${packages} 個のパッケージのうち、${users} 個はほかのツールを使って作ったりテストしたりしていて、${used} 個はほかのツールに使われています。同じ作者のツールの間の依存は ${edges} 本です。`,
+    graphHint: "ドラッグで地球儀を回せます。ツールを指すと、そのツールが使っているものと、そのツールを使っているものが光ります。",
     graphCaption:
-      "矢印は、あるツールから、そのツールが依存するツールに向かいます。依存の情報は、各パッケージの実行時と開発時の依存関係から読み込んでいます。パッケージは同じレジストリのパッケージにしか依存しないので、npm と RubyGems は別々の図にしています。npm の図では archstrict、nukadoko、solarsql、polylinedb の 4 つを輪の内側に、gem の図では hegel-ruby を中央に置き、互いに使い合う 2 つのツールは両端に矢印の付いた色付きの線で結んでいます。",
+      "矢印は、あるツールから、そのツールが依存するツールに向かいます。依存の情報は、npm と RubyGems にある各パッケージの実行時と開発時の依存関係から読み込んでいます。点が大きいほど、多くのツールに使われています。互いに使い合う 2 つのツールは、両端に矢印の付いた色付きの線で結んでいます。",
   },
 } as const;
 

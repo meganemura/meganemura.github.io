@@ -7,8 +7,7 @@
     "description": "Draw an Archspec.rb as a Mermaid flowchart",
     "license": "MIT",
     "repo": "https://github.com/meganemura/archspec_diagram",
-    "uses": [],
-    "shares": []
+    "uses": []
   },
   {
     "source": "npm",
@@ -25,9 +24,6 @@
       "depug",
       "nukadoko",
       "stryker-agent-reporter"
-    ],
-    "shares": [
-      "hegel"
     ]
   },
   {
@@ -45,9 +41,6 @@
       "archstrict",
       "finderscope",
       "stryker-agent-reporter"
-    ],
-    "shares": [
-      "hegel"
     ]
   },
   {
@@ -58,8 +51,7 @@
     "description": "Runs a Ruby method on concrete inputs and reports branch arms that are still\nuncovered. An agent reads that frontier and proposes the next inputs.\nBranchout does not collect or solve symbolic path constraints.\n",
     "license": "MIT",
     "repo": "https://github.com/meganemura/branchout",
-    "uses": [],
-    "shares": []
+    "uses": []
   },
   {
     "source": "github",
@@ -87,9 +79,6 @@
     "repo": "https://github.com/meganemura/bulldogger",
     "uses": [
       "hegel-ruby"
-    ],
-    "shares": [
-      "hegel"
     ]
   },
   {
@@ -106,9 +95,6 @@
     "uses": [
       "archstrict",
       "nukadoko"
-    ],
-    "shares": [
-      "hegel"
     ]
   },
   {
@@ -144,9 +130,6 @@
       "archstrict",
       "nukadoko",
       "stryker-agent-reporter"
-    ],
-    "shares": [
-      "hegel"
     ]
   },
   {
@@ -166,9 +149,6 @@
       "depug",
       "nukadoko",
       "stryker-agent-reporter"
-    ],
-    "shares": [
-      "hegel"
     ]
   },
   {
@@ -215,10 +195,7 @@
     "description": "An unofficial Ruby implementation of the Hegel protocol. Hegel is a\nproperty-based testing framework based on Hypothesis. This gem drives\nlibhegel, the same native engine that backs the Rust, Go, TypeScript,\nJava, OCaml, and C++ implementations.\n",
     "license": "MIT",
     "repo": "https://github.com/meganemura/hegel-ruby",
-    "uses": [],
-    "shares": [
-      "hegel"
-    ]
+    "uses": []
   },
   {
     "source": "rubygems",
@@ -232,9 +209,6 @@
       "branchout",
       "hegel-ruby",
       "jitcatch"
-    ],
-    "shares": [
-      "hegel"
     ]
   },
   {
@@ -261,8 +235,7 @@
     "description": "jitcatch runs candidate Minitest or RSpec files on two git revisions, drops flakes and other non-signals, and prints the tests that pass on the parent and fail on the change, with the changed methods each one reaches.",
     "license": "MIT",
     "repo": "https://github.com/meganemura/jitcatch",
-    "uses": [],
-    "shares": []
+    "uses": []
   },
   {
     "source": "github",
@@ -296,9 +269,6 @@
     "uses": [
       "archstrict",
       "depug"
-    ],
-    "shares": [
-      "hegel"
     ]
   },
   {
@@ -317,9 +287,6 @@
       "nukadoko",
       "solarsql",
       "stryker-agent-reporter"
-    ],
-    "shares": [
-      "hegel"
     ]
   },
   {
@@ -336,8 +303,7 @@
     "uses": [
       "archstrict",
       "nukadoko"
-    ],
-    "shares": []
+    ]
   },
   {
     "source": "github",
@@ -363,8 +329,7 @@
     "description": "Run a Ruby system the way a Quint spec says, and compare the two after every step.",
     "license": "MIT",
     "repo": "https://github.com/meganemura/quint_driver",
-    "uses": [],
-    "shares": []
+    "uses": []
   },
   {
     "source": "rubygems",
@@ -374,8 +339,7 @@
     "description": "RuboCop cops that rewrite dynamically defined methods as plain defs you can search for.",
     "license": "MIT",
     "repo": "https://github.com/meganemura/rubocop-dynamic_methods",
-    "uses": [],
-    "shares": []
+    "uses": []
   },
   {
     "source": "npm",
@@ -391,9 +355,6 @@
     "uses": [
       "archstrict",
       "nukadoko"
-    ],
-    "shares": [
-      "hegel"
     ]
   },
   {
@@ -411,9 +372,6 @@
       "archstrict",
       "nukadoko",
       "stryker-agent-reporter"
-    ],
-    "shares": [
-      "hegel"
     ]
   },
   {
@@ -431,9 +389,6 @@
       "archstrict",
       "nukadoko",
       "solarsql"
-    ],
-    "shares": [
-      "hegel"
     ]
   },
   {
@@ -468,8 +423,7 @@
     "uses": [
       "archstrict",
       "nukadoko"
-    ],
-    "shares": []
+    ]
   },
   {
     "source": "npm",
@@ -485,7 +439,6 @@
     "uses": [
       "archstrict",
       "nukadoko"
-    ],
-    "shares": []
+    ]
   }
 ]

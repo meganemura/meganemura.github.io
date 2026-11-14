@@ -3,7 +3,7 @@
 import { execFile } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 import { promisify } from "node:util";
-import { shared, tools } from "../tools.config.ts";
+import { tools } from "../tools.config.ts";
 import { diffFacts, fetchFacts, formatChanges, serializeFacts, type ToolFact } from "./facts/index.ts";
 
 const run = promisify(execFile);
@@ -16,7 +16,7 @@ async function resolveHead(repo: string): Promise<string> {
 }
 
 const target = new URL("../src/generated/tools.json", import.meta.url);
-const fresh = await fetchFacts(tools, { fetch, resolveHead }, shared);
+const fresh = await fetchFacts(tools, { fetch, resolveHead });
 
 if (process.argv.includes("--check")) {
   const committed = JSON.parse(readFileSync(target, "utf8")) as ToolFact[];

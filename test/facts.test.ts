@@ -49,7 +49,6 @@ test("npm uses lists sibling npm tools from dependencies and devDependencies, so
     license: null,
     repo: "https://github.com/o/alpha",
     uses: ["beta"],
-    shares: [],
   });
 });
 
@@ -79,7 +78,6 @@ test("a RubyGems payload gives version, info, licenses, and sibling gems from ru
     license: "MIT",
     repo: "https://github.com/o/ruby_tool",
     uses: ["gemma"],
-    shares: [],
   });
   expect(toGemFact(gemma, { name: "gemma", version: "1.0.0", info: null, licenses: null }, registry)).toMatchObject({
     description: "",
@@ -218,7 +216,7 @@ test("a change names the source, the tool, the field, and the fix", () => {
 
 test("a new commit on a repository alone is not drift, and a tool that moved to another source is", () => {
   expect(diffFacts([repoFact], [{ ...repoFact, commit: "2222222" }])).toEqual([]);
-  const asNpm: ToolFact = { source: "npm", slug: "kit", name: "kit", version: "1.0.0", description: "", bins: [], license: null, repo: "r", uses: [], shares: [] };
+  const asNpm: ToolFact = { source: "npm", slug: "kit", name: "kit", version: "1.0.0", description: "", bins: [], license: null, repo: "r", uses: [] };
   expect(diffFacts([asNpm], [repoFact])).toEqual([{ source: "github", slug: "kit", field: "source", committed: "npm", fresh: "github" }]);
 });
 
@@ -235,9 +233,9 @@ const factGen = gs.composite<ToolFact>((tc) => {
   };
   const source = tc.draw(gs.sampledFrom(["npm", "rubygems", "github"] as const));
   if (source === "npm") {
-    return { ...common, source, version: tc.draw(text(8)), bins: tc.draw(gs.arrays(text(5), { maxSize: 3 })), uses: tc.draw(gs.arrays(text(5), { maxSize: 3 })), shares: tc.draw(gs.arrays(text(5), { maxSize: 3 })) };
+    return { ...common, source, version: tc.draw(text(8)), bins: tc.draw(gs.arrays(text(5), { maxSize: 3 })), uses: tc.draw(gs.arrays(text(5), { maxSize: 3 })) };
   }
-  if (source === "rubygems") return { ...common, source, version: tc.draw(text(8)), uses: tc.draw(gs.arrays(text(5), { maxSize: 3 })), shares: tc.draw(gs.arrays(text(5), { maxSize: 3 })) };
+  if (source === "rubygems") return { ...common, source, version: tc.draw(text(8)), uses: tc.draw(gs.arrays(text(5), { maxSize: 3 })) };
   return {
     ...common,
     source,
@@ -278,11 +276,3 @@ test("a folded description parses back to its words joined by single spaces", ()
     const frontmatter = ["---", "name: skill", "description: >-", ...lines, "license: MIT", "---", "body"].join("\n");
     expect(parseFrontmatter(frontmatter)).toEqual({ name: "skill", description: words.join(" "), license: "MIT" });
   }));
-
-test("shares names each shared library a package depends on, or is", () => {
-  const hegel = [{ id: "hegel", name: "Hegel", npm: "@h/hegel", gem: "hegelgem" }];
-  expect(toNpmFact(alpha, { name: "alpha", version: "1.0.0", devDependencies: { "@h/hegel": "1" } }, registry, hegel).shares).toEqual(["hegel"]);
-  expect(toNpmFact(alpha, { name: "alpha", version: "1.0.0", dependencies: { hegelgem: "1" } }, registry, hegel).shares).toEqual([]);
-  expect(toGemFact(gemma, { name: "gemma", version: "1.0.0", dependencies: { development: [{ name: "hegelgem" }] } }, registry, hegel).shares).toEqual(["hegel"]);
-  expect(toGemFact(gemma, { name: "hegelgem", version: "1.0.0" }, registry, hegel).shares).toEqual(["hegel"]);
-});

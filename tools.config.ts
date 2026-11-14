@@ -137,15 +137,3 @@ export const archived: readonly ArchivedEntry[] = [
     },
   },
 ];
-
-// A library that tools on both registries depend on, each through its own package. The home page
-// draws the npm tools and the gems as two separate graphs, so a shared library is what joins them:
-// each tool that depends on it is marked in both graphs, and the space between the two names it.
-export interface SharedEntry {
-  readonly id: string;
-  readonly name: string;
-  readonly npm: string;
-  readonly gem: string;
-}
-
-export const shared: readonly SharedEntry[] = [{ id: "hegel", name: "Hegel", npm: "@hegeldev/hegel", gem: "hegeltest" }];
